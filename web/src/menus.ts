@@ -6,12 +6,15 @@ import { INK_UI, iconURL } from '../../art/src/icons.js';
 import { liveSprite } from './portraits.js';
 import { APP_NAME } from '../../sim/src/constants.js';
 import { save, persist, talentCost, tournamentState, subscribed, subscription, recordEntitlements, restorePurchases, eraseProgress } from './state.js';
-import { sheet, toast } from './ui.js';
+import { sheet, toast, buyBonus, BONUS_PRICE, type BonusId } from './ui.js';
 import { sfx } from './audio.js';
 import { applyPrefs } from './prefs.js';
 import { clearPortraits } from './portraits.js';
 import { DRAGON, REWARDED_AD } from './economy.js';
 import { openDragon } from './dragon.js';
+import { SKINS, PREMIUM_TRACK, PASS, type SkinId } from './season.js';
+import { skinPreview } from './skins.js';
+import { passSheet } from './pass.js';
 
 // ───────────────────────────── Héros et talents ─────────────────────────────
 
@@ -43,11 +46,32 @@ export function heroesSheet(onChange: () => void): void {
         ? `<label class="toggle parure"><span>Parure du Dragon<small>Apparence exclusive de l’Ordre du Dragon</small></span><input type="checkbox" class="skin" ${s.subscription.skin ? 'checked' : ''}/><i></i></label>`
         : `<p class="fine left parure-locked"><img src="${iconURL(INK_UI.crown)}" alt=""/> Parure du Dragon : apparence réservée aux membres de l’Ordre du Dragon.</p>`
     }
+    <h3 class="sec">Apparences <small>pass de saison · cosmétiques</small></h3>
+    <div class="skins">${skinCards()}</div>
     <h3 class="sec">Talents permanents <small>désactivés en tournoi</small></h3>
     <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', INK_UI.heart)}${talentRow('strength', 'Force', '+2 % dégâts', INK_UI.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', INK_UI.coin)}${talentRow('fortune', 'Fortune', '+5 % or', INK_UI.chest)}</div>
     <p class="fine">Or disponible : <b>${s.gold}</b></p>`,
   );
   o.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 92, 2.1, 'idle', { aiming: true, facing: 0.15 })));
+  const bindSkins = () =>
+    o.querySelectorAll<HTMLButtonElement>('.skin-card').forEach((b) =>
+      b.addEventListener('click', () => {
+        const id = (b.dataset.skin || null) as SkinId | null;
+        if (id && !s.skins.includes(id)) {
+          const tier = PREMIUM_TRACK.findIndex((r) => r.skin === id) + 1;
+          toast(`Pass de saison · palier ${tier} (premium)`);
+          return;
+        }
+        s.skin = id;
+        persist();
+        clearPortraits();
+        sfx('tap');
+        o.querySelector('.skins')!.innerHTML = skinCards();
+        bindSkins();
+        onChange();
+      }),
+    );
+  bindSkins();
   o.querySelector<HTMLInputElement>('.skin')?.addEventListener('change', (e) => {
     s.subscription.skin = (e.target as HTMLInputElement).checked;
     persist();
@@ -89,6 +113,17 @@ export function heroesSheet(onChange: () => void): void {
   );
 }
 
+function skinCards(): string {
+  const s = save();
+  const card = (id: SkinId | null) => {
+    const owned = !id || s.skins.includes(id);
+    const tier = id ? PREMIUM_TRACK.findIndex((r) => r.skin === id) + 1 : 0;
+    const img = skinPreview(id, 64);
+    return `<button class="skin-card${s.skin === id ? ' sel' : ''}${owned ? '' : ' locked'}" data-skin="${id ?? ''}"><img src="${img}" alt=""/><b>${id ? SKINS[id].name : 'Sans apparence'}</b><small>${owned ? (s.skin === id ? 'Portée' : 'Porter') : `Pass · palier ${tier}`}</small></button>`;
+  };
+  return [null, ...(Object.keys(SKINS) as SkinId[])].map(card).join('');
+}
+
 // ───────────────────────────── Boutique ─────────────────────────────
 
 interface Product {
@@ -113,16 +148,19 @@ export function shopSheet(onChange: () => void): void {
     'Boutique',
     `<div class="offer starter${s.starterPack ? ' owned' : ''}"><div class="ribbon">Une seule fois</div><div class="of-sprite" data-sprite="windMonk"></div><div><b>Offre de départ</b><small>300 gemmes · Moine du vent · 5 bonus</small></div><button class="btn primary small" data-buy="starter" ${s.starterPack ? 'disabled' : ''}>${s.starterPack ? 'Acquise' : '2,99 €'}</button></div>
     <div class="offer dragon"><img src="${iconURL(INK_UI.crown)}"/><div><b>Ordre du Dragon</b><small>Vies illimitées · ${DRAGON.weeklyGems} gemmes/semaine · +25 % or · apparence exclusive</small><small class="trial">${subscribed() ? 'Tu es membre de l’Ordre.' : s.subscription.trialUsed ? '4,99 €/mois ou 39,99 €/an' : 'Essai gratuit de 3 jours, puis 4,99 €/mois ou 39,99 €/an'}</small></div><button class="btn primary small dragon-open">${subscribed() ? 'Gérer' : 'Découvrir'}</button></div>
+    <div class="offer pass-offer"><img src="${iconURL(INK_UI.chest)}" alt=""/><div><b>Pass de saison ${s.pass.season}</b><small>${s.pass.premium ? 'Piste premium débloquée · réclame tes récompenses' : `30 paliers · 3 apparences · piste premium ${PASS.price}`}</small></div><button class="btn primary small pass-open">${s.pass.premium ? 'Ouvrir' : 'Voir'}</button></div>
     <h3 class="sec">Gemmes</h3>
     <div class="gem-grid">${PRODUCTS.map((p, i) => `<button class="gem-pack" data-buy="${p.id}"><div class="gp-gems" style="--n:${i + 1}">${`<img src="${iconURL(INK_UI.gem)}"/>`.repeat(i + 1)}</div><b>${p.note}</b><span class="price">${p.price}</span></button>`).join('')}</div>
     <h3 class="sec">Avec tes gemmes</h3>
     <div class="spend"><button class="btn ghost" data-spend="lives"><img src="${iconURL(INK_UI.heart)}"/> 5 vies <em><img src="${iconURL(INK_UI.gem)}"/>90</em></button>
     <button class="btn ghost" data-spend="potion"><img src="${iconURL(INK_UI.potion)}"/> Potion <em><img src="${iconURL(INK_UI.coin)}"/>150</em></button>
+    <button class="btn ghost" data-spend="scroll"><img src="${iconURL(INK_UI.scroll)}"/> Parchemin <em><img src="${iconURL(INK_UI.gem)}"/>${BONUS_PRICE.scroll.amount}</em></button>
     <button class="btn ghost" data-spend="aegis"><img src="${iconURL(INK_UI.aegis)}"/> Égide <em><img src="${iconURL(INK_UI.coin)}"/>200</em></button></div>
     <p class="fine">Prototype web : les achats réels passent par StoreKit 2 dans l’app iOS. Ici, ils sont simulés. Aucun objet aléatoire. Publicité seulement si tu la demandes, contre une vie.</p>`,
   );
   // §11 : la boutique est l'un des trois endroits où l'offre d'abonnement est présentée
   o.querySelector('.dragon-open')!.addEventListener('click', () => openDragon('shop', onChange));
+  o.querySelector('.pass-open')!.addEventListener('click', () => passSheet(onChange));
   o.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 64, 1.5, 'idle', { aiming: true })));
   o.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -153,12 +191,7 @@ export function shopSheet(onChange: () => void): void {
         if (s.gems < 90) return toast('Pas assez de gemmes');
         s.gems -= 90;
         s.lives = { lives: 5, refillFrom: Date.now() / 1000 };
-      } else {
-        const cost = k === 'potion' ? 150 : 200;
-        if (s.gold < cost) return toast('Pas assez d’or');
-        s.gold -= cost;
-        s.bonuses[k as 'potion' | 'aegis']++;
-      }
+      } else if (!buyBonus(k as BonusId)) return;
       persist();
       sfx('tap');
       toast('C’est fait ✓');
@@ -169,17 +202,37 @@ export function shopSheet(onChange: () => void): void {
 
 // ───────────────────────────── Tournoi ─────────────────────────────
 
+const RIVALS = ['Colombine', 'Arlequin', 'Scaramouche', 'Pierrot', 'Polichinelle', 'Lunelle', 'Brindille', 'Fil-d’argent', 'Ciseline', 'Pénombre', 'Mandragore', 'Guignol'];
+
+/** Classement de démonstration : rivaux fictifs tirés de la semaine (même liste pour tous), ton meilleur score inséré. */
+export function leaderboard(weekKey: string, best: number): string {
+  let h = 0;
+  for (const c of weekKey) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const rnd = () => ((h = (Math.imul(h ^ (h >>> 15), 2246822519) + 0x9e3779b9) >>> 0) / 4294967296);
+  const off = h % RIVALS.length;
+  const rows = RIVALS.slice(0, 9).map((_, i) => ({ name: RIVALS[(i + off) % RIVALS.length], score: tournamentScore(28 + Math.floor(rnd() * 30), 80 + Math.floor(rnd() * 500), 120 + Math.floor(rnd() * 110)), me: false }));
+  if (best > 0) rows.push({ name: 'Toi', score: best, me: true });
+  rows.sort((a, b) => b.score - a.score);
+  const medal = (i: number) => (i < 3 ? ['or', 'argent', 'bronze'][i] : '');
+  return `<ol class="board">${rows
+    .map((r, i) => `<li class="${r.me ? 'me' : ''} ${medal(i)}"><span class="rk">${i + 1}</span><span class="nm">${r.name}</span><b>${r.score.toLocaleString('fr-FR')}</b></li>`)
+    .join('')}${best > 0 ? '' : `<li class="me empty"><span class="rk">—</span><span class="nm">Toi</span><b>pas encore de score</b></li>`}</ol>
+    <p class="fine left tiers">Récompenses cosmétiques de fin de semaine : top 1 %, top 10 %, top 50 % et participation.</p>`;
+}
+
 export function tournamentSheet(weekKey: string, weekNo: number, onPlay: () => void): void {
   const t = tournamentState(weekKey);
   const ex = tournamentScore(42, 380, 150);
   const { o, close } = sheet(
     'tournament-sheet',
-    `Tournoi · semaine ${weekNo}`,
-    `<div class="tour-hero"><img src="${iconURL(INK_UI.trophy)}"/><div><b>4 salles · difficulté niveau 120</b><small>Même niveau, mêmes pouvoirs proposés et même héros pour tout le monde.</small></div></div>
+    'Tournoi',
+    `<div class="tour-hero"><img src="${iconURL(INK_UI.trophy)}"/><div><b>Semaine ${weekNo} · 4 salles · difficulté niveau 120</b><small>Même niveau, mêmes pouvoirs proposés et même héros pour tout le monde.</small></div></div>
     <div class="tour-stats"><div><span>Essais restants</span><b>${t.attempts}/5</b></div><div><span>Ton meilleur score</span><b>${t.best || '—'}</b></div></div>
     <h3 class="sec">Règles</h3>
     <ul class="rules"><li>Talents, bonus et « continuer » désactivés.</li><li>5 essais par semaine pour tout le monde, non achetables.</li><li>Score = ennemis × 100 + PV restants × 5 + (240 − secondes) × 40. Exemple : 42 ennemis, 380 PV, 150 s → <b>${ex}</b>.</li><li>Ton meilleur essai compte. Récompenses cosmétiques : top 1 %, 10 %, 50 % et participation.</li></ul>
-    <p class="fine">Le classement hebdomadaire est tenu par Game Center dans l’app iOS.</p>
+    <h3 class="sec">Classement <small>aperçu local</small></h3>
+    ${leaderboard(weekKey, t.best)}
+    <p class="fine">Aperçu local avec des rivaux fictifs : dans l’app iOS, le classement hebdomadaire est tenu par Game Center.</p>
     <button class="btn primary big tplay" ${t.attempts > 0 ? '' : 'disabled'}>Jouer (${t.attempts} essai${t.attempts > 1 ? 's' : ''})</button>`,
   );
   o.querySelector('.tplay')!.addEventListener('click', async () => {
@@ -211,7 +264,7 @@ export function settingsSheet(onChange: () => void = () => undefined): void {
     ${tog('autoFire', 'Tir automatique', 'Ta héroïne tire aussi en se déplaçant (désactivable, sauf en tournoi)')}${tog('reduceMotion', 'Réduire les animations', 'Coupe secousses, arrêts sur image et animations décoratives')}
     <h3 class="sec">Achats</h3>
     <button class="row-btn manage"><span>Gérer l’abonnement<small class="dragon-sum">Ordre du Dragon · ${dragonSummary()}</small></span><b>›</b></button>
-    <button class="row-btn restore"><span>Restaurer les achats<small>Offre de départ et Ordre du Dragon</small></span><b>›</b></button>
+    <button class="row-btn restore"><span>Restaurer les achats<small>Offre de départ, pass de saison et Ordre du Dragon</small></span><b>›</b></button>
     <h3 class="sec">Confidentialité</h3>
     ${tog('personalizedAds', 'Publicités personnalisées', 'Désactivé par défaut. Sur iPhone, active la demande de suivi d’Apple (ATT).')}
     <p class="fine left">Ta progression reste sur ton appareil (et dans ton iCloud sur iPhone). Aucun compte, aucun traçage. La seule publicité est celle que tu choisis de regarder pour gagner une vie : ${REWARDED_AD.perDay} par jour au plus, jamais pendant un niveau ni en tournoi, jamais pour les membres de l’Ordre. Sans ton accord, elle n’est pas personnalisée.</p>

@@ -15,13 +15,20 @@ import { titleScreen, preLevel, choosePower, victory, defeat, pauseMenu, toast, 
 import { save, recordAttempt, persist, tournamentState, canPlay, subscribed, lives, weeklyGemsReady, claimWeekly, dragonSkin } from './state.js';
 import { sfx, wakeAudio } from './audio.js';
 import { applyPrefs } from './prefs.js';
-import { installDragonSkin } from './skins.js';
+import { installDragonSkin, installPassSkins } from './skins.js';
+import { passSheet, passBadge } from './pass.js';
 import { portrait } from './portraits.js';
-import { livesSheet, outOfLives } from './dragon.js';
+import { livesSheet, outOfLives, openDragon } from './dragon.js';
 import { DRAGON } from './economy.js';
 
-// Parure du Dragon (apparence exclusive des abonnés) et réglages appliqués dès le lancement
-installDragonSkin(dragonSkin);
+const params = new URLSearchParams(location.search);
+
+// Apparences (pass de saison, Parure du Dragon) et réglages appliqués dès le lancement.
+// La page d'atlas dessine les marionnettes nues.
+if (!params.has('atlas')) {
+  installPassSkins(() => save().skin);
+  installDragonSkin(dragonSkin);
+}
 applyPrefs();
 // la musique ne peut démarrer qu'après un premier geste (règle des navigateurs)
 addEventListener('pointerdown', () => wakeAudio(), { capture: true });
@@ -40,8 +47,6 @@ function level(n: number): LevelDef {
   const e = LEVEL_INDEX[n];
   return generateLevel(n, e?.seed ?? 1, ROOMS, e?.budgetScale ?? 1);
 }
-
-const params = new URLSearchParams(location.search);
 
 function clear(): void {
   root.innerHTML = '';
@@ -78,7 +83,15 @@ function showMap(): void {
     const t = tributeTag();
     if (t) screen.appendChild(t);
     screen.querySelector('.avatar image')?.setAttribute('href', portrait('hero', 64, { scale: 1.5, dy: 8 }));
+    badge();
     tickLives(false);
+  };
+  // pastille du pass : récompenses à réclamer
+  const badge = () => {
+    const b = screen.querySelector('[data-tab="pass"]');
+    b?.querySelector('.dot')?.remove();
+    const n = passBadge();
+    if (b && n > 0) b.prepend(el(`<i class="dot">${n}</i>`));
   };
   refreshMap = refresh;
   screen.addEventListener('click', (e) => {
@@ -95,6 +108,7 @@ function showMap(): void {
     <button data-tab="heroes"><img src="${iconURL(PAPER_UI.aegis)}"/><span>Héros</span></button>
     <button data-tab="shop"><img src="${iconURL(PAPER_UI.gem)}"/><span>Boutique</span></button>
     <button data-tab="map" class="on"><img src="${iconURL(PAPER_UI.star)}"/><span>Carte</span></button>
+    <button data-tab="pass"><img src="${iconURL(PAPER_UI.chest)}"/><span>Pass</span></button>
     <button data-tab="tour"><img src="${iconURL(PAPER_UI.trophy)}"/><span>Tournoi</span></button>
     <button data-tab="settings"><img src="${iconURL(PAPER_UI.scroll)}"/><span>Réglages</span></button>
   </nav>`);
@@ -104,10 +118,12 @@ function showMap(): void {
     const tab = b.dataset.tab;
     if (tab === 'heroes') heroesSheet(refresh);
     else if (tab === 'shop') shopSheet(refresh);
+    else if (tab === 'pass') passSheet(refresh);
     else if (tab === 'tour') openTournament();
     else if (tab === 'settings') settingsSheet(refresh);
   });
   screen.appendChild(nav);
+  badge();
   root.appendChild(screen);
   function tickLives(loop = true): void {
     const timer = screen.querySelector<HTMLElement>('.timer');
@@ -164,8 +180,8 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
         defeat: (used) => defeat(used),
         pause: () => pauseMenu(),
         finish: async (r) => {
-          const { firstThree } = recordAttempt(lvl.n, true, r.stars);
-          const next = await victory(lvl, r, firstThree);
+          const res = recordAttempt(lvl.n, true, r.stars);
+          const next = await victory(lvl, r, res);
           c.destroy();
           showMap();
           if (next === 'next' && lvl.n < LEVEL_COUNT) void openLevel(lvl.n + 1);
@@ -187,6 +203,8 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
         },
       },
     );
+    // poignée de recette (tests Playwright) : le combat en cours
+    (window as unknown as { __combat?: Combat }).__combat = c;
   };
   if (choice.scroll) {
     // Parchemin : choisir un pouvoir parmi trois avant d'entrer
@@ -251,13 +269,44 @@ async function demoUi(kind: string): Promise<void> {
     setTimeout(() => void choosePower(['multishot', 'frost', 'crit'], newHero(NO_TALENTS)), 300);
   } else if (kind === 'victory') {
     play(level(5), { potion: false, scroll: false, aegis: false });
-    setTimeout(() => void victory(level(5), { won: true, stars: 3, hpFrac: 0.9, seconds: 74, kills: 23, continues: 0 }, true), 300);
+    setTimeout(() => void victory(level(5), { won: true, stars: 3, hpFrac: 0.9, seconds: 74, kills: 23, continues: 0 }, { firstThree: true, pass: { points: 40, tierBefore: 2, tierAfter: 3 }, chests: [{ index: 1, gold: 200, gems: 20, bonus: 'potion' }] }), 300);
   } else if (kind === 'defeat') {
     play(level(5), { potion: false, scroll: false, aegis: false });
     setTimeout(() => void defeat(0), 300);
   }
 }
+/**
+ * ?screen=<nom> ouvre directement un écran (captures `pnpm web:shots`, recette) :
+ * title, map, prelevel, combat, powers, victory, defeat, pause, heroes, shop, pass, tournament, settings, dragon, lives.
+ */
+function openScreen(name: string): void {
+  const wk = isoWeek(new Date());
+  const weekKey = `${wk.year}-W${wk.week}`;
+  if (name === 'title') return void root.appendChild(titleScreen(() => showMap()));
+  if (['powers', 'victory', 'defeat'].includes(name)) return void demoUi(name);
+  if (name === 'combat') return play(level(Number(params.get('level') ?? 3)), { potion: false, scroll: false, aegis: false });
+  if (name === 'pause') {
+    play(level(3), { potion: false, scroll: false, aegis: false });
+    setTimeout(() => document.querySelector<HTMLElement>('.pause-btn')?.click(), 600);
+    return;
+  }
+  showMap();
+  const open: Record<string, () => void> = {
+    map: () => undefined,
+    prelevel: () => void openLevel(Number(params.get('level') ?? Math.min(save().unlocked, LEVEL_COUNT))),
+    heroes: () => heroesSheet(() => refreshMap()),
+    shop: () => shopSheet(() => refreshMap()),
+    pass: () => passSheet(() => refreshMap()),
+    tournament: () => tournamentSheet(weekKey, wk.week, () => playTournament(weekKey)),
+    settings: () => settingsSheet(() => refreshMap()),
+    dragon: () => openDragon('shop', () => refreshMap()),
+    lives: () => void livesSheet(() => refreshMap()),
+  };
+  (open[name] ?? open.map)();
+}
+
 if (params.has('atlas')) mountAtlas();
+else if (params.has('screen')) openScreen(params.get('screen')!);
 else if (params.has('ui')) void demoUi(params.get('ui')!);
 else if (params.has('sheet')) mountSheet(root);
 else if (params.has('level')) {

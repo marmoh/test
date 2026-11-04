@@ -45,6 +45,23 @@ Par royaume : silhouettes lointaines (fougères, roseaux, cactus et ruines, aigu
 rochers et haies propres à chaque royaume, eau et lave en bandes de papier ondulées, cadre de scène à appliques.
 `paintDecorAnim` anime une couche légère : herbes qui ondulent, petits décors suspendus à des fils, flammes des appliques.
 
+### Décor en pièces (atlas iOS)
+`pnpm art:atlas` découpe le décor en pièces que SpriteKit recompose : `Decor_<Royaume>.atlas` (lumière de l'écran,
+frise lointaine, découpes semées, rochers, haies, eau ou lave en autotile 16 cases, vagues, touffes, découpes
+suspendues et dérivantes), `Stage.atlas` (cadre de scène, fibres du papier, rideau, lambrequin, rampe, flammes)
+et `VFX.atlas`. Noms, tailles et ancres : `ios/Resources/Atlases/README.md` ; aperçu : `?atlas=preview&k=0…4`.
+
+## Effets (`art/src/vfx.ts`, `VFX.atlas`)
+Impact (losange de lumière, éclats d'encre ; critique : étoile cernée de vermillon), onde d'encre, chutes de papier,
+éclair de découpe, trou dans l'écran et morceau qui tombe, télégraphes (disque et bande hachurés vermillon qui se
+remplissent), zone de feu, orbe et gerbe de soin (jade), bouclier, porte de scène qui s'ouvre, confettis de papier
+(pouvoir Confettis), « clic » de ciseaux quand le fil est coupé, nœud de fermeture de la boucle.
+
+## Apparences (pass de saison)
+Accessoires de papier épinglés sur la marionnette, sans effet en jeu (`web/src/skins.ts`) : **Oreilles de renard**
+(oreilles et queue d'encre, pointes de lumière), **Ailes de papier** (ailes ajourées qui battent, broche jade),
+**Couronne de lune** (croissant d'or à la feuille). Elles se portent avec ou sans la Parure du Dragon.
+
 ## Ciseaux de lune (rendu du fil)
 Le fil est une entaille lumineuse doublée de pointillés d'encre, qui pâlit en séchant. Boucle presque fermée : la zone
 s'éclaire. Découpe : éclair de lumière, trou sombre (on voit les coulisses) puis le morceau de papier tombe en tournoyant.

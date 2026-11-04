@@ -36,7 +36,7 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] 24 icônes de pouvoirs + icônes d'interface (SVG)
 - [x] Moine du vent, Sorcier de braise
 - [x] `pnpm art:atlas` : héros, ennemis, boss, icônes en @2x/@3x (`ios/Resources/Atlases/*.atlas`)
-- [ ] Atlas des décors des 5 royaumes et des VFX
+- [x] Atlas des décors des 5 royaumes et des VFX
 
 ## M5 — Prototype web (`web/`)
 - [x] Combat jouable au doigt et au clavier, interpolation, télégraphes, particules, secousses, arrêt sur image
@@ -49,8 +49,8 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] Ordre du Dragon simulé (`web/src/dragon.ts`, `economy.ts`) : offre, essai 3 jours, renouvellement, résiliation, changement de formule ; avantages appliqués (vies illimitées, tribut de 60 gemmes/semaine, Parure du Dragon, +25 % d'or) ; paywall aux 3 endroits du §11
 - [x] Feuille des vies (compteur de la carte, panne de vies) et publicité récompensée simulée « +1 vie » (5 s, 3/jour, délai 15 min) — DECISIONS #37
 - [x] Tests vitest de la logique d'abonnement et de publicité (`web/test/economy.test.ts`)
-- [ ] Pass de saison
-- [ ] Captures de chaque écran (`pnpm web:shots`)
+- [x] Pass de saison
+- [x] Captures de chaque écran (`pnpm web:shots`)
 
 ## M6 — iOS (`ios/`)
 - [ ] `project.yml` XcodeGen (iOS 17+), cibles app + tests

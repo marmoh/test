@@ -66,7 +66,7 @@ function inked(ctx: Ctx, path: () => void, fill: string = INK): void {
 // ───────────────────────────── Couche statique ─────────────────────────────
 
 /** Couche statique (écran, cadre, obstacles), dessinée une fois par salle. */
-export function paintArenaStatic(ctx: Ctx, grid: string[], th: KingdomTheme): void {
+export function paintArenaStatic(ctx: Ctx, grid: string[], th: KingdomTheme, opts: { far?: boolean } = {}): void {
   // cadre de scène en bois sombre
   ctx.fillStyle = INK;
   ctx.fillRect(-WALL, -WALL, AW + WALL * 2, AH + WALL * 2);
@@ -107,12 +107,7 @@ export function paintArenaStatic(ctx: Ctx, grid: string[], th: KingdomTheme): vo
   }
 
   // écran de papier : lumière au centre, bords brûlés
-  const g = ctx.createRadialGradient(AW / 2, AH * 0.45, 30, AW / 2, AH * 0.5, AH * 0.72);
-  g.addColorStop(0, th.light);
-  g.addColorStop(0.55, th.paper);
-  g.addColorStop(1, th.edge);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, AW, AH);
+  paintScreenLight(ctx, th);
 
   // fibres du papier
   for (let i = 0; i < 260; i++) {
@@ -147,7 +142,7 @@ export function paintArenaStatic(ctx: Ctx, grid: string[], th: KingdomTheme): vo
   horizon(ctx, th);
 
   // silhouettes lointaines projetées sur l'écran (décor, encre diluée)
-  for (let r = 0; r < ROWS; r++) {
+  for (let r = 0; r < ROWS && opts.far !== false; r++) {
     for (let c = 0; c < COLS; c++) {
       if (!isFree(grid[r][c]) || grid[r][c] === 'P' || hashCell(c, r) < 0.55) continue;
       const x = c * CELL + 8 + hashCell(c, r, 1) * (CELL - 16);
@@ -164,6 +159,16 @@ export function paintArenaStatic(ctx: Ctx, grid: string[], th: KingdomTheme): vo
       if (grid[r][c] === '#') rock(ctx, c, r, th);
     }
   }
+}
+
+/** Lumière de l'écran : centre éclairé, papier, bords brûlés (AW × AH). */
+export function paintScreenLight(ctx: Ctx, th: KingdomTheme): void {
+  const g = ctx.createRadialGradient(AW / 2, AH * 0.45, 30, AW / 2, AH * 0.5, AH * 0.72);
+  g.addColorStop(0, th.light);
+  g.addColorStop(0.55, th.paper);
+  g.addColorStop(1, th.edge);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, AW, AH);
 }
 
 function diamond(ctx: Ctx, x: number, y: number, s: number): void {
@@ -929,51 +934,7 @@ export function paintDecorAnim(ctx: Ctx, grid: string[], th: KingdomTheme, t: nu
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(Math.sin(t * 1.3 + ph) * 0.14 + Math.sin(t * 2.9 + ph * 2) * 0.05);
-    switch (kind) {
-      case 'firefly':
-        if (ph > 3) tuft(ctx, s);
-        else fern(ctx, col, s * 0.8);
-        break;
-      case 'spore':
-        reeds(ctx, col, s);
-        break;
-      case 'sand':
-        // herbe sèche
-        ctx.lineWidth = 1.1 * s;
-        ctx.beginPath();
-        ctx.moveTo(0, 3);
-        ctx.quadraticCurveTo(-3 * s, -3 * s, -7 * s, -5 * s);
-        ctx.moveTo(0, 3);
-        ctx.quadraticCurveTo(2 * s, -4 * s, 6 * s, -7 * s);
-        ctx.moveTo(0, 3);
-        ctx.lineTo(0.6 * s, -8 * s);
-        ctx.stroke();
-        break;
-      case 'snow':
-        // herbes givrées
-        ctx.lineWidth = 1.1 * s;
-        ctx.beginPath();
-        ctx.moveTo(-2 * s, 3);
-        ctx.lineTo(-4 * s, -6 * s);
-        ctx.moveTo(1 * s, 3);
-        ctx.lineTo(1.4 * s, -8 * s);
-        ctx.moveTo(3 * s, 3);
-        ctx.lineTo(6 * s, -4 * s);
-        ctx.stroke();
-        holes(ctx, [-4 * s, -6 * s, 1.1 * s, 1.4 * s, -8 * s, 1.1 * s, 6 * s, -4 * s, 1 * s], col);
-        break;
-      case 'ember':
-        // brindilles calcinées
-        ctx.lineWidth = 1.2 * s;
-        ctx.beginPath();
-        ctx.moveTo(0, 3);
-        ctx.lineTo(-1 * s, -7 * s);
-        ctx.lineTo(-4 * s, -9 * s);
-        ctx.moveTo(-0.6 * s, -3 * s);
-        ctx.lineTo(3 * s, -6 * s);
-        ctx.stroke();
-        break;
-    }
+    swayTuft(ctx, kind, col, s, ph);
     ctx.restore();
   }
 
@@ -1022,14 +983,7 @@ export function paintDecorAnim(ctx: Ctx, grid: string[], th: KingdomTheme, t: nu
     for (const side of [0, 1]) {
       const x = side ? AW + WALL / 2 : -WALL / 2;
       const f = 0.75 + 0.15 * Math.sin(t * 9.3 + j * 2 + side) + 0.1 * Math.sin(t * 23.7 + j * 5 + side * 3);
-      ctx.fillStyle = LAMP;
-      ctx.beginPath();
-      ctx.moveTo(x - 2.6 * f, y + 2);
-      ctx.quadraticCurveTo(x - 2.4 * f, y - 3 * f, x + Math.sin(t * 7 + j) * 0.8, y - 6.5 * f);
-      ctx.quadraticCurveTo(x + 2.4 * f, y - 3 * f, x + 2.6 * f, y + 2);
-      ctx.closePath();
-      ctx.fill();
-      circle(ctx, x, y + 0.6, 1.1 * f, CUT);
+      lampFlame(ctx, x, y, f, Math.sin(t * 7 + j) * 0.8);
       // flaque de lumière sur l'écran (aplat, sans dégradé)
       const lx = side ? AW : 0;
       ctx.fillStyle = alpha(CUT, 0.07 * f);
@@ -1045,7 +999,60 @@ export function paintDecorAnim(ctx: Ctx, grid: string[], th: KingdomTheme, t: nu
   ctx.restore();
 }
 
-function hangingProp(ctx: Ctx, kind: KingdomTheme['moteKind'], col: string, hole: string, ph: number): void {
+/** Une touffe du pied des obstacles (herbe, fougère, roseaux, herbe sèche, herbes givrées, brindilles). */
+export function swayTuft(ctx: Ctx, kind: KingdomTheme['moteKind'], col: string, s: number, ph: number): void {
+  ctx.strokeStyle = col;
+  ctx.fillStyle = col;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  switch (kind) {
+    case 'firefly':
+      if (ph > 3) tuft(ctx, s);
+      else fern(ctx, col, s * 0.8);
+      break;
+    case 'spore':
+      reeds(ctx, col, s);
+      break;
+    case 'sand':
+      // herbe sèche
+      ctx.lineWidth = 1.1 * s;
+      ctx.beginPath();
+      ctx.moveTo(0, 3);
+      ctx.quadraticCurveTo(-3 * s, -3 * s, -7 * s, -5 * s);
+      ctx.moveTo(0, 3);
+      ctx.quadraticCurveTo(2 * s, -4 * s, 6 * s, -7 * s);
+      ctx.moveTo(0, 3);
+      ctx.lineTo(0.6 * s, -8 * s);
+      ctx.stroke();
+      break;
+    case 'snow':
+      // herbes givrées
+      ctx.lineWidth = 1.1 * s;
+      ctx.beginPath();
+      ctx.moveTo(-2 * s, 3);
+      ctx.lineTo(-4 * s, -6 * s);
+      ctx.moveTo(1 * s, 3);
+      ctx.lineTo(1.4 * s, -8 * s);
+      ctx.moveTo(3 * s, 3);
+      ctx.lineTo(6 * s, -4 * s);
+      ctx.stroke();
+      holes(ctx, [-4 * s, -6 * s, 1.1 * s, 1.4 * s, -8 * s, 1.1 * s, 6 * s, -4 * s, 1 * s], col);
+      break;
+    case 'ember':
+      // brindilles calcinées
+      ctx.lineWidth = 1.2 * s;
+      ctx.beginPath();
+      ctx.moveTo(0, 3);
+      ctx.lineTo(-1 * s, -7 * s);
+      ctx.lineTo(-4 * s, -9 * s);
+      ctx.moveTo(-0.6 * s, -3 * s);
+      ctx.lineTo(3 * s, -6 * s);
+      ctx.stroke();
+      break;
+  }
+}
+
+export function hangingProp(ctx: Ctx, kind: KingdomTheme['moteKind'], col: string, hole: string, ph: number): void {
   ctx.fillStyle = col;
   ctx.strokeStyle = col;
   switch (kind) {
@@ -1103,7 +1110,7 @@ function hangingProp(ctx: Ctx, kind: KingdomTheme['moteKind'], col: string, hole
   }
 }
 
-function driftProp(ctx: Ctx, kind: KingdomTheme['moteKind'], col: string, i: number): void {
+export function driftProp(ctx: Ctx, kind: KingdomTheme['moteKind'], col: string, i: number): void {
   switch (kind) {
     case 'firefly':
       almonds(ctx, [0, 0, 7, 0, 2.2], col);
@@ -1284,3 +1291,143 @@ export function paintFrame(ctx: Ctx, w: number, h: number, top: number, bottom: 
     }
   }
 }
+
+/** Flamme d'une applique du cadre : `f` ≈ 0,5–1 (vacillement), `lean` décale la pointe. */
+export function lampFlame(ctx: Ctx, x: number, y: number, f: number, lean = 0): void {
+  ctx.fillStyle = LAMP;
+  ctx.beginPath();
+  ctx.moveTo(x - 2.6 * f, y + 2);
+  ctx.quadraticCurveTo(x - 2.4 * f, y - 3 * f, x + lean, y - 6.5 * f);
+  ctx.quadraticCurveTo(x + 2.4 * f, y - 3 * f, x + 2.6 * f, y + 2);
+  ctx.closePath();
+  ctx.fill();
+  circle(ctx, x, y + 0.6, 1.1 * f, CUT);
+}
+
+// ───────────────────────────── Pièces isolées (atlas iOS) ─────────────────────────────
+// Le pipeline d'atlas (`pnpm art:atlas`) découpe le décor en pièces : chaque fonction dessine une pièce
+// centrée sur sa case (origine = coin haut-gauche de la case), avec les mêmes tracés que l'arène.
+
+/** Une grille vide (sol libre) aux dimensions de l'arène, avec quelques cases imposées. */
+function gridWith(cells: [number, number, string][]): string[] {
+  const g = Array.from({ length: ROWS }, () => '.'.repeat(COLS).split(''));
+  for (const [c, r, ch] of cells) g[r][c] = ch;
+  return g.map((row) => row.join(''));
+}
+
+/** Rocher du royaume ; `variant` choisit la case d'origine (le tracé dépend de la case). */
+export function paintRockPiece(ctx: Ctx, th: KingdomTheme, variant: number): void {
+  const c = 1 + (variant % 7);
+  const r = 2 + ((variant * 3) % 11);
+  ctx.save();
+  ctx.translate(-c * CELL, -r * CELL);
+  rock(ctx, c, r, th);
+  ctx.restore();
+}
+
+export function paintHedgePiece(ctx: Ctx, th: KingdomTheme, variant: number): void {
+  const c = 1 + (variant % 7);
+  const r = 2 + ((variant * 5) % 11);
+  ctx.save();
+  ctx.translate(-c * CELL, -r * CELL);
+  hedge(ctx, c, r, th);
+  ctx.restore();
+}
+
+/**
+ * Case d'eau (ou de lave) selon ses voisines liquides : `mask` = N 1 | E 2 | S 4 | O 8.
+ * Les 16 cases forment un jeu d'« autotiles » (coins arrondis et berges festonnées côté sol).
+ */
+export function paintLiquidPiece(ctx: Ctx, th: KingdomTheme, mask: number): void {
+  const c = 4;
+  const r = 7;
+  const cells: [number, number, string][] = [[c, r, '~']];
+  if (mask & 1) cells.push([c, r - 1, '~']);
+  if (mask & 2) cells.push([c + 1, r, '~']);
+  if (mask & 4) cells.push([c, r + 1, '~']);
+  if (mask & 8) cells.push([c - 1, r, '~']);
+  const g = gridWith(cells);
+  ctx.save();
+  ctx.translate(-c * CELL, -r * CELL);
+  ctx.beginPath();
+  ctx.rect(c * CELL - 2, r * CELL - 2, CELL + 4, CELL + 4);
+  ctx.clip();
+  liquidCell(ctx, g, c, r, th, 0);
+  liquidCell(ctx, g, c, r, th, 1);
+  ctx.restore();
+}
+
+/** Crêtes de vagues animées d'une case liquide (calque transparent, même boucle que `paintLiquids`). */
+export function paintLiquidWaves(ctx: Ctx, th: KingdomTheme, t: number): void {
+  paintLiquids(ctx, gridWith([[0, 0, '~']]), th, t);
+}
+
+/** Petite découpe lointaine semée sur le sol (4 variantes par royaume). */
+export function paintFarPiece(ctx: Ctx, th: KingdomTheme, variant: number): void {
+  farDetail(ctx, 0, 0, th, (variant % 4) / 4 + 0.01, 0);
+}
+
+/** Frise de paysage lointain du haut de l'écran (AW × 60). */
+export function paintHorizon(ctx: Ctx, th: KingdomTheme): void {
+  horizon(ctx, th);
+}
+
+/** Écran de papier nu (lumière, fibres, plis, frise lointaine), sans cadre, obstacles ni découpes semées : AW × AH. */
+export function paintPaperScreen(ctx: Ctx, th: KingdomTheme): void {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, AW, AH);
+  ctx.clip();
+  paintArenaStatic(ctx, gridWith([]), th, { far: false });
+  ctx.restore();
+}
+
+/** Règle de placement des découpes semées (`far_XX`) : la même que `paintArenaStatic`. */
+export function farSpot(grid: string[], c: number, r: number): { x: number; y: number; variant: number; flip: boolean } | null {
+  if (!isFree(grid[r][c]) || grid[r][c] === 'P' || hashCell(c, r) < 0.55) return null;
+  return { x: c * CELL + 8 + hashCell(c, r, 1) * (CELL - 16), y: r * CELL + 10 + hashCell(c, r, 2) * (CELL - 16), variant: Math.floor(hashCell(c, r, 3) * 4), flip: hashCell(c, r, 4) > 0.5 };
+}
+
+/**
+ * Tuile transparente de fibres et de plis du papier (`size` multiple de CELL), raccordable :
+ * à poser en mosaïque sur la lumière de l'écran. Les plis tombent sur les bords des cases.
+ */
+export function paintFibreTile(ctx: Ctx, size: number): void {
+  for (let i = 0; i < Math.round((260 * size * size) / (AW * AH)); i++) {
+    const x = hashCell(i, 1, 3) * size;
+    const y = hashCell(i, 2, 4) * size;
+    const l = 3 + hashCell(i, 3, 5) * 9;
+    const a = hashCell(i, 4, 6) * Math.PI;
+    ctx.strokeStyle = alpha(hashCell(i, 5, 7) > 0.5 ? INK : CUT, 0.05 + hashCell(i, 6, 8) * 0.05);
+    ctx.lineWidth = 0.8;
+    // la fibre est répétée de l'autre côté du bord : la tuile se raccorde sans couture
+    for (const dx of [-size, 0, size]) {
+      for (const dy of [-size, 0, size]) {
+        ctx.beginPath();
+        ctx.moveTo(x + dx, y + dy);
+        ctx.lineTo(x + dx + Math.cos(a) * l, y + dy + Math.sin(a) * l);
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.strokeStyle = alpha(INK, 0.06);
+  ctx.lineWidth = 1;
+  for (let v = 0; v < size; v += CELL) {
+    // demi-trait sur chaque bord : deux tuiles voisines recomposent le pli entier
+    ctx.beginPath();
+    ctx.moveTo(v, 0);
+    ctx.lineTo(v, size);
+    ctx.moveTo(0, v);
+    ctx.lineTo(size, v);
+    ctx.stroke();
+  }
+}
+
+/** Cadre de scène (montants, moulure, clous, appliques) seul : (AW + 2 WALL) × (AH + 2 WALL), centre transparent. */
+export function paintStageFrame(ctx: Ctx, th: KingdomTheme): void {
+  paintArenaStatic(ctx, gridWith([]), th, { far: false });
+  ctx.clearRect(0, 0, AW, AH);
+}
+
+/** Porte de scène seule (calque transparent) ; repère : centre de la porte en (AW/2, 0). */
+export { paintPortal as paintPortalPiece };

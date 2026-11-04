@@ -8,6 +8,7 @@ import { stars as starsOf } from '../../sim/src/formulas.js';
 import { Rng, seedOf } from '../../sim/src/rng.js';
 import { World, newHero, grantPower, type Enemy, type HeroState, type Hazard, type Projectile } from '../../sim/src/world.js';
 import { PAINTERS, type AnimState } from '../../art/src/characters.js';
+import { hatch, flameCut, heartShape } from '../../art/src/vfx.js';
 import { paintArenaStatic, paintLiquids, paintDecorAnim, paintPortal, paintFrame, AW, AH, WALL } from '../../art/src/arena-art.js';
 import { KINGDOMS, UI, INK2, CUT, DANGER, JADE, GOLD_LEAF, type KingdomTheme } from '../../art/src/palette.js';
 import { alpha, circle, ellipse, glow, mix, INK, easeOutBack, type Ctx } from '../../art/src/draw.js';
@@ -823,6 +824,9 @@ export class Combat {
       ctx.fillStyle = alpha(DANGER, 0.85);
       ctx.fillRect(0, -z.radius, len * k, z.radius * 2);
       ctx.restore();
+      // le contour arrondi (la hachure a remplacé le tracé courant)
+      ctx.beginPath();
+      ctx.roundRect(0, -z.radius, len, z.radius * 2, z.radius);
       ctx.strokeStyle = DANGER;
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -890,6 +894,8 @@ export class Combat {
     ctx.fillRect(-z.radius, -z.radius, z.radius * 2, z.radius * 2);
     hatch(ctx, -z.radius, -z.radius, z.radius * 2, z.radius * 2, t, 0.6);
     ctx.restore();
+    ctx.beginPath();
+    ctx.arc(0, 0, z.radius, 0, Math.PI * 2);
     ctx.strokeStyle = DANGER;
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -1071,45 +1077,8 @@ export class Combat {
   }
 }
 
-/** Hachures diagonales vermillon (marque du danger, façon gravure). */
-function hatch(ctx: Ctx, x: number, y: number, w: number, h: number, t: number, a: number): void {
-  ctx.strokeStyle = alpha(DANGER, a);
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  const off = (t * 14) % 8;
-  for (let k = -h; k < w + h; k += 8) {
-    ctx.moveTo(x + k + off, y);
-    ctx.lineTo(x + k + off - h, y + h);
-  }
-  ctx.stroke();
-}
 
-/** Petite flamme découpée dans l'encre. */
-function flameCut(ctx: Ctx, x: number, y: number, h: number): void {
-  ctx.fillStyle = INK;
-  ctx.beginPath();
-  ctx.moveTo(x - h * 0.6, y);
-  ctx.quadraticCurveTo(x - h * 0.4, y - h * 1.2, x, y - h * 2);
-  ctx.quadraticCurveTo(x + h * 0.4, y - h * 1.2, x + h * 0.6, y);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = CUT;
-  ctx.beginPath();
-  ctx.ellipse(x, y - h * 0.5, h * 0.2, h * 0.45, 0, 0, Math.PI * 2);
-  ctx.fill();
-}
 
-function heartShape(ctx: Ctx, x: number, y: number, s: number, col: string): void {
-  ctx.beginPath();
-  ctx.moveTo(x, y + s * 0.9);
-  ctx.bezierCurveTo(x - s * 1.6, y - s * 0.1, x - s * 0.8, y - s * 1.3, x, y - s * 0.4);
-  ctx.bezierCurveTo(x + s * 0.8, y - s * 1.3, x + s * 1.6, y - s * 0.1, x, y + s * 0.9);
-  ctx.fillStyle = col;
-  ctx.fill();
-  ctx.lineWidth = 1.5;
-  ctx.strokeStyle = INK;
-  ctx.stroke();
-}
 
 function bossName(a: string): string {
   return ({ treant: 'Treant colossal', queen: 'Reine des marais', scorpion: "Scorpion d'ambre", wyvern: 'Wyverne de givre', ashlord: 'Seigneur des cendres' } as Record<string, string>)[a] ?? a;

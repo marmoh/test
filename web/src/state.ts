@@ -1,5 +1,8 @@
 /** Sauvegarde locale du prototype (mêmes champs que la persistance iOS). */
 import { livesAt, afterAttempt, isoWeek, type LivesState } from '../../sim/src/formulas.js';
+import { LIVES } from '../../sim/src/constants.js';
+
+const LIVES_MAX = LIVES.max;
 import {
   addLife,
   adStatus,
@@ -16,6 +19,7 @@ import {
   type AdStatus,
   type Subscription,
 } from './economy.js';
+import { passFor, seasonAt, addPoints, pointsForWin, tierOf, pendingChests, starChest, claim as claimTier, claimAll, buyPremium, type PassState, type Reward, type SkinId, type Track } from './season.js';
 
 export interface Settings {
   /** effets sonores */
@@ -29,7 +33,8 @@ export interface Settings {
 }
 
 export interface Save {
-  version: 1;
+  /** 2 : pass de saison, apparences, coffres d'étoiles (migration depuis 1 dans `save()`). */
+  version: 2;
   stars: Record<number, number>;
   unlocked: number;
   lives: LivesState;
@@ -48,6 +53,13 @@ export interface Save {
   ads: AdLedger;
   /** L'écran d'abonnement a déjà été montré à la première panne de vies (§11). */
   livesPaywallSeen: boolean;
+  /** Pass de saison de la saison en cours (remis à zéro à chaque saison). */
+  pass: PassState;
+  /** Apparences possédées (pass de saison) et apparence portée (cosmétique). */
+  skins: SkinId[];
+  skin: SkinId | null;
+  /** Coffres d'étoiles déjà ouverts (un tous les 20 ★, §8). */
+  chests: number;
 }
 
 const KEY = 'ombrelune.save.v1';
@@ -61,7 +73,7 @@ function freshSettings(): Settings {
 
 function fresh(): Save {
   return {
-    version: 1,
+    version: 2,
     stars: {},
     unlocked: 1,
     lives: { lives: 5, refillFrom: now() },
@@ -77,6 +89,10 @@ function fresh(): Save {
     subscription: noSubscription(),
     ads: noAds(),
     livesPaywallSeen: false,
+    pass: passFor(null, seasonAt(now()).season),
+    skins: [],
+    skin: null,
+    chests: 0,
   };
 }
 
@@ -96,6 +112,13 @@ export function save(): Save {
       subscription: { ...base.subscription, ...parsed.subscription },
       ads: { ...base.ads, ...parsed.ads },
     };
+    // migration 1 → 2 : pass de saison (saison en cours), apparences, coffres d'étoiles.
+    // Les coffres déjà mérités par une ancienne sauvegarde s'ouvriront à la prochaine victoire.
+    cache.pass = passFor(parsed.pass, seasonAt(now()).season);
+    cache.skins = Array.isArray(parsed.skins) ? parsed.skins.filter((x) => x === 'foxEars' || x === 'paperWings' || x === 'moonCrown') : [];
+    if (!cache.skin || !cache.skins.includes(cache.skin)) cache.skin = null;
+    cache.chests = Number.isInteger(parsed.chests) ? parsed.chests! : 0;
+    cache.version = 2;
     // migration : le tir automatique devient le réglage par défaut (DECISIONS #10)
     if (!(cache as Save & { autoFireDefault?: boolean }).autoFireDefault) {
       cache.settings.autoFire = true;
@@ -107,6 +130,9 @@ export function save(): Save {
   // démo : ?unlock=40 débloque les niveaux pour le prototype
   const m = /unlock=(\d+)/.exec(location.search);
   if (m) cache!.unlocked = Math.max(cache!.unlocked, Number(m[1]));
+  // démo : ?passpts=170 avance le pass de saison (captures)
+  const pp = /passpts=(\d+)/.exec(location.search);
+  if (pp) cache!.pass.points = Math.max(cache!.pass.points, Number(pp[1]));
   return cache!;
 }
 
@@ -141,17 +167,101 @@ export function canPlay(): boolean {
   return subscribed() || lives().lives > 0;
 }
 
-export function recordAttempt(n: number, won: boolean, stars: number): { firstThree: boolean } {
+export interface AttemptResult {
+  firstThree: boolean;
+  /** lunes du pass gagnées et paliers avant / après */
+  pass: { points: number; tierBefore: number; tierAfter: number };
+  /** coffres d'étoiles ouverts par cette victoire (déjà crédités) */
+  chests: { index: number; gold: number; gems: number; bonus: 'potion' | 'scroll' | 'aegis' }[];
+}
+
+export function recordAttempt(n: number, won: boolean, stars: number): AttemptResult {
   const s = save();
   s.lives = afterAttempt(s.lives, now(), won, subscribed());
   const prev = s.stars[n] ?? 0;
   const firstThree = won && stars === 3 && prev < 3;
+  const pass = passState();
+  const tierBefore = tierOf(pass.points);
+  let points = 0;
+  const chests: AttemptResult['chests'] = [];
   if (won) {
     s.stars[n] = Math.max(prev, stars);
     s.unlocked = Math.max(s.unlocked, n + 1);
+    points = pointsForWin(prev, stars);
+    s.pass = addPoints(pass, points);
+    for (const index of pendingChests(s.chests, totalStars())) {
+      const c = starChest(index);
+      s.gold += c.gold;
+      s.gems += c.gems;
+      s.bonuses[c.bonus]++;
+      s.chests = index;
+      chests.push({ index, ...c });
+    }
   }
   persist();
-  return { firstThree };
+  return { firstThree, pass: { points, tierBefore, tierAfter: tierOf(s.pass.points) }, chests };
+}
+
+// ───────────────────────────── pass de saison ─────────────────────────────
+
+/** Pass de la saison en cours (une nouvelle saison remet le pass à zéro). */
+export function passState(): PassState {
+  const s = save();
+  const season = seasonAt(now()).season;
+  if (s.pass.season !== season) s.pass = passFor(null, season);
+  return s.pass;
+}
+
+/** Crédite une récompense du pass (or, gemmes, bonus, vies, apparence). */
+export function grantReward(r: Reward): void {
+  const s = save();
+  switch (r.kind) {
+    case 'gold':
+      s.gold += r.amount;
+      break;
+    case 'gems':
+      s.gems += r.amount;
+      break;
+    case 'potion':
+    case 'scroll':
+    case 'aegis':
+      s.bonuses[r.kind] += r.amount;
+      break;
+    case 'lives':
+      s.lives = { lives: Math.max(livesAt(s.lives, now()).lives, LIVES_MAX), refillFrom: now() };
+      break;
+    case 'skin':
+      if (r.skin && !s.skins.includes(r.skin)) s.skins.push(r.skin);
+      if (r.skin && !s.skin) s.skin = r.skin;
+      break;
+  }
+}
+
+export function claimPassTier(track: Track, tier: number): Reward | null {
+  const s = save();
+  const r = claimTier(passState(), track, tier);
+  if (!r) return null;
+  s.pass = r.state;
+  grantReward(r.reward);
+  persist();
+  return r.reward;
+}
+
+export function claimAllPass(): Reward[] {
+  const s = save();
+  const r = claimAll(passState());
+  s.pass = r.state;
+  r.rewards.forEach(grantReward);
+  persist();
+  return r.rewards;
+}
+
+/** Achat simulé de la piste premium (StoreKit 2 dans l'app iOS). */
+export function buyPassPremium(): void {
+  const s = save();
+  s.pass = buyPremium(passState());
+  persist();
+  recordEntitlements();
 }
 
 // ───────────────────────────── Ordre du Dragon ─────────────────────────────
@@ -210,6 +320,8 @@ export function rewardAd(): boolean {
 interface StoreAccount {
   starterPack: boolean;
   subscription: Subscription | null;
+  /** saisons dont la piste premium du pass a été achetée */
+  passes?: number[];
 }
 
 function readAccount(): StoreAccount {
@@ -226,6 +338,7 @@ export function recordEntitlements(): void {
   const acc = readAccount();
   acc.starterPack ||= s.starterPack;
   if (s.subscription.trialUsed) acc.subscription = s.subscription;
+  if (s.pass.premium && !(acc.passes ?? []).includes(s.pass.season)) acc.passes = [...(acc.passes ?? []), s.pass.season];
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(acc));
   } catch {
@@ -242,6 +355,11 @@ export function restorePurchases(): { restored: string[] } {
     s.starterPack = true;
     if (!s.heroes.includes('windMonk')) s.heroes.push('windMonk');
     restored.push('Offre de départ (Moine du vent)');
+  }
+  const pass = passState();
+  if (!pass.premium && (acc.passes ?? []).includes(pass.season)) {
+    s.pass = buyPremium(pass);
+    restored.push(`Pass de saison ${pass.season}`);
   }
   if (acc.subscription && (!s.subscription.trialUsed || acc.subscription.expiresAt > s.subscription.expiresAt)) {
     // la semaine des gemmes déjà réclamées fait partie du compte : on garde la plus récente

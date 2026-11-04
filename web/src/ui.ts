@@ -12,6 +12,7 @@ import { goldBonus } from './economy.js';
 import { openDragon } from './dragon.js';
 import { applyPrefs } from './prefs.js';
 import type { CombatResult } from './combat.js';
+import type { AttemptResult } from './state.js';
 
 export function el(html: string): HTMLElement {
   const t = document.createElement('template');
@@ -86,6 +87,29 @@ export function titleScreen(onStart: () => void): HTMLElement {
 
 // ───────────────────────────── pré-niveau ─────────────────────────────
 
+export type BonusId = 'potion' | 'scroll' | 'aegis';
+/** Prix des bonus d'avant niveau (§11 : or ou gemmes). */
+export const BONUS_PRICE: Record<BonusId, { cur: 'gold' | 'gems'; amount: number }> = {
+  potion: { cur: 'gold', amount: 150 },
+  scroll: { cur: 'gems', amount: 25 },
+  aegis: { cur: 'gold', amount: 200 },
+};
+
+/** Achète un bonus (or ou gemmes) ; message si le solde ne suffit pas. */
+export function buyBonus(k: BonusId): boolean {
+  const s = save();
+  const p = BONUS_PRICE[k];
+  if (s[p.cur] < p.amount) {
+    toast(p.cur === 'gold' ? 'Pas assez d’or' : 'Pas assez de gemmes');
+    return false;
+  }
+  s[p.cur] -= p.amount;
+  s.bonuses[k]++;
+  persist();
+  return true;
+}
+
+
 export interface PreLevelChoice {
   potion: boolean;
   scroll: boolean;
@@ -102,8 +126,12 @@ export function preLevel(level: LevelDef): Promise<PreLevelChoice | null> {
   for (const r of level.rooms) for (const w of r.waves) for (const e of w) types.add(e.type);
   const boss = level.rooms.find((r) => r.boss)?.boss;
   const badge = info.kind === 'boss' ? `<span class="badge boss">Boss</span>` : info.kind === 'hard' ? `<span class="badge hard"><img src="${iconURL(INK_UI.skull)}"/>Difficile</span>` : '';
-  const bonus = (id: keyof PreLevelChoice, icon: string, name: string, desc: string) =>
-    `<button class="bonus" data-b="${id}" ${s.bonuses[id] > 0 ? '' : 'disabled'}><img src="${iconURL(icon)}"/><b>${name}</b><small>${desc}</small><i class="count">${s.bonuses[id]}</i></button>`;
+  const tag = (id: BonusId) =>
+    s.bonuses[id] > 0
+      ? `<i class="count">${s.bonuses[id]}</i>`
+      : `<i class="price"><img src="${iconURL(BONUS_PRICE[id].cur === 'gold' ? INK_UI.coin : INK_UI.gem)}" alt=""/>${BONUS_PRICE[id].amount}</i>`;
+  const bonus = (id: BonusId, icon: string, name: string, desc: string) =>
+    `<button class="bonus${s.bonuses[id] > 0 ? '' : ' buy'}" data-b="${id}"><img src="${iconURL(icon)}"/><b>${name}</b><small>${desc}</small>${tag(id)}</button>`;
   const o = overlay(
     'sheet-overlay',
     `<div class="sheet">
@@ -111,7 +139,7 @@ export function preLevel(level: LevelDef): Promise<PreLevelChoice | null> {
       <div class="sheet-stars">${[0, 1, 2].map((i) => `<img class="${i < st ? 'on' : ''}" src="${iconURL(i < st ? INK_UI.star : INK_UI.starEmpty)}"/>`).join('')}</div>
       <p class="objective">Traverse ${level.rooms.length} salles${boss ? ` et terrasse <b>${BOSSES[boss.archetype].name}</b>` : ''}.</p>
       <div class="foes">${boss ? `<div class="foe boss"><img src="${portrait(BOSS_BY_KINGDOM[info.kingdom - 1], 84, { scale: 0.75, dy: 12, variant: boss.variant })}"/></div>` : ''}${[...types].map((t) => `<div class="foe" title="${ENEMIES[t].name}"><img src="${portrait(t, 56, { scale: 1.2, dy: 6, variant: t === 'jellySmall' ? 1 : 0 })}"/></div>`).join('')}</div>
-      <div class="bonuses">${bonus('potion', INK_UI.potion, 'Potion', '+25 % PV')}${bonus('scroll', INK_UI.scroll, 'Parchemin', '1 pouvoir')}${bonus('aegis', INK_UI.aegis, 'Égide', '1 bouclier')}</div>
+      <div class="bonuses">${bonus('potion', INK_UI.potion, 'Potion de vie', '+25 % PV max')}${bonus('scroll', INK_UI.scroll, 'Parchemin', '1 pouvoir')}${bonus('aegis', INK_UI.aegis, 'Égide', '1 bouclier')}</div>
       <button class="btn primary big play">Jouer</button>
       <p class="fine">Une vie n’est retirée qu’en cas de défaite.</p>
       <button class="close-x" aria-label="Fermer">×</button>
@@ -120,7 +148,14 @@ export function preLevel(level: LevelDef): Promise<PreLevelChoice | null> {
   const choice: PreLevelChoice = { potion: false, scroll: false, aegis: false };
   o.querySelectorAll<HTMLButtonElement>('.bonus').forEach((b) =>
     b.addEventListener('click', () => {
-      const id = b.dataset.b as keyof PreLevelChoice;
+      const id = b.dataset.b as BonusId;
+      // pas de bonus en réserve : on l'achète (or ou gemmes), il est équipé aussitôt
+      if (s.bonuses[id] <= 0 && !choice[id]) {
+        if (!buyBonus(id)) return;
+        b.classList.remove('buy');
+        b.querySelector('.price')!.outerHTML = `<i class="count">${s.bonuses[id]}</i>`;
+        toast(`${b.querySelector('b')!.textContent} acheté${id === 'potion' ? 'e' : ''}`);
+      }
       choice[id] = !choice[id];
       b.classList.toggle('on', choice[id]);
       sfx('tap');
@@ -186,8 +221,13 @@ export function choosePower(offer: PowerId[], hero: HeroState, title = 'Choisis 
 
 // ───────────────────────────── victoire / défaite ─────────────────────────────
 
-export function victory(level: LevelDef, r: CombatResult, firstThree: boolean): Promise<'next' | 'map'> {
+const BONUS_NAME = { potion: 'Potion de vie', scroll: 'Parchemin', aegis: 'Égide' } as const;
+
+export function victory(level: LevelDef, r: CombatResult, res: AttemptResult): Promise<'next' | 'map'> {
   const s = save();
+  const firstThree = res.firstThree;
+  const pass = res.pass;
+  const tierUp = pass.tierAfter > pass.tierBefore;
   const dragon = subscribed();
   const gold = goldReward(level.n, firstThree, goldBonus(s.talents.fortune, dragon));
   s.gold += gold;
@@ -201,6 +241,8 @@ export function victory(level: LevelDef, r: CombatResult, firstThree: boolean): 
       <div class="rhero"></div>
       <div class="rstats"><div><img src="${iconURL(INK_UI.coin)}"/><b class="count" data-to="${gold}">0</b></div><div><span>Ennemis</span><b>${r.kills}</b></div><div><span>Temps</span><b>${Math.round(r.seconds)} s</b></div></div>
       ${dragon ? `<p class="fine dragon-gold">dont +25 % de l’Ordre du Dragon</p>` : ''}
+      ${pass.points ? `<div class="rpass${tierUp ? ' up' : ''}"><img src="${iconURL(INK_UI.chest)}" alt=""/><span>Pass de saison : <b>+${pass.points} lunes</b>${tierUp ? ` · palier ${pass.tierAfter} atteint !` : ''}</span></div>` : ''}
+      ${res.chests.map((c) => `<div class="rchest"><img src="${iconURL(INK_UI.chest)}" alt=""/><span><b>Coffre d’étoiles</b> (${c.index * 20} ★) : +${c.gold} or · +${c.gems} gemmes · ${BONUS_NAME[c.bonus]}</span></div>`).join('')}
       <div class="ractions"><button class="btn ghost map">Carte</button><button class="btn primary next">Niveau suivant</button></div>
     </div>`,
   );
@@ -231,7 +273,7 @@ export function defeat(continuesUsed: number): Promise<'continue' | 'retry' | 'm
       <h2 class="rtitle">Défaite</h2>
       <p class="rsub">L’ombre t’a rattrapée…</p>
       <div class="ghost-hero"></div>
-      ${can ? `<button class="btn gem big cont" ${s.gems >= cost ? '' : 'disabled'}><span>Continuer</span><em><img src="${iconURL(INK_UI.gem)}"/>${cost}</em></button><p class="fine">Rend 50 % des PV et efface les projectiles.</p>` : ''}
+      ${can ? `<button class="btn gem big cont" ${s.gems >= cost ? '' : 'disabled'}><span>Continuer</span><em><img src="${iconURL(INK_UI.gem)}"/>${cost}</em></button><p class="fine">Rend 50 % des PV et efface les projectiles.${s.gems < cost ? ` <button class="link-btn gems-cta">Gemmes : boutique</button>` : ''}</p><p class="fine cont-left">${continuesUsed === 0 ? '2 continues possibles (60 puis 120 gemmes)' : 'Dernier continue possible'}</p>` : ''}
       <div class="ractions"><button class="btn ghost map">Carte</button><button class="btn primary retry">Réessayer</button></div>
       ${subscribed() ? '' : `<button class="link-btn dragon-cta"><img src="${iconURL(INK_UI.crown)}" alt=""/>Ordre du Dragon : vies illimitées</button>`}
     </div>`,
@@ -243,6 +285,16 @@ export function defeat(continuesUsed: number): Promise<'continue' | 'retry' | 'm
     }),
   );
   o.querySelector('.ghost-hero')!.appendChild(liveSprite('hero', 110, 2.2, 'idle'));
+  // pas assez de gemmes : la boutique s'ouvre par-dessus l'écran de défaite (le combat est terminé)
+  o.querySelector('.gems-cta')?.addEventListener('click', () =>
+    void import('./menus.js').then((m) =>
+      m.shopSheet(() => {
+        const b = o.querySelector<HTMLButtonElement>('.cont');
+        if (b) b.disabled = s.gems < cost;
+        if (s.gems >= cost) o.querySelector('.gems-cta')?.remove();
+      }),
+    ),
+  );
   return new Promise((resolve) => {
     o.querySelector('.cont')?.addEventListener('click', async () => {
       s.gems -= cost;
