@@ -1,6 +1,6 @@
 /** §7 Génération d'un niveau à partir d'une graine, et déroulé complet d'un niveau. */
 import { Arena, type RoomTemplate } from './arena.js';
-import { COLS, ROWS, ELITE, HEAL_BETWEEN_ROOMS, RARITY_WEIGHTS, SIM_DT, expectedTalentRank } from './constants.js';
+import { COLS, ROWS, ELITE, HEAL_BETWEEN_ROOMS, RARITY_WEIGHTS, SIM_DT, BUDGET, expectedTalentRank } from './constants.js';
 import {
   ENEMIES,
   SPAWN_WEIGHT,
@@ -91,7 +91,7 @@ export function generateLevel(n: number, seed: number, templates: RoomTemplate[]
     const tpl = rng.pick(pool.length ? pool : templates);
     used.add(tpl.id);
     const arena = new Arena(tpl);
-    const budget = isBossRoom ? 0 : roomBudget(D, mult, i, budgetScale);
+    const budget = isBossRoom ? 0 : roomBudget(D, mult, i, budgetScale, roomCount);
     const types: EnemyType[] = tutorialType && i === 1 ? [tutorialType] : unlocked;
 
     // remplissage pondéré du budget
@@ -124,8 +124,8 @@ export function generateLevel(n: number, seed: number, templates: RoomTemplate[]
     }
     rng.shuffle(picks);
 
-    // vagues : ≤ 18 points de budget simultanés
-    const waveCount = Math.max(1, Math.ceil(budget / 18));
+    // vagues : ≤ BUDGET.waveCap points de budget simultanés
+    const waveCount = Math.max(1, Math.ceil(budget / BUDGET.waveCap));
     const waves: SpawnSpec[][] = Array.from({ length: waveCount }, () => []);
     picks.forEach((p, k) => waves[k % waveCount].push({ type: p.type, c: 0, r: 0, elite: p.elite || undefined }));
 

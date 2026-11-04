@@ -144,6 +144,8 @@ export interface Projectile {
   ricochet: number;
   lastHit: number;
   dead: boolean;
+  /** Origine (type d'ennemi, « elite », « boss ») — diagnostic et rendu. */
+  src?: string;
 }
 
 export type HazardKind = 'circle' | 'line';
@@ -162,6 +164,8 @@ export interface Hazard {
   tick: number;
   nextTick: number;
   ownerId: number;
+  /** Origine (type d'ennemi ou « boss ») — diagnostic et rendu. */
+  src?: string;
 }
 
 export interface HealOrb {
@@ -173,7 +177,7 @@ export type WorldEvent =
   | { e: 'shoot'; x: number; y: number }
   | { e: 'hit'; x: number; y: number; crit: boolean }
   | { e: 'kill'; x: number; y: number; type: string }
-  | { e: 'heroHit'; dmg: number }
+  | { e: 'heroHit'; dmg: number; src?: string; ref?: object }
   | { e: 'dodge' }
   | { e: 'shield' }
   | { e: 'wave'; index: number }
@@ -217,6 +221,8 @@ export class World {
   private bossSpec: RoomSetup['boss'];
   /** Cible courante (pour le rendu). */
   target: Enemy | null = null;
+  /** Type de l'ennemi en cours de mise à jour (origine des tirs). */
+  private shooter = '';
 
   constructor(setup: RoomSetup, hero: HeroState) {
     this.arena = setup.arena;
@@ -486,10 +492,11 @@ export class World {
       ricochet: 0,
       lastHit: -1,
       dead: false,
+      src: this.shooter,
     });
   }
 
-  damageHero(dmg: number): void {
+  damageHero(dmg: number, src?: string, ref?: object): void {
     const h = this.hero;
     if (h.invuln > 0 || h.flashT > 0 || this.cleared || h.hp <= 0) return;
     if (h.stats.dodge > 0 && this.rng.chance(h.stats.dodge)) {
@@ -508,7 +515,7 @@ export class World {
     h.damageTaken += dmg;
     h.hitsTaken++;
     h.invuln = HERO.invulnAfterHit;
-    this.events.push({ e: 'heroHit', dmg });
+    this.events.push({ e: 'heroHit', dmg, src, ref });
   }
 
   healHero(v: number): void {
@@ -525,6 +532,7 @@ export class World {
       if (e.t <= 0) e.state = 'move';
       return;
     }
+    this.shooter = e.boss ? 'boss' : e.type;
     if (e.boss) return this.updateBoss(e, dt);
     const slow = e.slowT > 0 ? 0.7 : 1;
     const h = this.hero.pos;
@@ -538,7 +546,9 @@ export class World {
         e.eliteWind -= dt;
         if (e.eliteWind <= 0) {
           const off = this.rng.next() * Math.PI;
+          this.shooter = 'elite';
           for (let i = 0; i < 8; i++) this.enemyShot(e.pos, off + (i * Math.PI) / 4, 140, e.shotDmg > 0 ? e.shotDmg : e.contact * 0.7, 8);
+          this.shooter = e.type;
           e.eliteCd = 4.5;
         }
       } else {
@@ -571,6 +581,7 @@ export class World {
                 tick: 0.5,
                 nextTick: this.t + 0.8,
                 ownerId: e.id,
+                src: this.shooter,
               });
             }
           }
@@ -634,6 +645,7 @@ export class World {
               tick: 0,
               nextTick: Infinity,
               ownerId: e.id,
+              src: this.shooter,
             });
           }
         } else if (e.state === 'windup') {
@@ -688,6 +700,7 @@ export class World {
               tick: 0,
               nextTick: Infinity,
               ownerId: e.id,
+              src: this.shooter,
             });
             e.chargeLeft = len;
           }
@@ -879,6 +892,7 @@ export class World {
       tick: 0,
       nextTick: Infinity,
       ownerId: e.id,
+      src: this.shooter,
     });
     e.state = 'windup';
     e.t = 0.7;
@@ -897,6 +911,7 @@ export class World {
       tick: 1,
       nextTick: this.t + 0.8,
       ownerId: e.id,
+      src: this.shooter,
     });
     e.t = 0.95;
   }
@@ -921,6 +936,7 @@ export class World {
         tick: lasting ? 0.5 : 1,
         nextTick: this.t + warn,
         ownerId: e.id,
+        src: this.shooter,
       });
     }
     e.t = lasting ? 0.8 : 1.1;
@@ -964,7 +980,7 @@ export class World {
         } else {
           const rr = HERO.radius + p.radius;
           if ((h.pos.x - p.pos.x) ** 2 + (h.pos.y - p.pos.y) ** 2 <= rr * rr && !this.cleared) {
-            this.damageHero(p.dmg);
+            this.damageHero(p.dmg, 'proj:' + (p.src ?? '?'), p);
             p.dead = true;
           }
         }
@@ -1083,7 +1099,7 @@ export class World {
       if (z.dmg <= 0 || this.t < z.activeAt || this.t > z.endAt) continue;
       if (this.t + 1e-9 < z.nextTick) continue;
       z.nextTick += z.tick;
-      if (Math.hypot(h.x - z.pos.x, h.y - z.pos.y) < z.radius + HERO.radius * 0.5) this.damageHero(z.dmg);
+      if (Math.hypot(h.x - z.pos.x, h.y - z.pos.y) < z.radius + HERO.radius * 0.5) this.damageHero(z.dmg, 'zone:' + (z.src ?? '?'), z);
     }
     this.hazards = this.hazards.filter((z) => this.t <= z.endAt);
   }
@@ -1111,7 +1127,7 @@ export class World {
     for (const e of this.enemies) {
       if (e.state === 'spawn' || e.contact <= 0) continue;
       const rr = e.radius + HERO.radius - 2;
-      if ((e.pos.x - h.x) ** 2 + (e.pos.y - h.y) ** 2 < rr * rr) this.damageHero(e.contact);
+      if ((e.pos.x - h.x) ** 2 + (e.pos.y - h.y) ** 2 < rr * rr) this.damageHero(e.contact, 'contact:' + (e.boss ? 'boss' : e.type) + (e.state === 'charge' ? '-charge' : ''), e);
     }
   }
 

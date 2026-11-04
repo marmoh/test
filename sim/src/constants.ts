@@ -55,8 +55,25 @@ export function expectedTalentRank(n: number): number {
 
 export const HEAL_BETWEEN_ROOMS = 0.15;
 
-// §5 Mise à l'échelle
-export const SCALE = { hpPerD: 0.09, dmgPerD: 0.06 } as const;
+// §5 Mise à l'échelle (cf. DECISIONS : la SPEC donnait 0,09 / 0,06)
+export const SCALE = { hpPerD: 0.03, dmgPerD: 0.05 } as const;
+
+/**
+ * §7 Budget d'une salle (forme SPEC conservée, cf. `roomBudget`) :
+ *   B = round(parSalles[n] × (base + perD × D × mult × (0,8 + 0,2 × indexSalle)) / P(D) × échelle)
+ * avec P(D) = 1 + powerPerD × (D − 1) : progression attendue du joueur (maîtrise + talents). Sans elle,
+ * B ∝ D et PV ∝ D donnent des salles en D² que des bots de niveau fixe ne peuvent pas tenir dans les
+ * bandes plates du §9 ni en 60–150 s. Les dents de scie (mult) gardent leur amplitude SPEC.
+ * parSalles : multiplicateur global selon le nombre de salles du niveau (2, 3 ou 4) pour garder la durée.
+ * waveCap : points de budget présents simultanément au plus (une vague).
+ */
+export const BUDGET = {
+  base: 6,
+  perD: 3.2,
+  powerPerD: 0.35,
+  byRooms: { 2: 2.6, 3: 2.2, 4: 1.6 } as Record<number, number>,
+  waveCap: 18,
+} as const;
 export const ELITE = { hpMult: 2.2, fromChapter: 3, maxPerRoom: 1, maxPerRoomHard: 2 } as const;
 export const TELEGRAPH_MIN = 0.5;
 export const BOSS_BASE_HP = 6000;

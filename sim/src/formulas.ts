@@ -1,5 +1,5 @@
 /** §7, §8, §10 : formules pures de progression. */
-import { LEVELS_PER_CHAPTER, CHAPTERS_PER_KINGDOM, STAR_THRESHOLDS, LIVES } from './constants.js';
+import { LEVELS_PER_CHAPTER, CHAPTERS_PER_KINGDOM, STAR_THRESHOLDS, LIVES, BUDGET } from './constants.js';
 
 export type LevelKind = 'tutorial' | 'breather' | 'normal' | 'hard' | 'boss';
 
@@ -66,9 +66,18 @@ export function levelInfo(n: number): LevelInfo {
   };
 }
 
-/** B = round(6 + 3,2 × D × mult × (0,8 + 0,2 × indexSalle)) ; indexSalle commence à 1. */
-export function roomBudget(D: number, mult: number, roomIndex1: number, budgetScale = 1): number {
-  return Math.round((6 + 3.2 * D * mult * (0.8 + 0.2 * roomIndex1)) * budgetScale);
+/** P(D) : progression attendue du joueur, qui divise le budget (cf. BUDGET, DECISIONS). */
+export function expectedPower(D: number): number {
+  return 1 + BUDGET.powerPerD * (D - 1);
+}
+
+/**
+ * Budget d'une salle : SPEC `6 + 3,2 × D × mult × (0,8 + 0,2 × indexSalle)` (indexSalle commence à 1),
+ * multiplié par le facteur du nombre de salles et divisé par P(D), puis × échelle du générateur.
+ */
+export function roomBudget(D: number, mult: number, roomIndex1: number, budgetScale = 1, rooms = 3): number {
+  const k = BUDGET.byRooms[rooms] ?? BUDGET.byRooms[3];
+  return Math.round(((k * (BUDGET.base + BUDGET.perD * D * mult * (0.8 + 0.2 * roomIndex1))) / expectedPower(D)) * budgetScale);
 }
 
 export function stars(won: boolean, hpFrac: number): 0 | 1 | 2 | 3 {

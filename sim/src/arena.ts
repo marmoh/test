@@ -97,9 +97,11 @@ export class Arena {
    * axe par axe contre les cases bloquantes et les bords.
    */
   moveCircle(p: Vec, dx: number, dy: number, rad: number, flying = false): void {
-    p.x += dx;
+    // bornage de chaque axe avant la résolution : sinon un grand pas hors de l'arène
+    // fausse la résolution de l'autre axe contre les cases du bord
+    p.x = clamp(p.x + dx, rad, ARENA_W - rad);
     if (!flying) this.resolve(p, rad, true);
-    p.y += dy;
+    p.y = clamp(p.y + dy, rad, ARENA_H - rad);
     if (!flying) this.resolve(p, rad, false);
     p.x = clamp(p.x, rad, ARENA_W - rad);
     p.y = clamp(p.y, rad, ARENA_H - rad);
