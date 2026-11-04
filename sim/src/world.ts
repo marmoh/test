@@ -18,10 +18,12 @@ import {
   POWER_TUNING,
   THREAD,
   SHOT_DMG_MULT,
+  NEEDLE_MOTH_MULT,
   WAVE_NEXT_ALIVE,
   AUTO_FIRE_DEFAULT,
   ARENA_W,
   ARENA_H,
+  WALL_SHY,
 } from './constants.js';
 import { ENEMIES, BOSSES, type MinionType, type BossArchetype, type Pattern, type PowerId } from './content.js';
 import { computeStats, type HeroStats, type Talents } from './hero.js';
@@ -356,7 +358,6 @@ export class World {
     this.separateEnemies();
     this.threadContacts(dt);
     this.updateProjectiles(dt);
-    this.projectileSnips(dt);
     this.updatePendingCuts();
     this.updateHazards();
     this.updateOrbs(dt);
@@ -507,7 +508,7 @@ export class World {
           pos: { x: h.pos.x - cy * off + cx * 10, y: h.pos.y + cx * off + cy * 10 },
           vel: { x: cx * HERO.projectileSpeed, y: cy * HERO.projectileSpeed },
           radius: HERO.projectileRadius,
-          dmg: s.damage * SHOT_DMG_MULT * (s.pierce ? POWER_TUNING.pierceDmg : 1),
+          dmg: s.damage * SHOT_DMG_MULT * s.needleMult * (s.pierce ? POWER_TUNING.pierceDmg : 1),
           fromHero: true,
           born: this.t,
           pierce: s.pierce,
@@ -678,9 +679,9 @@ export class World {
       }
       case 'wolf':
       case 'snipper': {
-        // le crabe-ciseaux vise le milieu du fil s'il est assez long, sinon l'héroïne
+        // le crabe-ciseaux vise le milieu du fil s'il est assez long (et pas d'acier), sinon l'héroïne
         const th = this.hero.thread;
-        const aimAt = e.type === 'snipper' && th.length >= 10 ? th[th.length >> 1] : h;
+        const aimAt = e.type === 'snipper' && th.length >= 10 && !this.hero.stats.steelThread ? th[th.length >> 1] : h;
         const adx = aimAt.x - e.pos.x;
         const ady = aimAt.y - e.pos.y;
         const chargeSpeed = e.type === 'snipper' ? 360 : 420;
@@ -744,7 +745,8 @@ export class World {
         let tx = h.x;
         let ty = h.y;
         let ti = -1;
-        if (th.length >= 4) {
+        // fil d'acier : la mite ne peut plus le grignoter, elle s'en prend à l'héroïne
+        if (th.length >= 4 && !this.hero.stats.steelThread) {
           let bd = Infinity;
           for (let i = 0; i < th.length; i++) {
             const d = (th[i].x - e.pos.x) ** 2 + (th[i].y - e.pos.y) ** 2;
@@ -843,7 +845,18 @@ export class World {
     if (dist > far || !this.arena.lineOfSight(e.pos, h)) {
       this.chase(e, speed, dt);
     } else if (dist < near) {
-      const away = norm(e.pos.x - h.x, e.pos.y - h.y);
+      // recul, mais pas jusqu'au mur : près d'un bord on glisse vers l'intérieur (DECISIONS #42)
+      let ax = e.pos.x - h.x;
+      let ay = e.pos.y - h.y;
+      const n0 = Math.hypot(ax, ay) || 1;
+      ax /= n0;
+      ay /= n0;
+      const W = WALL_SHY;
+      if (e.pos.x < W) ax += (W - e.pos.x) / W;
+      else if (e.pos.x > ARENA_W - W) ax -= (e.pos.x - (ARENA_W - W)) / W;
+      if (e.pos.y < W) ay += (W - e.pos.y) / W;
+      else if (e.pos.y > ARENA_H - W) ay -= (e.pos.y - (ARENA_H - W)) / W;
+      const away = norm(ax, ay);
       this.arena.moveCircle(e.pos, away.x * speed * dt, away.y * speed * dt, e.radius);
     } else {
       // déplacement latéral léger
@@ -1098,6 +1111,8 @@ export class World {
     const crit = s.critChance > 0 && this.rng.chance(s.critChance);
     let dmg = p.dmg * (crit ? 2 : 1);
     if (e.elite || e.boss) dmg *= s.eliteMult;
+    // les aiguilles épinglent les mites de papier (DECISIONS #41)
+    if (e.type === 'moth') dmg *= NEEDLE_MOTH_MULT;
     this.damageEnemy(e, dmg, true, crit);
     p.lastHit = e.id;
     if (s.chain) {
@@ -1356,38 +1371,27 @@ export class World {
     th.splice(0, i + 1);
   }
 
-  /** Les ennemis au sol (et les mites) qui marchent sur le fil le coupent — ou se blessent s'il est barbelé. */
+  /**
+   * Règle de coupure (DECISIONS #39) : seuls deux ennemis menacent le fil, et c'est leur rôle — la Mite de papier
+   * le grignote (voir `updateEnemy`) et le Crabe-ciseaux le tranche **pendant sa charge**. Projectiles et autres
+   * ennemis le traversent sans dommage. Fil d'acier : ni mite ni crabe ne le coupent. Fil barbelé : tout ennemi
+   * qui touche le fil se blesse.
+   */
   private threadContacts(dt: number): void {
     const th = this.hero.thread;
     if (th.length < 2) return;
     const s = this.hero.stats;
     for (const e of this.enemies) {
       if (e.state === 'spawn' || e.hp <= 0) continue;
-      if (e.flying && e.type !== 'moth') continue;
+      const cutter = e.type === 'snipper' && e.state === 'charge' && !s.steelThread;
+      if (!cutter && !s.barbedThread) continue;
       // on ignore les tout derniers segments, collés à l'héroïne
       for (let i = th.length - 4; i >= 0; i--) {
         if (segDist2(e.pos, th[i], th[i + 1]) > e.radius * e.radius) continue;
         if (s.barbedThread) this.damageEnemy(e, THREAD.barbedDps * (s.damage / HERO.damage) * dt, false, false);
-        else this.snipThread(i, e.type);
+        if (cutter) this.snipThread(i, e.type);
         break;
       }
-    }
-  }
-
-  /** Les projectiles ennemis qui traversent le fil le coupent (sauf fil d'acier). */
-  private projectileSnips(dt: number): void {
-    const th = this.hero.thread;
-    if (th.length < 2 || this.hero.stats.steelThread) return;
-    for (const p of this.projectiles) {
-      if (p.fromHero) continue;
-      const a = { x: p.pos.x - p.vel.x * dt, y: p.pos.y - p.vel.y * dt };
-      for (let i = th.length - 3; i >= 0; i--) {
-        if (segX(th[i], th[i + 1], a, p.pos)) {
-          this.snipThread(i, 'shot');
-          break;
-        }
-      }
-      if (th.length < 2) return;
     }
   }
 

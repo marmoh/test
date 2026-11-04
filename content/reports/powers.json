@@ -1,5 +1,5 @@
 {
- "games": 30,
+ "games": 40,
  "panel": [
   5,
   7,
@@ -17,127 +17,127 @@
   247,
   260
  ],
- "median": 0.48115,
+ "median": 0.52165,
  "powers": [
   {
    "id": "longThread",
    "name": "Fil long",
-   "rate": 0.42
+   "rate": 0.4883
   },
   {
    "id": "sharpScissors",
    "name": "Ciseaux affûtés",
-   "rate": 0.3644
+   "rate": 0.4767
   },
   {
    "id": "steelThread",
    "name": "Fil d'acier",
-   "rate": 0.3667
+   "rate": 0.4983
   },
   {
    "id": "barbedThread",
    "name": "Fil barbelé",
-   "rate": 0.5089
+   "rate": 0.5533
   },
   {
    "id": "confetti",
    "name": "Confettis",
-   "rate": 0.3778
+   "rate": 0.475
   },
   {
    "id": "echoCut",
    "name": "Écho",
-   "rate": 0.4178
+   "rate": 0.585
   },
   {
    "id": "multishot",
    "name": "Multitir",
-   "rate": 0.4756
+   "rate": 0.52
   },
   {
    "id": "ricochet",
    "name": "Ricochet",
-   "rate": 0.5022
+   "rate": 0.4983
   },
   {
    "id": "pierce",
    "name": "Perforation",
-   "rate": 0.4756
+   "rate": 0.445
   },
   {
    "id": "diagonals",
    "name": "Diagonales",
-   "rate": 0.5133
+   "rate": 0.4783
   },
   {
    "id": "attackSpeed",
    "name": "Cadence +25 %",
-   "rate": 0.52
+   "rate": 0.5233
   },
   {
    "id": "damage",
    "name": "Dégâts +20 %",
-   "rate": 0.4889
+   "rate": 0.5083
   },
   {
    "id": "crit",
    "name": "Critique",
-   "rate": 0.4867
+   "rate": 0.4967
   },
   {
    "id": "eliteSlayer",
    "name": "Tueur d'élites",
-   "rate": 0.5044
+   "rate": 0.5367
   },
   {
    "id": "flame",
    "name": "Flamme",
-   "rate": 0.4756
+   "rate": 0.5483
   },
   {
    "id": "frost",
    "name": "Givre",
-   "rate": 0.4511
+   "rate": 0.4967
   },
   {
    "id": "chain",
    "name": "Foudre en chaîne",
-   "rate": 0.5267
+   "rate": 0.4517
   },
   {
    "id": "poison",
    "name": "Poison",
-   "rate": 0.4556
+   "rate": 0.54
   },
   {
    "id": "orb",
    "name": "Orbe gardien",
-   "rate": 0.6
+   "rate": 0.6083
   },
   {
    "id": "shield",
    "name": "Bouclier",
-   "rate": 0.6
+   "rate": 0.6283
   },
   {
    "id": "lifesteal",
    "name": "Vol de vie",
-   "rate": 0.4733
+   "rate": 0.55
   },
   {
    "id": "maxHp",
    "name": "PV max +20 %",
-   "rate": 0.5
+   "rate": 0.5733
   },
   {
    "id": "speed",
    "name": "Vitesse +20 %",
-   "rate": 0.5156
+   "rate": 0.6283
   },
   {
    "id": "dodge",
    "name": "Esquive",
-   "rate": 0.3911
+   "rate": 0.5283
   }
  ]
 }

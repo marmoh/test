@@ -37,9 +37,9 @@ export const ENEMIES: Record<MinionType, EnemyDef> = {
 
 /**
  * Ordre d'apparition : un nouveau type à chaque chapitre (DECISIONS #29), introduit seul dans la
- * salle tutoriel du niveau p = 1. Gobelin (1 : boucler entre deux tirs), chauve-souris (2 : volante, elle ne
- * coupe pas le fil — la cible idéale d'une boucle), gelée (3 : ne pas laisser un poursuivant toucher le fil), mite
- * (4 : elle mange le fil, on l'abat aux aiguilles) ; DECISIONS #32.
+ * salle tutoriel du niveau p = 1. Gobelin (1 : boucler autour d'un tireur), chauve-souris (2 : volante et rapide),
+ * gelée (3 : un poursuivant qui se divise), mite (4 : elle mange le fil, on l'abat aux aiguilles), crabe-ciseaux
+ * (5 : sa charge tranche le fil) ; DECISIONS #32 et #39 (seuls la mite et le crabe coupent le fil).
  */
 export const UNLOCK_ORDER: EnemyType[] = ['goblin', 'bat', 'jelly', 'moth', 'snipper', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage'];
 
@@ -226,11 +226,11 @@ export interface PowerDef {
 export const POWERS: PowerDef[] = [
   { id: 'longThread', name: 'Fil long', family: 'thread', rarity: 'common', maxStacks: 2, desc: 'Le fil sèche 50 % moins vite' },
   { id: 'sharpScissors', name: 'Ciseaux affûtés', family: 'thread', rarity: 'common', maxStacks: 3, desc: '+30 % de dégâts de découpe' },
-  { id: 'steelThread', name: "Fil d'acier", family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Les projectiles ne coupent plus le fil' },
-  { id: 'barbedThread', name: 'Fil barbelé', family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Le fil blesse qui le touche au lieu de céder' },
+  { id: 'steelThread', name: "Fil d'acier", family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Ni les mites ni les crabes ne coupent le fil' },
+  { id: 'barbedThread', name: 'Fil barbelé', family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Le fil blesse les ennemis qui le touchent' },
   { id: 'confetti', name: 'Confettis', family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Les découpés éclatent sur leurs voisins (40 %)' },
   { id: 'echoCut', name: 'Écho', family: 'thread', rarity: 'epic', maxStacks: 1, desc: 'Chaque découpe se répète 0,5 s après (50 %)' },
-  { id: 'multishot', name: 'Multitir', family: 'shot', rarity: 'epic', maxStacks: 2, desc: '+1 aiguille, −40 % de dégâts' },
+  { id: 'multishot', name: 'Multitir', family: 'shot', rarity: 'epic', maxStacks: 2, desc: '+1 aiguille, −40 % de dégâts par aiguille' },
   { id: 'ricochet', name: 'Ricochet', family: 'shot', rarity: 'epic', maxStacks: 1, desc: 'Rebondit sur un 2e ennemi (25 %)' },
   { id: 'pierce', name: 'Perforation', family: 'shot', rarity: 'rare', maxStacks: 1, desc: 'Traverse les ennemis (−15 % dégâts)' },
   { id: 'diagonals', name: 'Diagonales', family: 'shot', rarity: 'rare', maxStacks: 1, desc: 'Deux aiguilles en diagonale' },
@@ -242,8 +242,8 @@ export const POWERS: PowerDef[] = [
   { id: 'frost', name: 'Givre', family: 'element', rarity: 'common', maxStacks: 1, desc: 'Ralentit de 40 % pendant 2 s' },
   { id: 'chain', name: 'Foudre en chaîne', family: 'element', rarity: 'epic', maxStacks: 1, desc: 'Arc sur 2 cibles (20 %)' },
   { id: 'poison', name: 'Poison', family: 'element', rarity: 'common', maxStacks: 1, desc: 'Poison cumulable (1,5 %/s par dose)' },
-  { id: 'orb', name: 'Orbe gardien', family: 'defense', rarity: 'rare', maxStacks: 1, desc: 'Un orbe tourne et inflige 110 dégâts' },
-  { id: 'shield', name: 'Bouclier', family: 'defense', rarity: 'common', maxStacks: 1, desc: 'Absorbe 1 coup toutes les 20 s' },
+  { id: 'orb', name: 'Orbe gardien', family: 'defense', rarity: 'rare', maxStacks: 1, desc: 'Un orbe tourne et inflige 80 dégâts' },
+  { id: 'shield', name: 'Bouclier', family: 'defense', rarity: 'common', maxStacks: 1, desc: 'Absorbe 1 coup toutes les 25 s' },
   { id: 'lifesteal', name: 'Vol de vie', family: 'defense', rarity: 'common', maxStacks: 1, desc: 'Soigne de 2 % des dégâts infligés' },
   { id: 'maxHp', name: 'PV max +20 %', family: 'defense', rarity: 'common', maxStacks: 3, desc: '+20 % PV max et soigne d’autant' },
   { id: 'speed', name: 'Vitesse +20 %', family: 'mobility', rarity: 'common', maxStacks: 2, desc: 'Déplacement 20 % plus rapide' },

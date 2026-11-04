@@ -6,7 +6,9 @@ import Observation
 @MainActor
 @Observable
 final class LivesCenter {
-    private struct Snapshot: Codable {
+    static let key = "lives"
+
+    struct Snapshot: Codable {
         var lives: LivesState
         var ads = AdLedger()
         /// L'offre de l'Ordre a déjà été montrée à la première panne de vies (§11).
@@ -14,19 +16,33 @@ final class LivesCenter {
     }
 
     private var snapshot: Snapshot
-    private let defaults: UserDefaults
-    private let key = "ombrelune.lives.v1"
-    private let clock: () -> Date
+    @ObservationIgnored private let store: any BlobStore
+    @ObservationIgnored private let key: String
+    @ObservationIgnored private let clock: () -> Date
 
-    init(defaults: UserDefaults = .standard, clock: @escaping () -> Date = Date.init) {
-        self.defaults = defaults
+    init(store: any BlobStore, key: String = LivesCenter.key, clock: @escaping () -> Date = Date.init) {
+        self.store = store
+        self.key = key
         self.clock = clock
-        if let data = defaults.data(forKey: key), let s = try? JSONDecoder().decode(Snapshot.self, from: data) {
+        if let data = store.blob(key), let s = try? JSONDecoder().decode(Snapshot.self, from: data) {
             snapshot = s
         } else {
             snapshot = Snapshot(lives: .full(now: clock().timeIntervalSince1970))
         }
     }
+
+    /// Tests et anciennes installations : stockage dans `UserDefaults`.
+    convenience init(defaults: UserDefaults = .standard, clock: @escaping () -> Date = Date.init) {
+        self.init(store: defaults, key: "ombrelune.lives.v1", clock: clock)
+    }
+
+    /// Relit la sauvegarde (après une fusion iCloud).
+    func reload() {
+        if let data = store.blob(key), let s = try? JSONDecoder().decode(Snapshot.self, from: data) { snapshot = s }
+    }
+
+    /// Horloge partagée (tests).
+    var nowDate: Date { clock() }
 
     private var now: TimeInterval { clock().timeIntervalSince1970 }
 
@@ -79,6 +95,6 @@ final class LivesCenter {
     }
 
     private func save() {
-        if let data = try? JSONEncoder().encode(snapshot) { defaults.set(data, forKey: key) }
+        if let data = try? JSONEncoder().encode(snapshot) { store.setBlob(data, forKey: key) }
     }
 }

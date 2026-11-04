@@ -81,6 +81,8 @@ export const BUDGET = {
 } as const;
 /** La vague suivante arrive quand il reste au plus ce nombre d'ennemis (2 avant : DECISIONS #33). */
 export const WAVE_NEXT_ALIVE = 1;
+/** Les tireurs qui reculent glissent vers l'intérieur à moins de cette distance d'un mur (pt) : DECISIONS #42. */
+export const WALL_SHY = 90;
 export const ELITE = { hpMult: 2.2, fromChapter: 3, maxPerRoom: 1, maxPerRoomHard: 2 } as const;
 export const TELEGRAPH_MIN = 0.5;
 export const BOSS_BASE_HP = 1800;
@@ -118,25 +120,26 @@ export const POWER_TUNING = {
   ricochetDmg: 0.25, // dégâts conservés à chaque rebond
   chainTargets: 2, // (3)
   chainFrac: 0.2, // (0,4)
-  shieldCooldown: 20, // (8 s)
+  shieldCooldown: 25, // (8 s) ; 20 → 25 : DECISIONS #45
   pierceDmg: 0.85, // dégâts des flèches perforantes
   frostSlow: 0.4, // (30 %)
   frostDuration: 2, // (1,5 s)
-  orbDamage: 110, // (80)
+  orbDamage: 80, // (80) ; 110 → 80 : DECISIONS #45
   speedPerStack: 0.2, // (15 %)
   poisonPerStack: 0.015, // (8 %/s par dose) : les découpes empoisonnent aussi, les aiguilles ne valent plus que 30 %
 } as const;
 
 /**
- * Ciseaux de lune (DECISIONS #28, réglages #31) : en se déplaçant, l'héroïne déroule un fil de découpe.
- * Refermer une boucle découpe du papier tout ce qu'elle entoure.
+ * Ciseaux de lune (DECISIONS #28, réglages #31 et #40) : en se déplaçant, l'héroïne déroule un fil de découpe.
+ * Refermer une boucle découpe du papier tout ce qu'elle entoure. Seules la Mite de papier (elle le grignote) et
+ * la charge du Crabe-ciseaux coupent le fil (DECISIONS #39).
  */
 export const THREAD = {
   /** distance entre deux points du fil (pt) */
   spacing: 9,
-  /** durée de vie d'un point avant que l'encre ne sèche (s) */
-  life: 3.2,
-  maxPoints: 110,
+  /** durée de vie d'un point avant que l'encre ne sèche (s) ; 3,2 → 6 (DECISIONS #40) */
+  life: 6,
+  maxPoints: 200,
   /** aire minimale d'une boucle (pt²) : évite les découpes accidentelles en zigzag */
   minArea: 1400,
   /** dégâts de base d'une découpe, × dégâts du héros / 100 */
@@ -151,5 +154,7 @@ export const THREAD = {
   confettiRadius: 72,
 } as const;
 
-/** Le tir automatique d'aiguilles devient l'attaque secondaire (0,5 → 0,3 : DECISIONS #31). */
-export const SHOT_DMG_MULT = 0.3;
+/** Le tir automatique d'aiguilles devient l'appoint (0,5 → 0,3 : DECISIONS #31 ; 0,3 → 0,1 : #40). */
+export const SHOT_DMG_MULT = 0.1;
+/** Les aiguilles épinglent les mites de papier : dégâts × 3 contre elles (DECISIONS #41). */
+export const NEEDLE_MOTH_MULT = 3;

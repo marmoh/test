@@ -31,14 +31,19 @@ const DAMAGE_FIRST: PowerId[] = [
   'lifesteal', 'shield', 'speed', 'dodge', 'sideShots', 'rearShot', 'blast', 'wallBounce', 'flashStep', 'magnet',
 ];
 
-/** Valeur estimée (bot expert) ; ajustée au contexte dans `bestChoice`. */
+/**
+ * Valeur estimée (bot expert) ; ajustée au contexte dans `bestChoice`. Les aiguilles ne sont plus que l'appoint
+ * (DECISIONS #40) : les pouvoirs de tir valent moins que ceux qui renforcent les découpes.
+ */
 const VALUE: Record<PowerId, number> = {
-  multishot: 9, ricochet: 8.5, attackSpeed: 8, damage: 7.5, chain: 7.5, crit: 6.5, diagonals: 6.5, pierce: 6,
-  maxHp: 6, shield: 6, orb: 5.5, flame: 5.5, poison: 5.5, eliteSlayer: 4, sideShots: 5, frost: 5, blast: 4.5,
-  dodge: 5, rearShot: 4, lifesteal: 4, wallBounce: 3.5, flashStep: 3.5, speed: 3, magnet: 2,
-  sharpScissors: 7.5, echoCut: 8, longThread: 6, steelThread: 6, barbedThread: 5.5, confetti: 6,
+  multishot: 5, ricochet: 5, attackSpeed: 5, damage: 8.5, chain: 5, crit: 7, diagonals: 4, pierce: 4,
+  maxHp: 6.5, shield: 6.5, orb: 5.5, flame: 5.5, poison: 5.5, eliteSlayer: 4.5, sideShots: 3, frost: 5, blast: 4.5,
+  dodge: 5, rearShot: 3, lifesteal: 4, wallBounce: 3, flashStep: 3.5, speed: 5, magnet: 2,
+  sharpScissors: 8.5, echoCut: 9, longThread: 6.5, steelThread: 5.5, barbedThread: 4.5, confetti: 7,
 };
 
+/** Directions des échantillons d'une boucle (cos, sin entrelacés). */
+const RING_U = Float64Array.from({ length: 48 }, (_, i) => (i % 2 ? Math.sin : Math.cos)((Math.floor(i / 2) * 2 * Math.PI) / 24));
 const DIRS = Array.from({ length: 16 }, (_, i) => ({ x: Math.cos((i * Math.PI) / 8), y: Math.sin((i * Math.PI) / 8) }));
 /** Instants (s) des points de la trajectoire prévue ; le bot regarde ~0,9 s devant lui. */
 const PLAN_T = [0, 0.1, 0.2, 0.35, 0.5, 0.7, 0.9];
@@ -92,17 +97,25 @@ const LOOP_SHOOTER_R = 46;
  * anneaux (champignon 8 spores, totem 6 runes : assez d'écart entre deux projectiles pour s'y glisser).
  */
 const LOOP_TYPE_R: Partial<Record<string, number>> = { goblin: LOOP_SHOOTER_R, skeleton: 76, mushroom: 66, totem: 58 };
-/** Points du cercle (sur ~20) qui peuvent tomber dans un obstacle ou hors de l'arène. */
+/** Points de la boucle (sur LOOP_K) qui peuvent tomber dans un obstacle ou hors de l'arène. */
 const LOOP_RING_SLACK = 3;
+/**
+ * Boucle « en étoile » (DECISIONS #43) : un rayon par angle (LOOP_K échantillons). Là où le cercle de base
+ * traverse un obstacle, la boucle s'en écarte vers l'extérieur (LOOP_BULGE pt de plus) et l'englobe.
+ */
+const LOOP_K = 24;
+const LOOP_BULGE = [0, 12, 24, 36, 50, 66];
 const SIM_STEP = 0.05;
 const SIM_STEPS = Math.round(PLAN_T[PLAN_T.length - 1] / SIM_STEP);
-const SHOOTER_SPEED: Partial<Record<string, number>> = { goblin: 300, skeleton: 340, mushroom: 150, totem: 170 };
 const CHASERS = new Set(['jelly', 'jellySmall', 'wolf', 'snipper', 'bat', 'moth']);
 /**
- * Jamais au centre d'une boucle : la mite (elle file vers le fil et le mange : on l'abat aux aiguilles) et le
- * squelette (éventail de 3 flèches à bout portant : on le laisse aux aiguilles).
+ * Jamais au centre d'une boucle : la mite (elle file vers le fil et le mange : on l'abat aux aiguilles, sauf
+ * avec le Fil d'acier) et le squelette (éventail de 3 flèches à bout portant : on le laisse aux aiguilles).
  */
-const LOOP_SKIP = new Set(['moth', 'skeleton']);
+const LOOP_SKIP = new Set(['moth']);
+function loopSkip(e: Enemy, steel: boolean): boolean {
+  return LOOP_SKIP.has(e.type) && !(steel && e.type === 'moth');
+}
 
 interface LoopState {
   circling: boolean;
@@ -130,6 +143,12 @@ interface LoopPlan extends LoopState {
   /** décalage du centre par rapport au barycentre des cibles (loin des murs), suivi en continu */
   ox: number;
   oy: number;
+  /** rayon par angle (LOOP_K échantillons, angle k × 2π / LOOP_K), ≥ r */
+  rk: Float64Array;
+  /** centre et rayon de base du dernier calcul de `rk` */
+  fx: number;
+  fy: number;
+  fr: number;
 }
 
 /** Instrumentation des boucles d'un bot (une partie). */
@@ -142,8 +161,38 @@ export interface LoopStats {
   missed: number;
 }
 
-function loopRadius(pl: LoopPlan, s: number): number {
-  return pl.r + LOOP_WOBBLE * Math.sin(LOOP_FREQ * s);
+interface RingFit {
+  hit: number;
+  bx: number;
+  by: number;
+  len: number;
+}
+
+/** Le point de la boucle à l'angle k, au rayon R (± ondulation), est-il praticable ? */
+function ringFree(w: World, cx: number, cy: number, R: number, k: number): boolean {
+  const m = HERO.radius + 2;
+  const ux = RING_U[2 * k];
+  const uy = RING_U[2 * k + 1];
+  for (let s = -1; s <= 1; s += 2) {
+    const q = R + s * LOOP_WOBBLE;
+    const x = cx + ux * q;
+    const y = cy + uy * q;
+    if (x < m || y < m || x > ARENA_W - m || y > ARENA_H - m || clearAt(w, x, y) < m) return false;
+  }
+  return true;
+}
+
+/** Rayon de la boucle à l'angle `a` (interpolation des échantillons). */
+function radiusAt(pl: LoopPlan, a: number): number {
+  let u = (a / TAU) * LOOP_K;
+  u = ((u % LOOP_K) + LOOP_K) % LOOP_K;
+  const i = Math.floor(u);
+  const f = u - i;
+  return pl.rk[i % LOOP_K] * (1 - f) + pl.rk[(i + 1) % LOOP_K] * f;
+}
+
+function loopRadius(pl: LoopPlan, a: number, s: number): number {
+  return radiusAt(pl, a) + LOOP_WOBBLE * Math.sin(LOOP_FREQ * s);
 }
 
 /** Orbite « la même » : même sens, cibles communes, centre proche. */
@@ -172,11 +221,13 @@ function loopStep(pl: LoopPlan, st: LoopState, x: number, y: number, out: Pt): v
   const d = Math.hypot(dx, dy);
   const ang = Math.atan2(dy, dx);
   if (!st.circling) {
-    if (d > pl.r + LOOP_CATCH || d < pl.r - LOOP_CATCH) {
+    const ra = radiusAt(pl, ang);
+    if (d > ra + LOOP_CATCH || d < ra - LOOP_CATCH) {
       // approche vers le point d'entrée tangent (recalculé : le centre suit les cibles)
       const a0 = entryAngle(pl.cx, pl.cy, pl.r, pl.dir, x, y);
-      const ex = pl.cx + Math.cos(a0) * pl.r - x;
-      const ey = pl.cy + Math.sin(a0) * pl.r - y;
+      const r0 = radiusAt(pl, a0);
+      const ex = pl.cx + Math.cos(a0) * r0 - x;
+      const ey = pl.cy + Math.sin(a0) * r0 - y;
       const n = Math.hypot(ex, ey) || 1;
       out.x = ex / n;
       out.y = ey / n;
@@ -193,7 +244,7 @@ function loopStep(pl: LoopPlan, st: LoopState, x: number, y: number, out: Pt): v
   st.lastAng = ang;
   const delta = Math.min(0.6, Math.max(0.2, 26 / pl.r));
   const ta = ang + pl.dir * delta;
-  const rr = loopRadius(pl, st.sw + delta);
+  const rr = loopRadius(pl, ta, st.sw + delta);
   const tx = pl.cx + Math.cos(ta) * rr - x;
   const ty = pl.cy + Math.sin(ta) * rr - y;
   const n = Math.hypot(tx, ty) || 1;
@@ -209,8 +260,8 @@ function loopStep(pl: LoopPlan, st: LoopState, x: number, y: number, out: Pt): v
  * sécurité avec les ennemis au contact, évitement des coins, recherche de ligne de
  * vue et détection de blocage. Ciseaux de lune (DECISIONS #30) : il trace des boucles
  * comme un joueur compétent — orbites autour d'un ennemi ou d'un groupe, choisies par
- * dégâts utiles × chances de fermeture (tirs en vol et à venir, charges, mites,
- * poursuivants, motifs du boss) ; le modèle de danger garde la priorité. La compétence
+ * dégâts utiles × chances de fermeture (mites, charges du crabe, flaques, motifs du
+ * boss : DECISIONS #39) ; le modèle de danger garde la priorité. La compétence
  * de boucle est commune aux trois bots (comme le déplacement).
  */
 export class Bot implements Controller {
@@ -246,6 +297,10 @@ export class Bot implements Controller {
   private readonly loopPath = new Float64Array(NP * 2);
   private readonly simSt: LoopState = { circling: false, sw: 0, lastAng: 0 };
   private readonly ldir: Pt = { x: 0, y: 0 };
+  private readonly rkTmp = new Float64Array(LOOP_K);
+  private readonly rkTmp2 = new Float64Array(LOOP_K);
+  private readonly rkCand = new Float64Array(LOOP_K);
+  private readonly fit: RingFit = { hit: 0, bx: 0, by: 0, len: 0 };
   /** Diagnostic (outils) : compte les raisons de rejet des cercles candidats quand `diagnostics` est vrai. */
   diagnostics = false;
   readonly rej: Record<string, number> = {};
@@ -568,6 +623,17 @@ export class Bot implements Controller {
     const lp = this.loopTick(w);
     if (lp) {
       loopStep(lp, lp, hp.x, hp.y, this.ldir);
+      // approche sans ligne droite jusqu'au cercle : on contourne l'obstacle
+      if (!lp.circling) {
+        const a0 = entryAngle(lp.cx, lp.cy, lp.r, lp.dir, hp.x, hp.y);
+        const r0 = radiusAt(lp, a0);
+        const ent = { x: lp.cx + Math.cos(a0) * r0, y: lp.cy + Math.sin(a0) * r0 };
+        if (!w.arena.lineOfWalk(hp, ent) && walkable(w, ent.x, ent.y)) {
+          const d = w.arena.steer(hp, ent);
+          this.ldir.x = d.x;
+          this.ldir.y = d.y;
+        }
+      }
       if (lp.circling && !lp.counted) {
         lp.counted = true;
         this.loops.started++;
@@ -768,6 +834,12 @@ export class Bot implements Controller {
       const rmax = ((THREAD.life * w.hero.stats.threadLife - 0.3) * w.hero.stats.speed) / (TAU + LOOP_EXTRA) - LOOP_WOBBLE;
       if (need > pl.r) pl.r = Math.min(rmax, pl.r + Math.min(3, need - pl.r));
     }
+    if (Math.abs(pl.cx - pl.fx) + Math.abs(pl.cy - pl.fy) > 3 || pl.r !== pl.fr) {
+      this.fitRing(w, pl.cx, pl.cy, pl.r, pl.rk);
+      pl.fx = pl.cx;
+      pl.fy = pl.cy;
+      pl.fr = pl.r;
+    }
     if (!pl.circling) pl.a0 = entryAngle(pl.cx, pl.cy, pl.r, pl.dir, w.hero.pos.x, w.hero.pos.y);
   }
 
@@ -822,34 +894,54 @@ export class Bot implements Controller {
   }
 
   /**
-   * Obstacles et bords sur le cercle (cx, cy, r) : null si praticable, sinon direction moyenne (depuis le centre)
-   * des points bloqués — on décale alors le centre à l'opposé.
+   * Boucle en étoile autour de (cx, cy), de rayon de base r : pour chaque angle, le plus petit rayon (r + bulge)
+   * dont le point est praticable (fil ± ondulation compris), élargi aux angles voisins pour contourner l'obstacle
+   * en douceur. Renvoie le nombre de points restés bloqués, leur direction moyenne (on décale alors le centre à
+   * l'opposé) et le périmètre de la boucle.
    */
-  private ringBlock(w: World, cx: number, cy: number, r: number): Pt | null {
-    const m = HERO.radius + 2;
-    const n = Math.max(12, Math.ceil((TAU * r) / 22));
-    let bx = 0;
-    let by = 0;
-    let hit = 0;
-    for (let k = 0; k < n; k++) {
-      const ux = Math.cos((k * TAU) / n);
-      const uy = Math.sin((k * TAU) / n);
-      const x = cx + ux * r;
-      const y = cy + uy * r;
-      if (x < m || y < m || x > ARENA_W - m || y > ARENA_H - m || clearAt(w, x, y) < m) {
-        bx += ux;
-        by += uy;
-        hit++;
+  private fitRing(w: World, cx: number, cy: number, r: number, out: Float64Array): RingFit {
+    const tmp = this.rkTmp;
+    for (let k = 0; k < LOOP_K; k++) {
+      tmp[k] = -r;
+      for (let j = 0; j < LOOP_BULGE.length; j++) {
+        if (ringFree(w, cx, cy, r + LOOP_BULGE[j], k)) {
+          tmp[k] = r + LOOP_BULGE[j];
+          break;
+        }
       }
     }
-    // un ou deux points bloqués : l'héroïne glisse le long de l'obstacle, la boucle reste fermable
-    return hit > LOOP_RING_SLACK ? { x: bx, y: by } : null;
+    const f = this.fit;
+    f.hit = 0;
+    f.bx = 0;
+    f.by = 0;
+    for (let k = 0; k < LOOP_K; k++) {
+      const t0 = tmp[k];
+      let R = t0 < 0 ? -t0 : t0;
+      const t1 = tmp[(k + 1) % LOOP_K];
+      const t2 = tmp[(k + LOOP_K - 1) % LOOP_K];
+      if (t1 > R) R = t1;
+      if (t2 > R) R = t2;
+      if (R > r && !ringFree(w, cx, cy, R, k)) R = t0 > 0 ? t0 : r;
+      out[k] = R;
+      if (t0 < 0) {
+        f.hit++;
+        f.bx += RING_U[2 * k];
+        f.by += RING_U[2 * k + 1];
+      }
+    }
+    let len = 0;
+    for (let k = 0; k < LOOP_K; k++) {
+      const j = (k + 1) % LOOP_K;
+      len += Math.hypot(RING_U[2 * j] * out[j] - RING_U[2 * k] * out[k], RING_U[2 * j + 1] * out[j] - RING_U[2 * k + 1] * out[k]);
+    }
+    f.len = len;
+    return f;
   }
 
   /**
    * Cherche la meilleure boucle jouable maintenant : pour chaque ennemi (seul, puis avec ses voisins), le plus
    * petit cercle qui l'entoure avec une marge (décalé loin des murs et des rochers), fermé avant que le fil ne
-   * sèche ; on écarte les cercles qu'un projectile, un tir à venir, une charge, une mite ou un ennemi au sol
+   * sèche ; les chances de fermeture (`loopOdds`) pénalisent les cercles qu'une mite ou une charge de crabe
    * couperait. Valeur : dégâts utiles (plafonnés aux PV) par seconde, approche comprise.
    */
   private planLoop(w: World, cur: LoopPlan | null): LoopPlan | null {
@@ -861,7 +953,8 @@ export class Bot implements Controller {
     // un tour + le croisement doivent tenir dans la durée de vie du fil (rayon moyen + ondulation)
     const rmax = Math.min(150, ((life - 0.3) * v) / (TAU + LOOP_EXTRA)) - LOOP_WOBBLE;
     if (rmax < LOOP_MIN_R) return null;
-    const all = w.enemies.filter((e) => e.hp > 0 && e.state !== 'spawn' && !LOOP_SKIP.has(e.type));
+    const steel = h.stats.steelThread;
+    const all = w.enemies.filter((e) => e.hp > 0 && e.state !== 'spawn' && !loopSkip(e, steel));
     if (!all.length) return null;
     // les plus proches seulement (coût) : une orbite lointaine perd de toute façon sa valeur à l'approche
     const dist2 = (e: Enemy) => (e.pos.x - hp.x) ** 2 + (e.pos.y - hp.y) ** 2;
@@ -890,19 +983,34 @@ export class Bot implements Controller {
       }
       cx /= group.length;
       cy /= group.length;
+      // élagage (coût) : valeur optimiste du groupe sur un cercle parfait, avant d'ajuster la boucle aux obstacles
+      {
+        let r0 = LOOP_MIN_R;
+        for (const g of group) r0 = Math.max(r0, need(g, cx, cy) + LOOP_WOBBLE);
+        const u0 = cutUnit * (1 + THREAD.comboPerExtra * group.length);
+        let g0 = 0;
+        for (const m of group) g0 += Math.min(m.hp, u0 * s.eliteMult) * 1.6;
+        const t0 = (TAU * r0) / v + Math.max(0, Math.hypot(hp.x - cx, hp.y - cy) - r0 - 60) / v + 0.3;
+        if (g0 / t0 <= bestV) return this.rjv('lowValue0');
+      }
       let r = 0;
+      let len = 0;
+      const rk = this.rkCand;
       for (let it = 0; ; it++) {
         r = LOOP_MIN_R;
         for (const g of group) r = Math.max(r, need(g, cx, cy) + LOOP_WOBBLE);
         if (r > rmax) return this.rjv('rmax');
-        const blk = this.ringBlock(w, cx, cy, r + LOOP_WOBBLE);
-        if (!blk) break;
+        const fit = this.fitRing(w, cx, cy, r, rk);
+        len = fit.len;
+        if (fit.hit <= LOOP_RING_SLACK) break;
         if (it >= 4) return this.rjv('ringBlocked');
-        const bn = Math.hypot(blk.x, blk.y);
+        const bn = Math.hypot(fit.bx, fit.by);
         if (bn < 1e-6) return this.rjv('ringBlocked');
-        cx -= (blk.x / bn) * 12;
-        cy -= (blk.y / bn) * 12;
+        cx -= (fit.bx / bn) * 12;
+        cy -= (fit.by / bn) * 12;
       }
+      // un tour (périmètre réel, contournements compris) + le croisement tiennent dans la durée de vie du fil
+      if ((len + TAU * LOOP_WOBBLE) * (1 + LOOP_EXTRA / TAU) > (life - 0.3) * v) return this.rjv('perimeter');
       // même cercle déjà évalué ?
       for (let k = 0; k < tried.length; k += 3) if (Math.abs(tried[k] - cx) < 4 && Math.abs(tried[k + 1] - cy) < 4 && Math.abs(tried[k + 2] - r) < 4) return;
       tried.push(cx, cy, r);
@@ -910,7 +1018,7 @@ export class Bot implements Controller {
       for (const e of w.enemies) {
         const d = Math.hypot(e.pos.x - cx, e.pos.y - cy);
         if (d >= r + LOOP_WOBBLE) continue;
-        if (e.state === 'spawn' || LOOP_SKIP.has(e.type)) return this.rjv('spawnOrMothInside');
+        if (e.state === 'spawn' || loopSkip(e, steel)) return this.rjv('spawnOrMothInside');
         if (d + e.radius + 2 > r - LOOP_WOBBLE) return this.rjv('memberTouch'); // il toucherait le fil
         members.push(e);
       }
@@ -930,7 +1038,7 @@ export class Bot implements Controller {
           fy += clampN(m.pos.y + uy * run, m.radius, ARENA_H - m.radius) - m.pos.y;
           nf++;
         }
-        if (nf && this.ringBlock(w, cx + fx / nf, cy + fy / nf, r + LOOP_WOBBLE)) return this.rjv('fleeWall');
+        if (nf && this.fitRing(w, cx + fx / nf, cy + fy / nf, r, this.rkTmp2).hit > LOOP_RING_SLACK) return this.rjv('fleeWall');
       }
       // valeur : dégâts utiles par seconde (borne haute avant l'approche, pour élaguer)
       const unit = cutUnit * (1 + THREAD.comboPerExtra * (members.length - 1));
@@ -940,7 +1048,7 @@ export class Bot implements Controller {
         const shooter = m.shotDmg > 0 && !m.boss;
         gain += Math.min(m.hp, dmg) * (shooter ? 1.3 : 1) + (dmg >= m.hp ? 0.3 * m.hp : 0);
       }
-      const loopT = ((TAU + LOOP_EXTRA / 2) * r) / v + 0.1;
+      const loopT = (len * (1 + LOOP_EXTRA / (2 * TAU))) / v + 0.1;
       const d0 = Math.hypot(hp.x - cx, hp.y - cy);
       const L = Math.abs(d0 - r);
       if (gain / (loopT + L / v + 0.37) <= bestV) return this.rjv('lowValue');
@@ -953,10 +1061,14 @@ export class Bot implements Controller {
         const ex = cx + Math.cos(a0) * r;
         const ey = cy + Math.sin(a0) * r;
         const la = Math.hypot(ex - hp.x, ey - hp.y);
-        const La = la <= 8 ? 0 : la;
+        let La = la <= 8 ? 0 : la;
+        // pas de ligne droite jusqu'au point d'entrée : on contourne (champ de déplacement), approche plus longue
         if (La > 0 && !w.arena.lineOfWalk(hp, { x: ex, y: ey })) {
-          this.rjv('noWalkLine');
-          continue;
+          if (!walkable(w, ex, ey)) {
+            this.rjv('noWalkLine');
+            continue;
+          }
+          La *= 1.5;
         }
         const tStart = now + La / v + 0.07;
         const tEnd = tStart + loopT;
@@ -984,9 +1096,7 @@ export class Bot implements Controller {
           this.rjv('odds');
           continue;
         }
-        const pp = this.loopProjOdds(w, cx, cy, r, dir, a0, tStart, tEnd, v);
-        const pv2 = pv * Math.max(pp, floor);
-        if (pv2 <= bestV) continue;
+        const pv2 = pv;
         bestV = pv2;
         let mx = 0;
         let my = 0;
@@ -996,11 +1106,12 @@ export class Bot implements Controller {
         }
         const ox = cx - mx / members.length;
         const oy = cy - my / members.length;
-        best = { cx, cy, r, dir, members, a0, cuts0: h.cuts, since: now, lap: loopT, value: pv2, counted: false, circling: false, sw: 0, lastAng: a0, ox, oy };
+        best = { cx, cy, r, dir, members, a0, cuts0: h.cuts, since: now, lap: loopT, value: pv2, counted: false, circling: false, sw: 0, lastAng: a0, ox, oy, rk: Float64Array.from(rk), fx: cx, fy: cy, fr: r };
       }
     };
     if (cur) {
-      keep = LOOP_KEEP;
+      // une orbite bien entamée vaut plus : la quitter perd le fil déjà tracé
+      keep = LOOP_KEEP * (cur.circling ? 1 + 2 * Math.min(1, Math.max(0, cur.sw) / TAU) : 1);
       const alive = cur.members.filter((m) => m.hp > 0 && m.state !== 'spawn');
       if (alive.length) consider(alive);
     }
@@ -1034,62 +1145,16 @@ export class Bot implements Controller {
   }
 
   /**
-   * Projectiles perçus (après le temps de réaction) : l'un d'eux traversera-t-il le cercle là où le fil est
-   * déjà tracé ? Le fil à l'angle σ (depuis a0, dans le sens `dir`) existe à partir de tStart + σ r / v.
-   * Renvoie les chances que le fil survive.
-   */
-  private loopProjOdds(w: World, cx: number, cy: number, r: number, dir: 1 | -1, a0: number, tStart: number, tEnd: number, v: number): number {
-    const now = w.t;
-    const T = tEnd - now;
-    const react = this.profile.reaction;
-    let odds = 1;
-    for (const p of w.projectiles) {
-      if (p.fromHero || now - p.born < react) continue;
-      const qx = p.pos.x - cx;
-      const qy = p.pos.y - cy;
-      const a = p.vel.x * p.vel.x + p.vel.y * p.vel.y;
-      if (a < 1) continue;
-      const b = 2 * (qx * p.vel.x + qy * p.vel.y);
-      const c = qx * qx + qy * qy - r * r;
-      const disc = b * b - 4 * a * c;
-      if (disc < 0) continue;
-      const sq = Math.sqrt(disc);
-      for (const t of [(-b - sq) / (2 * a), (-b + sq) / (2 * a)]) {
-        if (t <= 0 || t > T) continue;
-        const X = { x: p.pos.x + p.vel.x * t, y: p.pos.y + p.vel.y * t };
-        let sig = (Math.atan2(X.y - cy, X.x - cx) - a0) * dir;
-        sig = ((sig % TAU) + TAU) % TAU;
-        if (now + t < tStart + (sig * r) / v - 0.05) continue; // passé avant le tracé
-        if (!w.arena.lineOfSight(p.pos, X)) continue;
-        odds *= 0.1;
-        this.rjv('proj');
-        break;
-      }
-      if (odds < 0.01) return odds;
-    }
-    return odds;
-  }
-
-  /**
-   * Menaces indépendantes du sens de rotation, en chances que le fil survive : tirs et charges à venir (rythme
-   * des ennemis connu d'un joueur compétent : armement visible, cadence), mites, ennemis au sol qui atteindraient
-   * le fil, zones au sol sur le cercle.
+   * Chances que la boucle se ferme (DECISIONS #39 : seuls la mite et la charge du crabe coupent le fil) : mites
+   * qui atteindraient le fil, charges de crabe qui le traverseraient (rythme connu d'un joueur compétent), et
+   * menaces qui feraient quitter l'orbite à l'héroïne (flaque du mage sous ses pas, zones au sol sur le cercle,
+   * charge ou onde de choc du boss). Les tirs ne coupent plus le fil : le modèle de danger s'en charge.
    */
   private loopOdds(w: World, cx: number, cy: number, r: number, members: Enemy[], tStart: number, tEnd: number): number {
     const now = w.t;
     const T1 = Math.max(0, tStart - now);
     const T2 = tEnd - now;
-    /** une salve tirée à `tf` (relatif) depuis la distance d du centre croise-t-elle le cercle pendant [T1, T2] ? */
-    const salvo = (tf: number, d: number, fast: number, slow: number, cycle = 0): boolean => {
-      const near = Math.abs(d - r);
-      const far = d + r;
-      // salve suivante, puis les suivantes à la cadence de l'ennemi
-      for (let k = 0; k < 3 && tf < T2; k++, tf += cycle) {
-        if (tf + near / fast < T2 && tf + far / slow > T1) return true;
-        if (cycle <= 0) break;
-      }
-      return false;
-    };
+    const steel = w.hero.stats.steelThread;
     let odds = 1;
     this.bossRisk = false;
     const risk = (k: string, keep: number): void => {
@@ -1101,28 +1166,19 @@ export class Bot implements Controller {
       const member = members.includes(e);
       const spawnDelay = e.state === 'spawn' ? e.t : 0;
       if (e.boss) {
-        const bo = this.bossLoopOdds(e, d, r, member, T1, T2, salvo);
+        const bo = this.bossLoopOdds(e, d, r, member, T1, T2);
         if (bo < 1 && (member || d < r + 140)) this.bossRisk = true;
         odds *= bo;
         continue;
-      }
-      // tirs à venir
-      const shotSp = SHOOTER_SPEED[e.type];
-      if (shotSp) {
-        const tf = e.state === 'windup' ? e.t : spawnDelay + Math.max(0, e.cd) + 0.5;
-        if (salvo(tf, d, shotSp, shotSp, ENEMIES[e.type as MinionType].period)) risk('shotSoon', 0.15);
-      }
-      if (e.elite) {
-        const tf = e.eliteWind > 0 ? e.eliteWind : spawnDelay + e.eliteCd + 0.6;
-        if (salvo(tf, d, 140, 140, 5.1)) risk('eliteSoon', 0.1);
       }
       // mage : flaque sous l'héroïne, qu'elle retraverserait au tour suivant
       if (e.type === 'mage') {
         const tf = e.state === 'windup' ? e.t : spawnDelay + Math.max(0, e.cd) + 0.3;
         if (tf < T2 - 0.6) risk('mage', 0.5);
       }
-      // charges (loup, crabe-ciseaux) : elles traversent le cercle
-      if (e.type === 'wolf' || e.type === 'snipper') {
+      if (steel) continue;
+      // charge du crabe-ciseaux : elle vise le milieu du fil et le tranche
+      if (e.type === 'snipper') {
         if (e.state === 'windup' || e.state === 'charge') {
           if (d < r + 360) risk('chargeNow', 0.1);
         } else if (d < r + 330) {
@@ -1130,22 +1186,9 @@ export class Bot implements Controller {
           if (next < T2) risk('chargeSoon', 0.2);
         }
       }
-      if (odds < 0.01) return odds;
-      if (member) continue;
       // mites : elles filent vers le fil
-      if (e.type === 'moth') {
-        if (d - r < 105 * Math.max(0, T2 - spawnDelay) + 30) risk('moth', 0.1);
-        continue;
-      }
-      if (e.flying) continue;
-      const gap = Math.abs(d - r) - e.radius;
-      if (gap < 6 || d < r) {
-        risk('groundOnRing', 0.05);
-        continue;
-      }
-      if (CHASERS.has(e.type)) {
-        if (spawnDelay + gap / Math.max(1, e.speed) < T2) risk('chaserReach', 0.25);
-      } else if (e.speed > 0 && gap < e.speed * 0.6) risk('shooterNear', 0.5);
+      if (e.type === 'moth' && !member && d - r < 105 * Math.max(0, T2 - spawnDelay) + 30) risk('moth', 0.1);
+      if (odds < 0.01) return odds;
     }
     // zones au sol (flaques, ondes, pluie) sur le cercle, et charges télégraphiées qui le traversent
     for (const z of w.hazards) {
@@ -1158,8 +1201,8 @@ export class Bot implements Controller {
     return odds;
   }
 
-  /** Boss : le prochain motif (connu, joué en boucle) laisse-t-il le temps de fermer le cercle ? */
-  private bossLoopOdds(e: Enemy, d: number, r: number, member: boolean, T1: number, T2: number, salvo: (tf: number, d: number, fast: number, slow: number, cycle?: number) => boolean): number {
+  /** Boss : sa prochaine charge ou onde de choc (motifs connus, joués en boucle) ferait-elle quitter l'orbite ? */
+  private bossLoopOdds(e: Enemy, d: number, r: number, member: boolean, T1: number, T2: number): number {
     const b = e.boss!;
     const list = BOSSES[b.archetype].phases[b.phase];
     const kind = b.breath > 0 ? list[b.patternIdx % list.length].kind : b.pattern?.kind;
@@ -1168,11 +1211,6 @@ export class Bot implements Controller {
     const near = member || d < r + 200;
     let ok = true;
     switch (kind) {
-      case 'aimed':
-      case 'ring':
-      case 'spiral':
-        ok = b.breath > 0 ? !salvo(tp, d, 330, 150) : false;
-        break;
       case 'charge':
         ok = !(near && tp < T2);
         break;
@@ -1182,12 +1220,10 @@ export class Bot implements Controller {
       case 'puddles':
         ok = !(tp + 0.5 < T2);
         break;
-      case 'summon':
-        ok = !(member && tp + 1.2 < T2);
-        break;
-      case 'rain':
+      default:
         break;
     }
+    void T1;
     if (ok) return 1;
     this.rjv('boss:' + kind);
     return 0.1;
@@ -1254,6 +1290,10 @@ function clearGrid(w: World): Float32Array {
   }
   clearGrids.set(key, g);
   return g;
+}
+
+function walkable(w: World, x: number, y: number): boolean {
+  return !w.arena.blocksWalk(Math.floor(x / CELL), Math.floor(y / CELL));
 }
 
 /** Dégagement (pt) au point (x, y), prudent (case la plus proche moins sa demi-diagonale). */

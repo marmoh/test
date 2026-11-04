@@ -6,27 +6,69 @@
  "kind": "normal",
  "D": 1.809,
  "mult": 1,
- "budgetScale": 0.864,
- "seed": 7,
- "powerSeed": 3260029207,
+ "budgetScale": 0.95,
+ "seed": 1,
+ "powerSeed": 1170833304,
  "rooms": [
   {
-   "template": "room_19",
+   "template": "room_02",
    "waves": [
     [
      {
       "type": "goblin",
-      "c": 8,
+      "c": 2,
       "r": 1
      },
      {
       "type": "goblin",
-      "c": 0,
-      "r": 4
+      "c": 5,
+      "r": 2
      },
      {
       "type": "goblin",
       "c": 5,
+      "r": 0
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 7
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 1035605675,
+   "budget": 12
+  },
+  {
+   "template": "room_05",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 6,
       "r": 8
      }
     ],
@@ -34,60 +76,23 @@
      {
       "type": "goblin",
       "c": 1,
-      "r": 2
-     },
-     {
-      "type": "goblin",
-      "c": 3,
-      "r": 9
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 432905711,
-   "budget": 11
-  },
-  {
-   "template": "room_09",
-   "waves": [
-    [
-     {
-      "type": "goblin",
-      "c": 0,
       "r": 0
      },
      {
       "type": "goblin",
-      "c": 0,
-      "r": 1
-     },
-     {
-      "type": "goblin",
-      "c": 7,
-      "r": 6
-     }
-    ],
-    [
-     {
-      "type": "goblin",
-      "c": 8,
+      "c": 2,
       "r": 8
      },
      {
       "type": "goblin",
-      "c": 3,
-      "r": 5
-     },
-     {
-      "type": "goblin",
-      "c": 8,
-      "r": 5
+      "c": 6,
+      "r": 3
      }
     ]
    ],
    "boss": null,
-   "seed": 1643339546,
-   "budget": 12
+   "seed": 557249324,
+   "budget": 13
   }
  ],
  "stars": {
@@ -96,10 +101,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.87,
-  "expert": 1,
+  "moyen": 0.915,
+  "expert": 0.995,
   "band": "Chapitres 1–2",
   "ok": true,
-  "avgSeconds": 59
+  "avgSeconds": 45
  }
 }

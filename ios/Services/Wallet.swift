@@ -13,6 +13,13 @@ struct CreditLedger: Codable, Equatable, Sendable {
     }
 
     func contains(_ transactionID: UInt64) -> Bool { credited.contains(transactionID) }
+
+    /// Fusion iCloud : une transaction créditée sur un appareil l'est pour tous.
+    func union(_ other: CreditLedger) -> CreditLedger {
+        var m = self
+        m.credited.formUnion(other.credited)
+        return m
+    }
 }
 
 /// Ce que le `Store` sait faire au jeu : créditer et refléter les droits. La persistance définitive
@@ -45,10 +52,13 @@ struct Entitlements: Codable, Equatable, Sendable {
     var dragon: DragonStatus = .none
 }
 
-/// Portefeuille local (gemmes, bonus, héros, droits) — une seule écriture atomique par opération.
+/// Portefeuille local (gemmes, or, bonus, héros, droits) — une seule écriture atomique par opération,
+/// dans la section `wallet` de la sauvegarde (`SaveStore` : fichier JSON + iCloud).
 @MainActor
 @Observable
 final class Wallet: PurchaseSink {
+    static let key = "wallet"
+
     struct Snapshot: Codable, Equatable {
         var gems = 120
         var gold = 300
@@ -58,26 +68,71 @@ final class Wallet: PurchaseSink {
         var entitlements = Entitlements()
         var dragonGemsWeek: String?
         var dragonSkin = true
+        /// L'offre de départ a été créditée (achat réel ou restauré).
+        var starterCredited = false
+
+        init() {}
+
+        // décodage tolérant : une sauvegarde plus ancienne reçoit les nouveaux champs par défaut
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            let d = Snapshot()
+            gems = try c.decodeIfPresent(Int.self, forKey: .gems) ?? d.gems
+            gold = try c.decodeIfPresent(Int.self, forKey: .gold) ?? d.gold
+            heroes = try c.decodeIfPresent(Set<String>.self, forKey: .heroes) ?? d.heroes
+            bonuses = try c.decodeIfPresent(Bonuses.self, forKey: .bonuses) ?? d.bonuses
+            ledger = try c.decodeIfPresent(CreditLedger.self, forKey: .ledger) ?? d.ledger
+            entitlements = try c.decodeIfPresent(Entitlements.self, forKey: .entitlements) ?? d.entitlements
+            dragonGemsWeek = try c.decodeIfPresent(String.self, forKey: .dragonGemsWeek)
+            dragonSkin = try c.decodeIfPresent(Bool.self, forKey: .dragonSkin) ?? d.dragonSkin
+            starterCredited = try c.decodeIfPresent(Bool.self, forKey: .starterCredited) ?? false
+        }
     }
 
     struct Bonuses: Codable, Equatable {
         var potion = 1, scroll = 1, aegis = 1
-    }
 
-    private(set) var snapshot: Snapshot
-    private let defaults: UserDefaults
-    private let key = "ombrelune.wallet.v1"
-
-    init(defaults: UserDefaults = .standard) {
-        self.defaults = defaults
-        if let data = defaults.data(forKey: key), let s = try? JSONDecoder().decode(Snapshot.self, from: data) {
-            snapshot = s
-        } else {
-            snapshot = Snapshot()
+        subscript(_ k: BonusKind) -> Int {
+            get {
+                switch k { case .potion: potion; case .scroll: scroll; case .aegis: aegis }
+            }
+            set {
+                switch k { case .potion: potion = newValue; case .scroll: scroll = newValue; case .aegis: aegis = newValue }
+            }
         }
     }
 
+    private(set) var snapshot: Snapshot
+    @ObservationIgnored private let store: any BlobStore
+    @ObservationIgnored private let key: String
+
+    init(store: any BlobStore, key: String = Wallet.key) {
+        self.store = store
+        self.key = key
+        snapshot = Self.read(store, key) ?? Snapshot()
+    }
+
+    /// Tests et anciennes installations : stockage dans `UserDefaults`.
+    convenience init(defaults: UserDefaults = .standard) {
+        self.init(store: defaults, key: "ombrelune.wallet.v1")
+    }
+
+    private static func read(_ store: any BlobStore, _ key: String) -> Snapshot? {
+        guard let data = store.blob(key) else { return nil }
+        return try? JSONDecoder().decode(Snapshot.self, from: data)
+    }
+
+    /// Relit la sauvegarde (après une fusion iCloud).
+    func reload() {
+        if let s = Self.read(store, key) { snapshot = s }
+    }
+
     var gems: Int { snapshot.gems }
+    var gold: Int { snapshot.gold }
+    var heroes: Set<String> { snapshot.heroes }
+    func owns(_ hero: HeroID) -> Bool { snapshot.heroes.contains(hero.rawValue) }
+    var ownsSeasonPass: Bool { snapshot.entitlements.nonConsumables.contains(.seasonPass1) }
+    var ownsStarterPack: Bool { snapshot.entitlements.nonConsumables.contains(.starterPack) || snapshot.starterCredited }
     var isDragon: Bool { snapshot.entitlements.dragon.isActive }
     var dragon: DragonStatus { snapshot.entitlements.dragon }
 
@@ -96,6 +151,7 @@ final class Wallet: PurchaseSink {
             s.bonuses.potion += StarterPack.bonuses.potion
             s.bonuses.scroll += StarterPack.bonuses.scroll
             s.bonuses.aegis += StarterPack.bonuses.aegis
+            s.starterCredited = true
         case .seasonPass, .dragon:
             break // droits seulement (voir `apply`)
         }
@@ -133,7 +189,7 @@ final class Wallet: PurchaseSink {
         commit(s)
     }
 
-    // MARK: dépenses
+    // MARK: dépenses et gains
 
     @discardableResult
     func spendGems(_ n: Int) -> Bool {
@@ -142,6 +198,65 @@ final class Wallet: PurchaseSink {
         s.gems -= n
         commit(s)
         return true
+    }
+
+    @discardableResult
+    func spendGold(_ n: Int) -> Bool {
+        guard snapshot.gold >= n else { return false }
+        var s = snapshot
+        s.gold -= n
+        commit(s)
+        return true
+    }
+
+    func addGold(_ n: Int) {
+        var s = snapshot
+        s.gold += n
+        commit(s)
+    }
+
+    func bonusCount(_ k: BonusKind) -> Int { snapshot.bonuses[k] }
+
+    /// Équipe un bonus avant niveau (le décompte se fait au moment de JOUER).
+    @discardableResult
+    func consumeBonus(_ k: BonusKind) -> Bool {
+        guard snapshot.bonuses[k] > 0 else { return false }
+        var s = snapshot
+        s.bonuses[k] -= 1
+        commit(s)
+        return true
+    }
+
+    /// Achète un bonus avec de l'or (Potion 150, Égide 200 : boutique du web).
+    @discardableResult
+    func buyBonus(_ k: BonusKind, gold cost: Int) -> Bool {
+        guard snapshot.gold >= cost else { return false }
+        var s = snapshot
+        s.gold -= cost
+        s.bonuses[k] += 1
+        commit(s)
+        return true
+    }
+
+    func unlockHero(_ id: HeroID) {
+        guard !snapshot.heroes.contains(id.rawValue) else { return }
+        var s = snapshot
+        s.heroes.insert(id.rawValue)
+        commit(s)
+    }
+
+    /// Crédite des récompenses en une seule écriture (coffres, pass de saison). Les apparences sont gérées par `Progress`.
+    func grant(_ rewards: [Reward]) {
+        var s = snapshot
+        for r in rewards {
+            switch r {
+            case .gold(let n): s.gold += n
+            case .gems(let n): s.gems += n
+            case .bonus(let k, let n): s.bonuses[k] += n
+            case .threadSkin: break
+            }
+        }
+        commit(s)
     }
 
     /// « Effacer la progression » : tout sauf les achats (registre et droits restent, comme côté App Store).
@@ -154,6 +269,6 @@ final class Wallet: PurchaseSink {
 
     private func commit(_ s: Snapshot) {
         snapshot = s
-        if let data = try? JSONEncoder().encode(s) { defaults.set(data, forKey: key) }
+        if let data = try? JSONEncoder().encode(s) { store.setBlob(data, forKey: key) }
     }
 }

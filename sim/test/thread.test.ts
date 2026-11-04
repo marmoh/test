@@ -1,16 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import { Arena, World, newHero, NO_TALENTS, segX, pointInPoly, polyArea, Bot, BOTS, type RoomTemplate } from '../src/index.js';
+import { Arena, World, newHero, NO_TALENTS, segX, pointInPoly, polyArea, Bot, BOTS, type RoomTemplate, type MinionType, type PowerId, THREAD, SIM_DT } from '../src/index.js';
 import { loadRooms } from './helpers.js';
 
 const open = loadRooms().find((r) => r.id === 'room_01') as RoomTemplate;
 
-/** Une salle vide avec un gobelin immobile au centre (pas d'autofire pour isoler la découpe). */
-function setup(steel = false): World {
-  const hero = newHero(NO_TALENTS, steel ? { steelThread: 1 } : {}, false);
-  const w = new World({ arena: new Arena(open), D: 1, waves: [[{ type: 'totem', c: 4, r: 7 }]], seed: 1 }, hero);
+/** Une salle vide avec un ennemi (totem immobile au centre par défaut) ; pas de tir auto pour isoler le fil. */
+function setup(powers: Partial<Record<PowerId, number>> = {}, type: MinionType = 'totem', c = 4, r = 7): World {
+  const hero = newHero(NO_TALENTS, powers, false);
+  const w = new World({ arena: new Arena(open), D: 1, waves: [[{ type, c, r }]], seed: 1 }, hero);
   // laisser passer l'apparition
   for (let i = 0; i < 40; i++) w.step({ mx: 0, my: 0, touching: false });
   return w;
+}
+
+/** Trace un fil horizontal sous l'ennemi puis reste immobile ; renvoie les coupures observées (par qui). */
+function drawAndWait(w: World, steps: number): string[] {
+  w.hero.pos = { x: 60, y: 420 };
+  w.hero.thread.length = 0;
+  walkTo(w, 340, 420);
+  const snips: string[] = [];
+  for (let i = 0; i < steps && w.hero.thread.length > 1; i++) {
+    w.step({ mx: 0, my: 0, touching: false });
+    for (const ev of w.events) if (ev.e === 'snip') snips.push(ev.by);
+  }
+  return snips;
 }
 
 function walkTo(w: World, x: number, y: number): void {
@@ -42,13 +55,13 @@ describe('Ciseaux de lune', () => {
     const w = setup();
     walkTo(w, w.hero.pos.x, w.hero.pos.y - 120);
     expect(w.hero.thread.length).toBeGreaterThan(6);
-    for (let i = 0; i < 120; i++) w.step({ mx: 0, my: 0, touching: false });
+    for (let i = 0; i < (THREAD.life + 0.5) / SIM_DT; i++) w.step({ mx: 0, my: 0, touching: false });
     expect(w.hero.thread.length).toBe(0);
   });
 
   it('une boucle fermée autour d un ennemi le découpe', () => {
-    // fil d'acier : les projectiles du totem ne coupent pas le fil pendant le test
-    const w = setup(true);
+    // les projectiles du totem traversent le fil sans le couper (DECISIONS #39)
+    const w = setup();
     const e = w.enemies[0];
     const hp0 = e.hp;
     const cx = e.pos.x;
@@ -66,14 +79,66 @@ describe('Ciseaux de lune', () => {
     expect(e.hp).toBeLessThan(hp0);
   });
 
-  it('un projectile ennemi qui traverse le fil le coupe', () => {
+  it('un projectile ennemi qui traverse le fil ne le coupe pas', () => {
     const w = setup();
     walkTo(w, w.hero.pos.x + 150, w.hero.pos.y);
     const n = w.hero.thread.length;
     const mid = w.hero.thread[n >> 1];
     w.enemyShot({ x: mid.x, y: mid.y - 30 }, Math.PI / 2, 300, 10, 6);
-    for (let i = 0; i < 6; i++) w.step({ mx: 0, my: 0, touching: false });
-    expect(w.hero.thread.length).toBeLessThan(n);
+    let snipped = false;
+    for (let i = 0; i < 6; i++) {
+      w.step({ mx: 0, my: 0, touching: false });
+      snipped ||= w.events.some((ev) => ev.e === 'snip');
+    }
+    expect(snipped).toBe(false);
+    expect(w.hero.thread.length).toBe(n);
+  });
+
+  it('un ennemi au sol qui marche sur le fil ne le coupe pas', () => {
+    const w = setup({}, 'jelly', 4, 7);
+    const jelly = w.enemies[0];
+    w.hero.pos = { x: 40, y: 420 };
+    w.hero.thread.length = 0;
+    // un U ouvert sous la gelée : elle franchit le haut du U pour rejoindre l'héroïne
+    let touched = false;
+    let snipped = false;
+    for (const [x, y] of [[360, 420], [360, 600], [40, 600]]) {
+      for (let k = 0; k < 200; k++) {
+        const dx = x - w.hero.pos.x;
+        const dy = y - w.hero.pos.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 4) break;
+        w.step({ mx: dx / d, my: dy / d, touching: true });
+        touched ||= w.hero.thread.slice(0, -4).some((p) => Math.hypot(p.x - jelly.pos.x, p.y - jelly.pos.y) < jelly.radius);
+        snipped ||= w.events.some((ev) => ev.e === 'snip');
+      }
+    }
+    expect(touched).toBe(true);
+    expect(snipped).toBe(false);
+  });
+
+  it('la mite de papier grignote le fil', () => {
+    const snips = drawAndWait(setup({}, 'moth', 4, 6), 150);
+    expect(snips).toContain('moth');
+  });
+
+  it('la charge du crabe-ciseaux tranche le fil', () => {
+    const snips = drawAndWait(setup({}, 'snipper', 4, 5), 170);
+    expect(snips).toContain('snipper');
+  });
+
+  it("fil d'acier : ni la mite ni le crabe ne coupent le fil", () => {
+    expect(drawAndWait(setup({ steelThread: 1 }, 'moth', 4, 6), 150)).toEqual([]);
+    expect(drawAndWait(setup({ steelThread: 1 }, 'snipper', 4, 5), 170)).toEqual([]);
+  });
+
+  it('fil barbelé : un ennemi qui touche le fil se blesse', () => {
+    const w = setup({ barbedThread: 1 }, 'jelly', 4, 6);
+    const jelly = w.enemies[0];
+    const hp0 = jelly.hp;
+    drawAndWait(w, 90);
+    expect(jelly.hp).toBeLessThan(hp0);
+    expect(w.hero.dmgBy.other).toBeGreaterThan(0);
   });
 });
 
@@ -96,7 +161,7 @@ describe('Ciseaux de lune — bots', () => {
   });
 
   it('instrumentation : dégâts par source plafonnés aux PV', () => {
-    const w = setup(true);
+    const w = setup();
     const e = w.enemies[0];
     const hp0 = e.hp;
     const cut0 = w.hero.dmgBy.cut;

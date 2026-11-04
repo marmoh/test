@@ -18,6 +18,8 @@ export function talentsAtRank(rank: number): Talents {
 export interface HeroStats {
   maxHp: number;
   damage: number;
+  /** Multiplicateur des aiguilles seules (Multitir : −40 % par prise ; les découpes n'en pâtissent pas, DECISIONS #44). */
+  needleMult: number;
   fireRate: number;
   speed: number;
   multishot: number;
@@ -52,11 +54,12 @@ export interface HeroStats {
 export function computeStats(talents: Talents, powers: Partial<Record<PowerId, number>>): HeroStats {
   const n = (id: PowerId) => powers[id] ?? 0;
   const hpMult = (1 + TALENTS.hpPerRank * talents.vigor) * (1 + 0.2 * n('maxHp'));
-  const dmgMult = (1 + TALENTS.damagePerRank * talents.strength) * (1 + 0.2 * n('damage')) * Math.pow(POWER_TUNING.multishotDmg, n('multishot'));
+  const dmgMult = (1 + TALENTS.damagePerRank * talents.strength) * (1 + 0.2 * n('damage'));
   const rateMult = (1 + TALENTS.fireRatePerRank * talents.agility) * (1 + 0.25 * n('attackSpeed'));
   return {
     maxHp: Math.round(HERO.hp * hpMult),
     damage: HERO.damage * dmgMult,
+    needleMult: Math.pow(POWER_TUNING.multishotDmg, n('multishot')),
     fireRate: HERO.fireRate * rateMult,
     speed: HERO.speed * (1 + POWER_TUNING.speedPerStack * n('speed')),
     multishot: n('multishot'),

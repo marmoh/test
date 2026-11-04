@@ -6,95 +6,85 @@
  "kind": "boss",
  "D": 10.655,
  "mult": 1.55,
- "budgetScale": 0.909,
- "seed": 7,
- "powerSeed": 1561288492,
+ "budgetScale": 0.751,
+ "seed": 20,
+ "powerSeed": 1935962552,
  "rooms": [
   {
-   "template": "room_20",
+   "template": "room_14",
    "waves": [
     [
      {
-      "type": "totem",
-      "c": 7,
+      "type": "mushroom",
+      "c": 2,
       "r": 7
      },
      {
-      "type": "totem",
-      "c": 8,
-      "r": 7
+      "type": "skeleton",
+      "c": 3,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 1
      }
     ]
    ],
    "boss": null,
-   "seed": 2483727281,
+   "seed": 3698913659,
+   "budget": 8
+  },
+  {
+   "template": "room_07",
+   "waves": [
+    [
+     {
+      "type": "jelly",
+      "c": 8,
+      "r": 4,
+      "elite": true
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3276880583,
    "budget": 9
   },
   {
-   "template": "room_01",
+   "template": "room_15",
    "waves": [
     [
      {
-      "type": "moth",
-      "c": 5,
+      "type": "mushroom",
+      "c": 4,
       "r": 2
      },
      {
-      "type": "jelly",
-      "c": 4,
-      "r": 7
-     },
-     {
-      "type": "goblin",
+      "type": "wolf",
       "c": 5,
-      "r": 9
-     },
-     {
-      "type": "goblin",
-      "c": 2,
-      "r": 5
-     },
-     {
-      "type": "goblin",
-      "c": 0,
-      "r": 7
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 2148562026,
-   "budget": 11
-  },
-  {
-   "template": "room_11",
-   "waves": [
-    [
-     {
-      "type": "totem",
-      "c": 1,
-      "r": 1,
-      "elite": true
+      "r": 6
      },
      {
       "type": "jelly",
-      "c": 8,
-      "r": 6
+      "c": 3,
+      "r": 3
      }
     ]
    ],
    "boss": null,
-   "seed": 1624302220,
-   "budget": 12
+   "seed": 4283958120,
+   "budget": 10
   },
   {
-   "template": "room_02",
+   "template": "room_01",
    "waves": [],
    "boss": {
     "archetype": "ashlord",
     "variant": 0,
-    "hpMult": 0.909
+    "hpMult": 0.751
    },
-   "seed": 1442037541,
+   "seed": 3757533882,
    "budget": 0
   }
  ],
@@ -104,10 +94,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.335,
-  "expert": 0.955,
+  "moyen": 0.345,
+  "expert": 0.765,
   "band": "Boss",
   "ok": true,
-  "avgSeconds": 109
+  "avgSeconds": 94
  }
 }

@@ -7,55 +7,30 @@
  "D": 1.683,
  "mult": 1,
  "budgetScale": 0.864,
- "seed": 7,
- "powerSeed": 2697246752,
+ "seed": 8,
+ "powerSeed": 1437329865,
  "rooms": [
   {
-   "template": "room_16",
+   "template": "room_22",
    "waves": [
     [
      {
       "type": "goblin",
-      "c": 2,
-      "r": 2
-     },
-     {
-      "type": "goblin",
-      "c": 8,
-      "r": 5
-     },
-     {
-      "type": "goblin",
-      "c": 6,
-      "r": 6
-     }
-    ],
-    [
-     {
-      "type": "goblin",
-      "c": 6,
+      "c": 0,
       "r": 9
      },
      {
       "type": "goblin",
-      "c": 7,
-      "r": 8
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 1212624001,
-   "budget": 11
-  },
-  {
-   "template": "room_09",
-   "waves": [
-    [
-     {
-      "type": "goblin",
       "c": 6,
       "r": 5
      },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 2
+     }
+    ],
+    [
      {
       "type": "goblin",
       "c": 0,
@@ -63,16 +38,36 @@
      },
      {
       "type": "goblin",
-      "c": 1,
-      "r": 1
+      "c": 0,
+      "r": 6
      }
-    ],
+    ]
+   ],
+   "boss": null,
+   "seed": 566878267,
+   "budget": 11
+  },
+  {
+   "template": "room_06",
+   "waves": [
     [
      {
       "type": "goblin",
-      "c": 5,
-      "r": 1
+      "c": 7,
+      "r": 9
      },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 6
+     }
+    ],
+    [
      {
       "type": "goblin",
       "c": 2,
@@ -80,13 +75,18 @@
      },
      {
       "type": "goblin",
-      "c": 7,
-      "r": 7
+      "c": 1,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 3
      }
     ]
    ],
    "boss": null,
-   "seed": 1111450163,
+   "seed": 1367325398,
    "budget": 12
   }
  ],
@@ -96,10 +96,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.885,
-  "expert": 1,
+  "moyen": 0.85,
+  "expert": 0.995,
   "band": "Chapitres 1–2",
   "ok": true,
-  "avgSeconds": 53
+  "avgSeconds": 57
  }
 }

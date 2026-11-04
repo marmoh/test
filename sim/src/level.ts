@@ -135,7 +135,10 @@ export function generateLevel(n: number, seed: number, templates: RoomTemplate[]
       const cells = rng.shuffle(free.slice());
       for (const s of wave) {
         const stationary = s.type === 'mushroom' || s.type === 'totem';
-        let idx = cells.findIndex((c) => !stationary || (c.r >= 1 && c.r <= 7));
+        // fixes : loin des murs et des obstacles, pour qu'on puisse en faire le tour (DECISIONS #42)
+        let idx = cells.findIndex((c) => !stationary || (c.r >= 2 && c.r <= 7 && clearCells(arena, c.c, c.r) >= 2));
+        if (idx < 0) idx = cells.findIndex((c) => !stationary || (c.r >= 2 && c.r <= 7 && clearCells(arena, c.c, c.r) >= 1));
+        if (idx < 0) idx = cells.findIndex((c) => !stationary || (c.r >= 1 && c.r <= 7));
         if (idx < 0) idx = 0;
         const cell = cells.splice(idx, 1)[0] ?? { c: rng.int(COLS), r: 2 };
         s.c = cell.c;
@@ -166,6 +169,21 @@ export function generateLevel(n: number, seed: number, templates: RoomTemplate[]
     rooms,
     stars: { two: 0.5, three: 0.8 },
   };
+}
+
+/** Nombre de cases libres autour de (c, r) dans toutes les directions (anneaux de Tchebychev), murs compris. */
+function clearCells(arena: Arena, c: number, r: number): number {
+  for (let k = 1; k <= 3; k++) {
+    for (let dr = -k; dr <= k; dr++) {
+      for (let dc = -k; dc <= k; dc++) {
+        if (Math.max(Math.abs(dc), Math.abs(dr)) !== k) continue;
+        const cc = c + dc;
+        const rr = r + dr;
+        if (cc < 0 || rr < 0 || cc >= COLS || rr >= ROWS || arena.blocksWalk(cc, rr)) return k - 1;
+      }
+    }
+  }
+  return 3;
 }
 
 function round3(x: number): number {

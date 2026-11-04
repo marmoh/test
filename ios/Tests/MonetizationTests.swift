@@ -14,7 +14,7 @@ final class MonetizationTests: XCTestCase {
     }
 
     @MainActor
-    func testWalletCreditsGemsOncePerTransaction() {
+    func testWalletCreditsGemsOncePerTransaction() async {
         let defaults = UserDefaults(suiteName: "tests.\(UUID())")!
         let w = Wallet(defaults: defaults)
         let before = w.gems

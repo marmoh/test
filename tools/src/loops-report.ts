@@ -3,7 +3,7 @@
  * générés. usage: tsx tools/src/loops-report.ts [n1 n2 …] [--games 16] [--step 10]
  * Sans liste : un niveau sur `step` (1, 11, 21, …). Affiche aussi la durée moyenne et le coût d'une partie.
  */
-import { runLevel, talentsForLevel, Bot, BOTS, seedOf, type BotName } from '../../sim/src/index.js';
+import { generateLevel, runLevel, talentsForLevel, Bot, BOTS, seedOf, type BotName } from '../../sim/src/index.js';
 import { loadRooms, roomMap, loadLevel } from './content-io.js';
 
 const args = process.argv.slice(2);
@@ -15,11 +15,14 @@ const games = Number(val('games', '16'));
 const step = Number(val('step', '10'));
 let ns = args.filter((a, i) => !a.startsWith('--') && !(i > 0 && args[i - 1].startsWith('--'))).map(Number);
 if (!ns.length) ns = Array.from({ length: Math.ceil(300 / step) }, (_, i) => 1 + i * step);
-const map = roomMap(loadRooms());
+const rooms = loadRooms();
+const map = roomMap(rooms);
 const tot: Record<string, { cut: number; dmg: number; secs: number; ms: number; n: number; started: number; cuts: number }> = {};
 for (const n of ns) {
-  const level = loadLevel(n);
-  if (!level) continue;
+  const saved = loadLevel(n);
+  if (!saved) continue;
+  // régénéré depuis (graine, budget) : reflète les changements du générateur avant la revalidation
+  const level = generateLevel(n, saved.seed, rooms, saved.budgetScale);
   const row: string[] = [`n=${String(n).padStart(3)} ${level.kind.padEnd(9)}`];
   for (const b of ['moyen', 'expert'] as BotName[]) {
     let cut = 0, dmg = 0, secs = 0, wins = 0, started = 0, cuts = 0;

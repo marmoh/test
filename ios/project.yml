@@ -1,0 +1,119 @@
+# Projet Xcode d'Ombrelune — généré par XcodeGen : `cd ios && xcodegen generate` (voir docs/MAC_PHASE.md).
+# Ne pas éditer Ombrelune.xcodeproj à la main : modifier ce fichier puis régénérer.
+name: Ombrelune
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: fr
+  createIntermediateGroups: true
+  groupSortPosition: top
+  xcodeVersion: "15.4"
+
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    # Mode Swift 5 + vérifications de concurrence ciblées (avertissements, pas d'erreurs).
+    # Le cœur (`Core/`) compile sans avertissement en mode Swift 6 strict (vérifié sous Linux).
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: targeted
+    # À renseigner pendant la phase Mac (Xcode › Signing & Capabilities) : identifiant d'équipe Apple.
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  Ombrelune:
+    type: application
+    platform: iOS
+    sources:
+      - path: Core
+      - path: Game
+      - path: Services
+      - path: UI
+      - path: Resources/Assets.xcassets
+      # Atlas SpriteKit (générés par `pnpm art:atlas`) : un dossier `.atlas` = un atlas compilé par Xcode.
+      - { path: Resources/Atlases/Hero.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/Enemies.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/Bosses.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/Icons.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/VFX.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/Stage.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/Decor_Forest.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/Decor_Swamp.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/Decor_Desert.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/Decor_Frost.atlas, type: file, buildPhase: resources }
+      - { path: Resources/Atlases/Decor_Ash.atlas, type: file, buildPhase: resources }
+      # Mêmes contenus JSON que le web (références de dossier : `levels/` et `rooms/` à la racine du paquet).
+      - { path: ../content/levels, type: folder, buildPhase: resources }
+      - { path: ../content/rooms, type: folder, buildPhase: resources }
+      # Configuration StoreKit locale (simulateur, tests) : dans le projet, hors du paquet.
+      - { path: Ombrelune.storekit, buildPhase: none }
+    info:
+      path: Generated/Info.plist
+      properties:
+        CFBundleDisplayName: Ombrelune
+        CFBundleName: Ombrelune
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: fr
+        LSRequiresIPhoneOS: true
+        ITSAppUsesNonExemptEncryption: false
+        UIRequiresFullScreen: true
+        UIRequiredDeviceCapabilities: [arm64]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIStatusBarStyle: UIStatusBarStyleDarkContent
+        # ATT : demandé seulement quand le joueur active « Publicités personnalisées » (Réglages).
+        NSUserTrackingUsageDescription: "Permet d’afficher des publicités adaptées quand tu choisis d’en regarder une pour gagner une vie."
+        GKGameCenterBadgingDisabled: false
+    entitlements:
+      path: Ombrelune.entitlements
+      properties:
+        com.apple.developer.game-center: true
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.ombrelune
+        PRODUCT_NAME: Ombrelune
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: YES
+        SUPPORTS_MACCATALYST: NO
+
+  OmbreluneTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+      # Traces de rejeu TS → Swift (`pnpm traces`), lues par `ParityTests`.
+      - { path: ../content/traces, type: folder, buildPhase: resources }
+    dependencies:
+      - target: Ombrelune
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.ombrelune.tests
+
+schemes:
+  Ombrelune:
+    build:
+      targets:
+        Ombrelune: all
+        OmbreluneTests: [test]
+    run:
+      config: Debug
+      storeKitConfiguration: Ombrelune.storekit
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - OmbreluneTests
+    profile:
+      config: Release
+    archive:
+      config: Release
