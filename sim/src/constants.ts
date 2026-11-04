@@ -58,7 +58,7 @@ export function expectedTalentRank(n: number): number {
 
 export const HEAL_BETWEEN_ROOMS = 0.15;
 
-// §5 Mise à l'échelle : PV 0,03/D (SPEC 0,09), dégâts 0,06/D (SPEC) — cf. DECISIONS n° 18
+// §5 Mise à l'échelle : PV 0,02/D (SPEC 0,09), dégâts 0,035/D (SPEC 0,06) — cf. DECISIONS n° 18 et 34
 export const SCALE = { hpPerD: 0.02, dmgPerD: 0.035 } as const;
 
 /**
@@ -79,7 +79,7 @@ export const BUDGET = {
   waveCap: 8,
   waveCapPerD: 0.8,
 } as const;
-/** La vague suivante arrive quand il reste au plus ce nombre d'ennemis (DECISIONS #30). */
+/** La vague suivante arrive quand il reste au plus ce nombre d'ennemis (2 avant : DECISIONS #33). */
 export const WAVE_NEXT_ALIVE = 1;
 export const ELITE = { hpMult: 2.2, fromChapter: 3, maxPerRoom: 1, maxPerRoomHard: 2 } as const;
 export const TELEGRAPH_MIN = 0.5;
@@ -122,12 +122,13 @@ export const POWER_TUNING = {
   pierceDmg: 0.85, // dégâts des flèches perforantes
   frostSlow: 0.4, // (30 %)
   frostDuration: 2, // (1,5 s)
-  orbDamage: 120, // (80)
+  orbDamage: 110, // (80)
   speedPerStack: 0.2, // (15 %)
+  poisonPerStack: 0.015, // (8 %/s par dose) : les découpes empoisonnent aussi, les aiguilles ne valent plus que 30 %
 } as const;
 
 /**
- * Ciseaux de lune (DECISIONS #28) : en se déplaçant, l'héroïne déroule un fil de découpe.
+ * Ciseaux de lune (DECISIONS #28, réglages #31) : en se déplaçant, l'héroïne déroule un fil de découpe.
  * Refermer une boucle découpe du papier tout ce qu'elle entoure.
  */
 export const THREAD = {
@@ -150,5 +151,5 @@ export const THREAD = {
   confettiRadius: 72,
 } as const;
 
-/** Le tir automatique d'aiguilles devient l'attaque secondaire. */
+/** Le tir automatique d'aiguilles devient l'attaque secondaire (0,5 → 0,3 : DECISIONS #31). */
 export const SHOT_DMG_MULT = 0.3;

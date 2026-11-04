@@ -207,7 +207,11 @@ function loopStep(pl: LoopPlan, st: LoopState, x: number, y: number, out: Pt): v
  * En dehors de ce filtre, il joue proprement : prédiction exacte des trajectoires
  * (approche minimale analytique), pas de côté puis arrêt pour tirer, distance de
  * sécurité avec les ennemis au contact, évitement des coins, recherche de ligne de
- * vue et détection de blocage.
+ * vue et détection de blocage. Ciseaux de lune (DECISIONS #30) : il trace des boucles
+ * comme un joueur compétent — orbites autour d'un ennemi ou d'un groupe, choisies par
+ * dégâts utiles × chances de fermeture (tirs en vol et à venir, charges, mites,
+ * poursuivants, motifs du boss) ; le modèle de danger garde la priorité. La compétence
+ * de boucle est commune aux trois bots (comme le déplacement).
  */
 export class Bot implements Controller {
   private rng: Rng;

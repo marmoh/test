@@ -6,146 +6,19 @@
  "kind": "normal",
  "D": 2.974,
  "mult": 1,
- "budgetScale": 1,
- "seed": 6,
- "powerSeed": 1537359652,
+ "budgetScale": 0.96,
+ "seed": 8,
+ "powerSeed": 1324516759,
  "rooms": [
   {
-   "template": "room_22",
+   "template": "room_12",
    "waves": [
     [
      {
-      "type": "goblin",
-      "c": 0,
-      "r": 8
-     },
-     {
-      "type": "goblin",
-      "c": 4,
-      "r": 4
-     },
-     {
-      "type": "goblin",
-      "c": 0,
-      "r": 2
-     },
-     {
-      "type": "goblin",
-      "c": 5,
-      "r": 5
-     },
-     {
-      "type": "goblin",
-      "c": 0,
-      "r": 6
-     },
-     {
-      "type": "goblin",
+      "type": "jelly",
       "c": 2,
-      "r": 5
-     },
-     {
-      "type": "goblin",
-      "c": 8,
       "r": 1
      },
-     {
-      "type": "goblin",
-      "c": 3,
-      "r": 1
-     },
-     {
-      "type": "goblin",
-      "c": 8,
-      "r": 2
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 3783013719,
-   "budget": 18
-  },
-  {
-   "template": "room_08",
-   "waves": [
-    [
-     {
-      "type": "goblin",
-      "c": 7,
-      "r": 7
-     },
-     {
-      "type": "jelly",
-      "c": 7,
-      "r": 0
-     },
-     {
-      "type": "goblin",
-      "c": 8,
-      "r": 4
-     },
-     {
-      "type": "jelly",
-      "c": 5,
-      "r": 0
-     },
-     {
-      "type": "jelly",
-      "c": 3,
-      "r": 6
-     },
-     {
-      "type": "goblin",
-      "c": 5,
-      "r": 3
-     },
-     {
-      "type": "goblin",
-      "c": 4,
-      "r": 6
-     },
-     {
-      "type": "jelly",
-      "c": 6,
-      "r": 9
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 2958930510,
-   "budget": 20
-  },
-  {
-   "template": "room_17",
-   "waves": [
-    [
-     {
-      "type": "goblin",
-      "c": 5,
-      "r": 6
-     },
-     {
-      "type": "goblin",
-      "c": 5,
-      "r": 1
-     },
-     {
-      "type": "jelly",
-      "c": 6,
-      "r": 9
-     },
-     {
-      "type": "jelly",
-      "c": 6,
-      "r": 5
-     },
-     {
-      "type": "goblin",
-      "c": 6,
-      "r": 3
-     }
-    ],
-    [
      {
       "type": "goblin",
       "c": 1,
@@ -153,29 +26,120 @@
      },
      {
       "type": "jelly",
+      "c": 0,
+      "r": 7
+     }
+    ],
+    [
+     {
+      "type": "jelly",
       "c": 5,
-      "r": 1
+      "r": 4
      },
      {
-      "type": "goblin",
-      "c": 3,
-      "r": 3
-     },
-     {
-      "type": "goblin",
-      "c": 7,
-      "r": 1
-     },
-     {
-      "type": "goblin",
-      "c": 2,
-      "r": 5
+      "type": "jelly",
+      "c": 4,
+      "r": 7
      }
     ]
    ],
    "boss": null,
-   "seed": 8192014,
-   "budget": 23
+   "seed": 2185288048,
+   "budget": 14
+  },
+  {
+   "template": "room_08",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 7
+     },
+     {
+      "type": "bat",
+      "c": 0,
+      "r": 9
+     },
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 3
+     }
+    ],
+    [
+     {
+      "type": "bat",
+      "c": 6,
+      "r": 7
+     },
+     {
+      "type": "jelly",
+      "c": 6,
+      "r": 3
+     },
+     {
+      "type": "bat",
+      "c": 8,
+      "r": 1
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 564861757,
+   "budget": 16
+  },
+  {
+   "template": "room_18",
+   "waves": [
+    [
+     {
+      "type": "bat",
+      "c": 1,
+      "r": 7
+     },
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 3
+     },
+     {
+      "type": "jelly",
+      "c": 1,
+      "r": 9
+     },
+     {
+      "type": "jelly",
+      "c": 6,
+      "r": 0
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 7
+     },
+     {
+      "type": "bat",
+      "c": 7,
+      "r": 0
+     },
+     {
+      "type": "jelly",
+      "c": 1,
+      "r": 0
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3845576581,
+   "budget": 18
   }
  ],
  "stars": {
@@ -184,10 +148,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.635,
-  "expert": 1,
+  "moyen": 0.71,
+  "expert": 0.93,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 77
+  "avgSeconds": 119
  }
 }

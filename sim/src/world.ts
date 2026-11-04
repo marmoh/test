@@ -1149,7 +1149,7 @@ export class World {
     if (s.poison) {
       e.poisonStacks = Math.min(5, e.poisonStacks + 1);
       e.poisonT = 4;
-      e.poisonDps = s.damage * 0.08 * e.poisonStacks;
+      e.poisonDps = s.damage * POWER_TUNING.poisonPerStack * e.poisonStacks;
     }
   }
 

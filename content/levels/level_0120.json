@@ -7,94 +7,64 @@
  "D": 5.684,
  "mult": 1.55,
  "budgetScale": 1,
- "seed": 1,
- "powerSeed": 3711643305,
+ "seed": 3,
+ "powerSeed": 2627308921,
  "rooms": [
   {
-   "template": "room_10",
+   "template": "room_23",
    "waves": [
     [
      {
-      "type": "jelly",
-      "c": 8,
-      "r": 1
-     },
-     {
-      "type": "goblin",
+      "type": "bat",
       "c": 4,
-      "r": 5
+      "r": 3
      },
      {
       "type": "goblin",
-      "c": 8,
+      "c": 1,
       "r": 9,
       "elite": true
      },
      {
-      "type": "jelly",
-      "c": 1,
-      "r": 0
-     },
-     {
       "type": "goblin",
       "c": 7,
-      "r": 3
-     },
-     {
-      "type": "bat",
-      "c": 3,
-      "r": 0
+      "r": 8
      }
     ]
    ],
    "boss": null,
-   "seed": 1338043703,
-   "budget": 17
+   "seed": 274551874,
+   "budget": 9
   },
   {
    "template": "room_06",
    "waves": [
     [
      {
-      "type": "goblin",
-      "c": 6,
-      "r": 8
-     },
-     {
-      "type": "bat",
-      "c": 3,
-      "r": 0
-     },
-     {
       "type": "jelly",
-      "c": 2,
-      "r": 8
+      "c": 0,
+      "r": 7
      },
      {
       "type": "goblin",
-      "c": 5,
-      "r": 0
-     },
-     {
-      "type": "jelly",
-      "c": 7,
-      "r": 2
-     },
-     {
-      "type": "jelly",
-      "c": 3,
+      "c": 8,
       "r": 1
      },
      {
-      "type": "jelly",
-      "c": 0,
+      "type": "goblin",
+      "c": 4,
       "r": 4
+     },
+     {
+      "type": "moth",
+      "c": 5,
+      "r": 5
      }
     ]
    ],
    "boss": null,
-   "seed": 650694927,
-   "budget": 19
+   "seed": 2000102302,
+   "budget": 10
   },
   {
    "template": "room_07",
@@ -104,7 +74,7 @@
     "variant": 2,
     "hpMult": 1
    },
-   "seed": 4019335637,
+   "seed": 825400835,
    "budget": 0
   }
  ],
@@ -114,10 +84,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.275,
-  "expert": 0.985,
+  "moyen": 0.31,
+  "expert": 0.98,
   "band": "Boss",
   "ok": true,
-  "avgSeconds": 82
+  "avgSeconds": 97
  }
 }

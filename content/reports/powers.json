@@ -17,127 +17,127 @@
   247,
   260
  ],
- "median": 0.4878,
+ "median": 0.48115,
  "powers": [
+  {
+   "id": "longThread",
+   "name": "Fil long",
+   "rate": 0.42
+  },
+  {
+   "id": "sharpScissors",
+   "name": "Ciseaux affûtés",
+   "rate": 0.3644
+  },
+  {
+   "id": "steelThread",
+   "name": "Fil d'acier",
+   "rate": 0.3667
+  },
+  {
+   "id": "barbedThread",
+   "name": "Fil barbelé",
+   "rate": 0.5089
+  },
+  {
+   "id": "confetti",
+   "name": "Confettis",
+   "rate": 0.3778
+  },
+  {
+   "id": "echoCut",
+   "name": "Écho",
+   "rate": 0.4178
+  },
   {
    "id": "multishot",
    "name": "Multitir",
-   "rate": 0.5356
-  },
-  {
-   "id": "rearShot",
-   "name": "Tir arrière",
-   "rate": 0.3511
-  },
-  {
-   "id": "diagonals",
-   "name": "Diagonales",
-   "rate": 0.5489
-  },
-  {
-   "id": "sideShots",
-   "name": "Tirs latéraux",
-   "rate": 0.44
+   "rate": 0.4756
   },
   {
    "id": "ricochet",
    "name": "Ricochet",
-   "rate": 0.54
+   "rate": 0.5022
   },
   {
    "id": "pierce",
    "name": "Perforation",
-   "rate": 0.5733
+   "rate": 0.4756
   },
   {
-   "id": "wallBounce",
-   "name": "Rebond mural",
-   "rate": 0.4378
+   "id": "diagonals",
+   "name": "Diagonales",
+   "rate": 0.5133
   },
   {
    "id": "attackSpeed",
    "name": "Cadence +25 %",
-   "rate": 0.5844
+   "rate": 0.52
   },
   {
    "id": "damage",
    "name": "Dégâts +20 %",
-   "rate": 0.5533
+   "rate": 0.4889
   },
   {
    "id": "crit",
    "name": "Critique",
-   "rate": 0.4889
+   "rate": 0.4867
   },
   {
    "id": "eliteSlayer",
    "name": "Tueur d'élites",
-   "rate": 0.4578
+   "rate": 0.5044
   },
   {
    "id": "flame",
    "name": "Flamme",
-   "rate": 0.52
+   "rate": 0.4756
   },
   {
    "id": "frost",
    "name": "Givre",
-   "rate": 0.3889
+   "rate": 0.4511
   },
   {
    "id": "chain",
    "name": "Foudre en chaîne",
-   "rate": 0.5756
+   "rate": 0.5267
   },
   {
    "id": "poison",
    "name": "Poison",
-   "rate": 0.5267
-  },
-  {
-   "id": "blast",
-   "name": "Déflagration",
-   "rate": 0.4867
+   "rate": 0.4556
   },
   {
    "id": "orb",
    "name": "Orbe gardien",
-   "rate": 0.4022
+   "rate": 0.6
   },
   {
    "id": "shield",
    "name": "Bouclier",
-   "rate": 0.5711
+   "rate": 0.6
   },
   {
    "id": "lifesteal",
    "name": "Vol de vie",
-   "rate": 0.5111
+   "rate": 0.4733
   },
   {
    "id": "maxHp",
    "name": "PV max +20 %",
-   "rate": 0.4778
+   "rate": 0.5
   },
   {
    "id": "speed",
    "name": "Vitesse +20 %",
-   "rate": 0.4133
+   "rate": 0.5156
   },
   {
    "id": "dodge",
    "name": "Esquive",
-   "rate": 0.4333
-  },
-  {
-   "id": "flashStep",
-   "name": "Pas éclair",
-   "rate": 0.4356
-  },
-  {
-   "id": "magnet",
-   "name": "Aimant à soins",
-   "rate": 0.3733
+   "rate": 0.3911
   }
  ]
 }

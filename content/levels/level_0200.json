@@ -95,8 +95,8 @@
   "three": 0.8
  },
  "validation": {
-  "games": 60,
-  "moyen": 0.367,
+  "games": 200,
+  "moyen": 0.33,
   "expert": 1,
   "band": "Boss",
   "ok": true,

@@ -39,7 +39,7 @@ export const ENEMIES: Record<MinionType, EnemyDef> = {
  * Ordre d'apparition : un nouveau type à chaque chapitre (DECISIONS #29), introduit seul dans la
  * salle tutoriel du niveau p = 1. Gobelin (1 : boucler entre deux tirs), chauve-souris (2 : volante, elle ne
  * coupe pas le fil — la cible idéale d'une boucle), gelée (3 : ne pas laisser un poursuivant toucher le fil), mite
- * (4 : elle mange le fil, on l'abat aux aiguilles) ; DECISIONS #30.
+ * (4 : elle mange le fil, on l'abat aux aiguilles) ; DECISIONS #32.
  */
 export const UNLOCK_ORDER: EnemyType[] = ['goblin', 'bat', 'jelly', 'moth', 'snipper', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage'];
 
@@ -241,8 +241,8 @@ export const POWERS: PowerDef[] = [
   { id: 'flame', name: 'Flamme', family: 'element', rarity: 'common', maxStacks: 1, desc: 'Brûle : 20 %/s pendant 2 s' },
   { id: 'frost', name: 'Givre', family: 'element', rarity: 'common', maxStacks: 1, desc: 'Ralentit de 40 % pendant 2 s' },
   { id: 'chain', name: 'Foudre en chaîne', family: 'element', rarity: 'epic', maxStacks: 1, desc: 'Arc sur 2 cibles (20 %)' },
-  { id: 'poison', name: 'Poison', family: 'element', rarity: 'common', maxStacks: 1, desc: 'Poison cumulable (8 %/s par dose)' },
-  { id: 'orb', name: 'Orbe gardien', family: 'defense', rarity: 'rare', maxStacks: 1, desc: 'Un orbe tourne et inflige 120 dégâts' },
+  { id: 'poison', name: 'Poison', family: 'element', rarity: 'common', maxStacks: 1, desc: 'Poison cumulable (1,5 %/s par dose)' },
+  { id: 'orb', name: 'Orbe gardien', family: 'defense', rarity: 'rare', maxStacks: 1, desc: 'Un orbe tourne et inflige 110 dégâts' },
   { id: 'shield', name: 'Bouclier', family: 'defense', rarity: 'common', maxStacks: 1, desc: 'Absorbe 1 coup toutes les 20 s' },
   { id: 'lifesteal', name: 'Vol de vie', family: 'defense', rarity: 'common', maxStacks: 1, desc: 'Soigne de 2 % des dégâts infligés' },
   { id: 'maxHp', name: 'PV max +20 %', family: 'defense', rarity: 'common', maxStacks: 3, desc: '+20 % PV max et soigne d’autant' },

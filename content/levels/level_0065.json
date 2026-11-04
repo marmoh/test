@@ -148,11 +148,11 @@
   "three": 0.8
  },
  "validation": {
-  "games": 60,
-  "moyen": 0.75,
-  "expert": 0.967,
+  "games": 200,
+  "moyen": 0.795,
+  "expert": 0.985,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 112
+  "avgSeconds": 111
  }
 }

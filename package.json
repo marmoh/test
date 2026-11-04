@@ -11,6 +11,7 @@
     "levels:gen": "tsx tools/src/levels-gen.ts",
     "levels:validate": "tsx tools/src/levels-validate.ts",
     "bots:balance": "tsx tools/src/powers-balance.ts",
+    "bots:loops": "tsx tools/src/loops-report.ts",
     "verify": "pnpm typecheck && pnpm test && pnpm rooms:check && pnpm levels:validate --check",
     "web:dev": "vite --config web/vite.config.ts",
     "web:build": "vite build --config web/vite.config.ts",

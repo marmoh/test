@@ -223,11 +223,11 @@
   "three": 0.8
  },
  "validation": {
-  "games": 60,
-  "moyen": 0.683,
-  "expert": 1,
+  "games": 200,
+  "moyen": 0.615,
+  "expert": 0.975,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 136
+  "avgSeconds": 134
  }
 }
