@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["sim", "tools", "web/src", "art/src"]
+  "include": ["sim", "tools", "web/src", "web/test", "art/src"]
 }

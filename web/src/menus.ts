@@ -4,24 +4,14 @@ import { TALENTS } from '../../sim/src/constants.js';
 import { tournamentScore } from '../../sim/src/formulas.js';
 import { INK_UI, iconURL } from '../../art/src/icons.js';
 import { liveSprite } from './portraits.js';
-import { save, persist, talentCost, tournamentState } from './state.js';
-import { el, toast } from './ui.js';
-import { sfx, setSound } from './audio.js';
-
-function sheet(cls: string, title: string, body: string): { o: HTMLElement; close: () => Promise<void> } {
-  const o = el(`<div class="overlay sheet-overlay"><div class="scrim"></div><div class="sheet tall ${cls}"><div class="sheet-head"><div class="lvl-num">${title}</div></div><div class="sheet-body">${body}</div><button class="close-x" aria-label="Fermer">×</button></div></div>`);
-  document.getElementById('app')!.appendChild(o);
-  requestAnimationFrame(() => o.classList.add('in'));
-  const close = () =>
-    new Promise<void>((r) => {
-      o.classList.remove('in');
-      o.classList.add('out');
-      setTimeout(() => (o.remove(), r()), 280);
-    });
-  o.querySelector('.close-x')!.addEventListener('click', () => void close());
-  o.querySelector('.scrim')!.addEventListener('click', () => void close());
-  return { o, close };
-}
+import { APP_NAME } from '../../sim/src/constants.js';
+import { save, persist, talentCost, tournamentState, subscribed, subscription, recordEntitlements, restorePurchases, eraseProgress } from './state.js';
+import { sheet, toast } from './ui.js';
+import { sfx } from './audio.js';
+import { applyPrefs } from './prefs.js';
+import { clearPortraits } from './portraits.js';
+import { DRAGON, REWARDED_AD } from './economy.js';
+import { openDragon } from './dragon.js';
 
 // ───────────────────────────── Héros et talents ─────────────────────────────
 
@@ -48,11 +38,23 @@ export function heroesSheet(onChange: () => void): void {
         return `<button class="hero-card${s.heroId === id ? ' sel' : ''}${owned ? '' : ' locked'}" data-id="${id}"><div class="hc-sprite" data-sprite="${id}"></div><b>${HEROES[id].name}</b><small>${owned ? HERO_BLURB[id] : HERO_UNLOCK[id]}</small></button>`;
       })
       .join('')}</div>
+    ${
+      subscribed()
+        ? `<label class="toggle parure"><span>Parure du Dragon<small>Apparence exclusive de l’Ordre du Dragon</small></span><input type="checkbox" class="skin" ${s.subscription.skin ? 'checked' : ''}/><i></i></label>`
+        : `<p class="fine left parure-locked"><img src="${iconURL(INK_UI.crown)}" alt=""/> Parure du Dragon : apparence réservée aux membres de l’Ordre du Dragon.</p>`
+    }
     <h3 class="sec">Talents permanents <small>désactivés en tournoi</small></h3>
     <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', INK_UI.heart)}${talentRow('strength', 'Force', '+2 % dégâts', INK_UI.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', INK_UI.coin)}${talentRow('fortune', 'Fortune', '+5 % or', INK_UI.chest)}</div>
     <p class="fine">Or disponible : <b>${s.gold}</b></p>`,
   );
   o.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 92, 2.1, 'idle', { aiming: true, facing: 0.15 })));
+  o.querySelector<HTMLInputElement>('.skin')?.addEventListener('change', (e) => {
+    s.subscription.skin = (e.target as HTMLInputElement).checked;
+    persist();
+    clearPortraits();
+    sfx('tap');
+    onChange();
+  });
   o.querySelectorAll<HTMLButtonElement>('.hero-card').forEach((b) =>
     b.addEventListener('click', () => {
       const id = b.dataset.id as HeroId;
@@ -110,15 +112,17 @@ export function shopSheet(onChange: () => void): void {
     'shop',
     'Boutique',
     `<div class="offer starter${s.starterPack ? ' owned' : ''}"><div class="ribbon">Une seule fois</div><div class="of-sprite" data-sprite="windMonk"></div><div><b>Offre de départ</b><small>300 gemmes · Moine du vent · 5 bonus</small></div><button class="btn primary small" data-buy="starter" ${s.starterPack ? 'disabled' : ''}>${s.starterPack ? 'Acquise' : '2,99 €'}</button></div>
-    <div class="offer dragon"><img src="${iconURL(INK_UI.crown)}"/><div><b>Ordre du Dragon</b><small>Vies illimitées · 60 gemmes/semaine · +25 % or · apparence exclusive</small><small class="trial">Essai gratuit de 3 jours, puis 4,99 €/mois ou 39,99 €/an</small></div><button class="btn primary small" data-buy="sub">S’abonner</button></div>
+    <div class="offer dragon"><img src="${iconURL(INK_UI.crown)}"/><div><b>Ordre du Dragon</b><small>Vies illimitées · ${DRAGON.weeklyGems} gemmes/semaine · +25 % or · apparence exclusive</small><small class="trial">${subscribed() ? 'Tu es membre de l’Ordre.' : s.subscription.trialUsed ? '4,99 €/mois ou 39,99 €/an' : 'Essai gratuit de 3 jours, puis 4,99 €/mois ou 39,99 €/an'}</small></div><button class="btn primary small dragon-open">${subscribed() ? 'Gérer' : 'Découvrir'}</button></div>
     <h3 class="sec">Gemmes</h3>
     <div class="gem-grid">${PRODUCTS.map((p, i) => `<button class="gem-pack" data-buy="${p.id}"><div class="gp-gems" style="--n:${i + 1}">${`<img src="${iconURL(INK_UI.gem)}"/>`.repeat(i + 1)}</div><b>${p.note}</b><span class="price">${p.price}</span></button>`).join('')}</div>
     <h3 class="sec">Avec tes gemmes</h3>
     <div class="spend"><button class="btn ghost" data-spend="lives"><img src="${iconURL(INK_UI.heart)}"/> 5 vies <em><img src="${iconURL(INK_UI.gem)}"/>90</em></button>
     <button class="btn ghost" data-spend="potion"><img src="${iconURL(INK_UI.potion)}"/> Potion <em><img src="${iconURL(INK_UI.coin)}"/>150</em></button>
     <button class="btn ghost" data-spend="aegis"><img src="${iconURL(INK_UI.aegis)}"/> Égide <em><img src="${iconURL(INK_UI.coin)}"/>200</em></button></div>
-    <p class="fine">Prototype web : les achats réels passent par StoreKit 2 dans l’app iOS. Ici, ils sont simulés. Aucun objet aléatoire, aucune publicité.</p>`,
+    <p class="fine">Prototype web : les achats réels passent par StoreKit 2 dans l’app iOS. Ici, ils sont simulés. Aucun objet aléatoire. Publicité seulement si tu la demandes, contre une vie.</p>`,
   );
+  // §11 : la boutique est l'un des trois endroits où l'offre d'abonnement est présentée
+  o.querySelector('.dragon-open')!.addEventListener('click', () => openDragon('shop', onChange));
   o.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 64, 1.5, 'idle', { aiming: true })));
   o.querySelectorAll<HTMLButtonElement>('[data-buy]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -134,8 +138,9 @@ export function shopSheet(onChange: () => void): void {
         s.bonuses.aegis += 1;
         b.disabled = true;
         b.textContent = 'Acquise';
-      } else if (id === 'sub') return toast('Abonnement : disponible dans l’app iOS');
+      }
       persist();
+      recordEntitlements();
       sfx('star');
       toast('Achat simulé ✓');
       onChange();
@@ -183,41 +188,83 @@ export function tournamentSheet(weekKey: string, weekNo: number, onPlay: () => v
   });
 }
 
-// ───────────────────────────── Réglages ─────────────────────────────
+// ───────────────────────────── Réglages (§12.6) ─────────────────────────────
 
-export function settingsSheet(): void {
+function dragonSummary(): string {
+  if (!subscribed()) return 'Non membre';
+  const sub = subscription();
+  const d = new Date(sub.expiresAt * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  const plan = DRAGON.plans[sub.plan!].adj;
+  return sub.inTrial ? `Essai gratuit jusqu’au ${d}` : sub.autoRenew ? `Formule ${plan} · renouvellement le ${d}` : `Résilié · actif jusqu’au ${d}`;
+}
+
+export function settingsSheet(onChange: () => void = () => undefined): void {
   const s = save();
-  const tog = (k: keyof typeof s.settings, label: string, hint = '') => `<label class="toggle"><span>${label}${hint ? `<small>${hint}</small>` : ''}</span><input type="checkbox" data-k="${k}" ${s.settings[k] ? 'checked' : ''}/><i></i></label>`;
+  const tog = (k: keyof typeof s.settings, label: string, hint = '') =>
+    `<label class="toggle"><span>${label}${hint ? `<small>${hint}</small>` : ''}</span><input type="checkbox" data-k="${k}" ${s.settings[k] ? 'checked' : ''}/><i></i></label>`;
   const { o } = sheet(
     'settings',
     'Réglages',
-    `${tog('sound', 'Son')}${tog('haptics', 'Vibrations')}${tog('autoFire', 'Tir automatique', 'Le héros tire aussi en se déplaçant')}${tog('reduceMotion', 'Réduire les animations')}
-    <button class="btn ghost wide restore">Restaurer les achats</button>
-    <h3 class="sec">Confidentialité</h3><p class="fine left">Ta progression reste sur ton appareil (et dans ton iCloud sur iOS). Aucune publicité, aucun traçage.</p>
-    <h3 class="sec">Crédits</h3><p class="fine left">Polices <b>IM Fell English SC</b> (Igino Marini) et <b>Alegreya Sans</b> (Juan Pablo del Peral), licence SIL Open Font License 1.1. Sons synthétisés en direct.</p>
-    <button class="btn ghost wide reset">Effacer la progression</button>`,
+    `<h3 class="sec">Son</h3>
+    ${tog('sound', 'Effets sonores')}${tog('music', 'Musique', 'Boîte à musique synthétisée en direct')}${tog('haptics', 'Vibrations')}
+    <h3 class="sec">Jeu</h3>
+    ${tog('autoFire', 'Tir automatique', 'Ta héroïne tire aussi en se déplaçant (désactivable, sauf en tournoi)')}${tog('reduceMotion', 'Réduire les animations', 'Coupe secousses, arrêts sur image et animations décoratives')}
+    <h3 class="sec">Achats</h3>
+    <button class="row-btn manage"><span>Gérer l’abonnement<small class="dragon-sum">Ordre du Dragon · ${dragonSummary()}</small></span><b>›</b></button>
+    <button class="row-btn restore"><span>Restaurer les achats<small>Offre de départ et Ordre du Dragon</small></span><b>›</b></button>
+    <h3 class="sec">Confidentialité</h3>
+    ${tog('personalizedAds', 'Publicités personnalisées', 'Désactivé par défaut. Sur iPhone, active la demande de suivi d’Apple (ATT).')}
+    <p class="fine left">Ta progression reste sur ton appareil (et dans ton iCloud sur iPhone). Aucun compte, aucun traçage. La seule publicité est celle que tu choisis de regarder pour gagner une vie : ${REWARDED_AD.perDay} par jour au plus, jamais pendant un niveau ni en tournoi, jamais pour les membres de l’Ordre. Sans ton accord, elle n’est pas personnalisée.</p>
+    <h3 class="sec">Crédits</h3>
+    <div class="credits">
+      <p><b class="f-display">IM Fell English SC</b> — Igino Marini. Copyright © 2010, Igino Marini.</p>
+      <p><b>Alegreya Sans</b> — Juan Pablo del Peral (Huerta Tipográfica). Copyright © 2013, The Alegreya Sans Project Authors.</p>
+      <p class="fine left">Polices distribuées sous licence SIL Open Font License 1.1 (openfontlicense.org). Sons et musique synthétisés en direct, sans fichier sous licence.</p>
+    </div>
+    <h3 class="sec">Progression</h3>
+    <div class="erase">
+      <button class="btn ghost wide reset">Effacer la progression</button>
+    </div>
+    <p class="fine version">${APP_NAME} · prototype web 0.1</p>`,
+    onChange,
   );
   o.querySelectorAll<HTMLInputElement>('input[data-k]').forEach((i) =>
     i.addEventListener('change', () => {
-      (s.settings as Record<string, boolean>)[i.dataset.k!] = i.checked;
-      if (i.dataset.k === 'sound') setSound(i.checked);
+      (s.settings as unknown as Record<string, boolean>)[i.dataset.k!] = i.checked;
       persist();
+      applyPrefs();
+      if (i.dataset.k === 'sound' && i.checked) sfx('tap');
     }),
   );
-  o.querySelector('.restore')!.addEventListener('click', () => toast('Restauration : disponible dans l’app iOS'));
-  const reset = o.querySelector<HTMLButtonElement>('.reset')!;
-  reset.addEventListener('click', () => {
-    if (reset.dataset.armed) {
-      try {
-        localStorage.removeItem('ombrelune.save.v1');
-      } catch {
-        /* rien */
-      }
-      location.reload();
-    } else {
-      reset.dataset.armed = '1';
-      reset.textContent = 'Toucher encore pour confirmer';
-      reset.classList.add('danger');
-    }
+  o.querySelector('.manage')!.addEventListener('click', () =>
+    openDragon('settings', () => {
+      const sum = o.querySelector('.dragon-sum');
+      if (sum) sum.textContent = `Ordre du Dragon · ${dragonSummary()}`;
+      onChange();
+    }),
+  );
+  o.querySelector('.restore')!.addEventListener('click', () => {
+    const { restored } = restorePurchases();
+    clearPortraits();
+    toast(restored.length ? `Restauré : ${restored.join(', ')}` : 'Aucun achat à restaurer');
+    const sum = o.querySelector('.dragon-sum');
+    if (sum) sum.textContent = `Ordre du Dragon · ${dragonSummary()}`;
+    onChange();
   });
+  // confirmation intégrée (pas de boîte de dialogue du navigateur)
+  const zone = o.querySelector<HTMLElement>('.erase')!;
+  const idle = zone.innerHTML;
+  const arm = () => {
+    zone.innerHTML = `<div class="confirm danger-zone"><p><b>Tout effacer ?</b> Étoiles, niveaux, or, gemmes, talents et bonus seront perdus. Tes achats (offre de départ, Ordre du Dragon) restent récupérables avec « Restaurer les achats ».</p><div class="confirm-row"><button class="btn ghost keep">Annuler</button><button class="btn danger do-erase">Effacer</button></div></div>`;
+    zone.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    zone.querySelector('.keep')!.addEventListener('click', () => {
+      zone.innerHTML = idle;
+      zone.querySelector('.reset')!.addEventListener('click', arm);
+    });
+    zone.querySelector('.do-erase')!.addEventListener('click', () => {
+      eraseProgress();
+      location.reload();
+    });
+  };
+  zone.querySelector('.reset')!.addEventListener('click', arm);
 }

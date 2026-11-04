@@ -5,7 +5,7 @@ import { BOSS_BY_KINGDOM } from '../../sim/src/content.js';
 import { KINGDOMS, INK, INK2, CUT, DANGER, GOLD_LEAF, JADE } from '../../art/src/palette.js';
 import { INK_UI, iconURL } from '../../art/src/icons.js';
 import { portrait } from './portraits.js';
-import { save, totalStars } from './state.js';
+import { save, totalStars, subscribed } from './state.js';
 
 const MW = 400;
 const STEP = 96;
@@ -200,9 +200,9 @@ export function topBar(): HTMLElement {
   const el = document.createElement('div');
   el.className = 'topbar';
   el.innerHTML = `
-    <div class="chip lives"><img src="${iconURL(INK_UI.heart)}" alt=""/><b>${s.lives.lives}</b><small class="timer"></small></div>
+    <button class="chip lives${subscribed() ? ' dragon' : ''}" aria-label="Vies"><img src="${iconURL(INK_UI.heart)}" alt=""/><b>${subscribed() ? '∞' : s.lives.lives}</b><small class="timer"></small></button>
     <div class="chip"><img src="${iconURL(INK_UI.star)}" alt=""/><b>${totalStars()}</b></div>
     <div class="chip"><img src="${iconURL(INK_UI.coin)}" alt=""/><b>${s.gold}</b></div>
-    <div class="chip gems"><img src="${iconURL(INK_UI.gem)}" alt=""/><b>${s.gems}</b><span class="plus">+</span></div>`;
+    <button class="chip gems" aria-label="Gemmes, boutique"><img src="${iconURL(INK_UI.gem)}" alt=""/><b>${s.gems}</b><span class="plus">+</span></button>`;
   return el;
 }
