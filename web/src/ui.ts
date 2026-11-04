@@ -6,8 +6,11 @@ import type { HeroState } from '../../sim/src/world.js';
 import { INK_POWERS, INK_UI, iconURL } from '../../art/src/icons.js';
 import { KINGDOMS } from '../../art/src/palette.js';
 import { portrait, liveSprite } from './portraits.js';
-import { save, persist } from './state.js';
+import { save, persist, subscribed } from './state.js';
 import { sfx } from './audio.js';
+import { goldBonus } from './economy.js';
+import { openDragon } from './dragon.js';
+import { applyPrefs } from './prefs.js';
 import type { CombatResult } from './combat.js';
 
 export function el(html: string): HTMLElement {
@@ -32,6 +35,25 @@ function close(o: HTMLElement): Promise<void> {
       r();
     }, 280),
   );
+}
+
+/** Feuille montante (menus) : titre, corps défilant, bouton de fermeture. */
+export function sheet(cls: string, title: string, body: string, onClose?: () => void): { o: HTMLElement; close: () => Promise<void> } {
+  const o = el(`<div class="overlay sheet-overlay"><div class="scrim"></div><div class="sheet tall ${cls}"><div class="sheet-head"><div class="lvl-num">${title}</div></div><div class="sheet-body">${body}</div><button class="close-x" aria-label="Fermer">×</button></div></div>`);
+  document.getElementById('app')!.appendChild(o);
+  requestAnimationFrame(() => o.classList.add('in'));
+  let closed = false;
+  const close = () =>
+    new Promise<void>((r) => {
+      if (closed) return r();
+      closed = true;
+      o.classList.remove('in');
+      o.classList.add('out');
+      setTimeout(() => (o.remove(), onClose?.(), r()), 280);
+    });
+  o.querySelector('.close-x')!.addEventListener('click', () => void close());
+  o.querySelector('.scrim')!.addEventListener('click', () => void close());
+  return { o, close };
 }
 
 // ───────────────────────────── écran titre ─────────────────────────────
@@ -166,7 +188,8 @@ export function choosePower(offer: PowerId[], hero: HeroState, title = 'Choisis 
 
 export function victory(level: LevelDef, r: CombatResult, firstThree: boolean): Promise<'next' | 'map'> {
   const s = save();
-  const gold = goldReward(level.n, firstThree);
+  const dragon = subscribed();
+  const gold = goldReward(level.n, firstThree, goldBonus(s.talents.fortune, dragon));
   s.gold += gold;
   persist();
   const o = overlay(
@@ -177,6 +200,7 @@ export function victory(level: LevelDef, r: CombatResult, firstThree: boolean): 
       <div class="rstars">${[0, 1, 2].map((i) => `<div class="slot"><img class="empty" src="${iconURL(INK_UI.starEmpty)}"/>${i < r.stars ? `<img class="full" style="--d:${0.6 + i * 0.45}s" src="${iconURL(INK_UI.star)}"/>` : ''}</div>`).join('')}</div>
       <div class="rhero"></div>
       <div class="rstats"><div><img src="${iconURL(INK_UI.coin)}"/><b class="count" data-to="${gold}">0</b></div><div><span>Ennemis</span><b>${r.kills}</b></div><div><span>Temps</span><b>${Math.round(r.seconds)} s</b></div></div>
+      ${dragon ? `<p class="fine dragon-gold">dont +25 % de l’Ordre du Dragon</p>` : ''}
       <div class="ractions"><button class="btn ghost map">Carte</button><button class="btn primary next">Niveau suivant</button></div>
     </div>`,
   );
@@ -209,7 +233,14 @@ export function defeat(continuesUsed: number): Promise<'continue' | 'retry' | 'm
       <div class="ghost-hero"></div>
       ${can ? `<button class="btn gem big cont" ${s.gems >= cost ? '' : 'disabled'}><span>Continuer</span><em><img src="${iconURL(INK_UI.gem)}"/>${cost}</em></button><p class="fine">Rend 50 % des PV et efface les projectiles.</p>` : ''}
       <div class="ractions"><button class="btn ghost map">Carte</button><button class="btn primary retry">Réessayer</button></div>
+      ${subscribed() ? '' : `<button class="link-btn dragon-cta"><img src="${iconURL(INK_UI.crown)}" alt=""/>Ordre du Dragon : vies illimitées</button>`}
     </div>`,
+  );
+  // §11 : paywall en bouton secondaire de l'écran de défaite (le combat est terminé)
+  o.querySelector('.dragon-cta')?.addEventListener('click', () =>
+    openDragon('defeat', () => {
+      if (subscribed()) o.querySelector('.dragon-cta')?.remove();
+    }),
   );
   o.querySelector('.ghost-hero')!.appendChild(liveSprite('hero', 110, 2.2, 'idle'));
   return new Promise((resolve) => {
@@ -230,14 +261,15 @@ export function pauseMenu(): Promise<'resume' | 'quit'> {
   const o = overlay(
     'sheet-overlay',
     `<div class="sheet small"><div class="sheet-head"><div class="lvl-num">Pause</div></div>
-      ${tog('sound', 'Son')}${tog('haptics', 'Vibrations')}${tog('reduceMotion', 'Réduire les animations')}
+      ${tog('sound', 'Effets sonores')}${tog('music', 'Musique')}${tog('haptics', 'Vibrations')}${tog('reduceMotion', 'Réduire les animations')}
       <button class="btn primary big resume">Reprendre</button>
       <button class="btn ghost quit">Quitter le niveau</button></div>`,
   );
   o.querySelectorAll<HTMLInputElement>('input[data-k]').forEach((i) =>
     i.addEventListener('change', () => {
-      (s.settings as Record<string, boolean>)[i.dataset.k!] = i.checked;
+      (s.settings as unknown as Record<string, boolean>)[i.dataset.k!] = i.checked;
       persist();
+      applyPrefs();
     }),
   );
   return new Promise((resolve) => {

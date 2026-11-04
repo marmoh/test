@@ -40,3 +40,6 @@ export function liveSprite(name: string, size: number, scale: number, state: Ani
   requestAnimationFrame(loop);
   return c;
 }
+export function clearPortraits(): void {
+  cache.clear();
+}

@@ -7,8 +7,7 @@ export function setSound(on: boolean): void {
   enabled = on;
 }
 
-function ctx(): AudioContext | null {
-  if (!enabled) return null;
+function audio(): AudioContext | null {
   try {
     ac ??= new AudioContext();
     if (ac.state === 'suspended') void ac.resume();
@@ -16,6 +15,10 @@ function ctx(): AudioContext | null {
   } catch {
     return null;
   }
+}
+
+function ctx(): AudioContext | null {
+  return enabled ? audio() : null;
 }
 
 function tone(freq: number, dur: number, type: OscillatorType, vol: number, slide = 0, delay = 0): void {
@@ -108,4 +111,63 @@ export function sfx(name: string): void {
       tone(660, 0.05, 'triangle', 0.04, 1.2);
       break;
   }
+}
+
+// ───────────────────────────── musique ─────────────────────────────
+/*
+  Musique synthétisée en direct (aucun fichier sous licence, §13) : une boîte à musique de théâtre
+  d'ombres — notes pincées sur une gamme pentatonique de ré, bourdon grave, beaucoup de silences.
+  Elle ne démarre qu'après un premier geste (règle des navigateurs) et suit le réglage « Musique ».
+*/
+const SCALE = [146.83, 174.61, 196.0, 220.0, 261.63, 293.66, 349.23, 392.0, 440.0];
+let musicOn = false;
+let musicTimer: ReturnType<typeof setInterval> | null = null;
+let musicBus: GainNode | null = null;
+let step = 0;
+let degree = 4;
+
+function pluck(a: AudioContext, bus: GainNode, freq: number, t: number, vol: number, dur: number): void {
+  const o = a.createOscillator();
+  const g = a.createGain();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(bus);
+  o.start(t);
+  o.stop(t + dur + 0.05);
+}
+
+function musicTick(): void {
+  if (!musicOn || !ac || ac.state !== 'running') return;
+  if (!musicBus) {
+    musicBus = ac.createGain();
+    musicBus.gain.value = 0.5;
+    musicBus.connect(ac.destination);
+  }
+  const t = ac.currentTime + 0.05;
+  // bourdon : ré grave toutes les 16 croches, la quinte toutes les 32
+  if (step % 16 === 0) pluck(ac, musicBus, step % 32 === 0 ? 73.42 : 110.0, t, 0.05, 3.2);
+  // mélodie : marche aléatoire douce sur la gamme, une note sur deux en moyenne
+  if (Math.random() < (step % 4 === 0 ? 0.8 : 0.35)) {
+    degree = Math.max(0, Math.min(SCALE.length - 1, degree + [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]));
+    pluck(ac, musicBus, SCALE[degree], t, 0.022, 1.4);
+    if (Math.random() < 0.15) pluck(ac, musicBus, SCALE[degree] * 2, t + 0.12, 0.01, 0.9);
+  }
+  step++;
+}
+
+export function setMusic(on: boolean): void {
+  musicOn = on;
+  if (on && !musicTimer) musicTimer = setInterval(musicTick, 330);
+  if (!on && musicTimer) {
+    clearInterval(musicTimer);
+    musicTimer = null;
+  }
+}
+
+/** À appeler sur un geste de l'utilisateur : crée le contexte audio si la musique est active. */
+export function wakeAudio(): void {
+  if (musicOn) audio();
 }

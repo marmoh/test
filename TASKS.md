@@ -44,7 +44,11 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] Sons synthétisés WebAudio, vibrations
 - [x] Build mono-fichier publiable (`pnpm web:artifact`)
 - [x] Niveaux validés chargés par le prototype (`content/levels/index.json`)
-- [x] Écrans Héros et talents, Boutique (achats simulés), Tournoi jouable, Réglages
+- [x] Écrans Héros et talents, Boutique (achats simulés), Tournoi jouable
+- [x] Réglages complets §12.6 : effets sonores, musique (synthétisée), vibrations, tir auto, réduire les animations, gérer l'abonnement, restaurer les achats, confidentialité (consentement publicitaire), crédits OFL, effacer la progression (confirmation intégrée)
+- [x] Ordre du Dragon simulé (`web/src/dragon.ts`, `economy.ts`) : offre, essai 3 jours, renouvellement, résiliation, changement de formule ; avantages appliqués (vies illimitées, tribut de 60 gemmes/semaine, Parure du Dragon, +25 % d'or) ; paywall aux 3 endroits du §11
+- [x] Feuille des vies (compteur de la carte, panne de vies) et publicité récompensée simulée « +1 vie » (5 s, 3/jour, délai 15 min) — DECISIONS #37
+- [x] Tests vitest de la logique d'abonnement et de publicité (`web/test/economy.test.ts`)
 - [ ] Pass de saison
 - [ ] Captures de chaque écran (`pnpm web:shots`)
 
@@ -52,9 +56,12 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [ ] `project.yml` XcodeGen (iOS 17+), cibles app + tests
 - [ ] `Core/` : port Swift de la simulation (même RNG, mêmes formules), lecture des JSON
 - [ ] `Game/` : SpriteKit (atlas, rendu, VFX), contrôles, Core Haptics
-- [ ] `UI/` : SwiftUI (carte, pré-niveau, pouvoirs, résultats, héros, boutique, pass, tournoi, réglages)
-- [ ] `Services/` : StoreKit 2 (`Store`, crédit idempotent, `SubscriptionStoreView`), GameKit (classement hebdo récurrent), persistance JSON + iCloud KV, AVAudioEngine
-- [ ] `Ombrelune.storekit` avec tous les produits §11
+- [~] `UI/` : SwiftUI — fait : `Theme`, `SettingsView`, `DragonView` (`SubscriptionStoreView` + gestion), `LivesView` (+ publicité factice) ; reste : carte, pré-niveau, pouvoirs, résultats, héros, boutique, pass, tournoi
+- [~] `Services/` : fait : StoreKit 2 (`Store` : chargement, achat, restauration, `Transaction.updates`/`unfinished`, crédit idempotent via `CreditLedger`), `Wallet`, `GameSettings`, `LivesCenter`, `AdService` (protocole + `MockAdService` + ATT) ; reste : GameKit, persistance JSON + iCloud KV (implémentera `PurchaseSink`), AVAudioEngine
+- [x] `Ombrelune.storekit` avec tous les produits §11 (gemmes, offre de départ, pass saison 1, Ordre du Dragon mensuel/annuel avec essai de 3 jours)
+- [x] `Core/Lives.swift` (vies §8, +1 vie) et `Tests/MonetizationTests.swift` (parité avec `web/test/economy.test.ts`)
+- [ ] Réseau publicitaire réel (AdMob ou AppLovin MAX) derrière `AdService`, consentement UMP/CMP, `NSUserTrackingUsageDescription` (voir `docs/MONETISATION.md`)
+- [ ] Polices OFL embarquées (`Resources/Fonts`, `UIAppFonts`)
 
 ## M7 — Parité et qualité
 - [ ] Traces de rejeu TS (entrée → état) et tests XCTest de parité
@@ -62,4 +69,5 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [~] Tournoi hebdomadaire : jouable dans le prototype web (graine ISO, 5 essais, score) ; Game Center à faire
 
 ## M8 — Phase Mac
-- [ ] `docs/MAC_PHASE.md` : génération XcodeGen, signature, StoreKit local, Game Center sandbox, profilage iPhone 11, TestFlight
+- [ ] `docs/MAC_PHASE.md` : génération XcodeGen, signature, StoreKit local, Game Center sandbox, profilage iPhone 11, TestFlight (étapes monétisation déjà listées dans `docs/MONETISATION.md`)
+- [ ] Conditions d'utilisation et politique de confidentialité définitives (liens sous l'offre d'abonnement)

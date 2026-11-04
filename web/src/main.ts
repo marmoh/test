@@ -12,8 +12,19 @@ import { buildMap, topBar } from './map.js';
 import { mountSheet } from './sheet.js';
 import { mountAtlas } from './atlas.js';
 import { titleScreen, preLevel, choosePower, victory, defeat, pauseMenu, toast, el } from './ui.js';
-import { save, lives, recordAttempt, persist, tournamentState } from './state.js';
-import { setSound } from './audio.js';
+import { save, recordAttempt, persist, tournamentState, canPlay, subscribed, lives, weeklyGemsReady, claimWeekly, dragonSkin } from './state.js';
+import { sfx, wakeAudio } from './audio.js';
+import { applyPrefs } from './prefs.js';
+import { installDragonSkin } from './skins.js';
+import { portrait } from './portraits.js';
+import { livesSheet, outOfLives } from './dragon.js';
+import { DRAGON } from './economy.js';
+
+// Parure du Dragon (apparence exclusive des abonnés) et réglages appliqués dès le lancement
+installDragonSkin(dragonSkin);
+applyPrefs();
+// la musique ne peut démarrer qu'après un premier geste (règle des navigateurs)
+addEventListener('pointerdown', () => wakeAudio(), { capture: true });
 
 document.title = APP_NAME;
 const root = document.getElementById('app')!;
@@ -36,11 +47,22 @@ function clear(): void {
   root.innerHTML = '';
 }
 
+/** Rafraîchit la carte affichée sans la reconstruire (barre du haut, tribut, avatar). */
+let refreshMap: () => void = () => undefined;
+
+/** Étiquette du tribut hebdomadaire de l'Ordre du Dragon (60 gemmes à réclamer). */
+function tributeTag(): HTMLElement | null {
+  if (!weeklyGemsReady()) return null;
+  return el(`<button class="tribute" aria-label="Réclamer ${DRAGON.weeklyGems} gemmes"><i class="thread l"></i><i class="thread r"></i><span class="tag"><img src="${iconURL(INK_UI.gem)}" alt=""/><b>${DRAGON.weeklyGems}</b><small>Tribut de l’Ordre · réclamer</small></span></button>`);
+}
+
 function showMap(): void {
   clear();
-  setSound(save().settings.sound);
+  applyPrefs();
   const screen = el(`<div class="screen map-screen"></div>`);
   screen.appendChild(topBar());
+  const tag = tributeTag();
+  if (tag) screen.appendChild(tag);
   screen.appendChild(buildMap((n) => void openLevel(n)));
   const wk = isoWeek(new Date());
   const weekKey = `${wk.year}-W${wk.week}`;
@@ -50,9 +72,25 @@ function showMap(): void {
   banner.addEventListener('click', openTournament);
   screen.appendChild(banner);
   const refresh = () => {
-    const old = screen.querySelector('.topbar');
-    old?.replaceWith(topBar());
+    if (!screen.isConnected) return;
+    screen.querySelector('.topbar')?.replaceWith(topBar());
+    screen.querySelector('.tribute')?.remove();
+    const t = tributeTag();
+    if (t) screen.appendChild(t);
+    screen.querySelector('.avatar image')?.setAttribute('href', portrait('hero', 64, { scale: 1.5, dy: 8 }));
+    tickLives(false);
   };
+  refreshMap = refresh;
+  screen.addEventListener('click', (e) => {
+    const t = e.target as Element;
+    if (t.closest('.topbar .lives')) (sfx('tap'), void livesSheet(refresh));
+    else if (t.closest('.topbar .gems')) shopSheet(refresh);
+    else if (t.closest('.tribute')) {
+      const g = claimWeekly();
+      if (g) (sfx('star'), toast(`+${g} gemmes · tribut de l’Ordre`));
+      refresh();
+    }
+  });
   const nav = el(`<nav class="bottom-nav">
     <button data-tab="heroes"><img src="${iconURL(PAPER_UI.aegis)}"/><span>Héros</span></button>
     <button data-tab="shop"><img src="${iconURL(PAPER_UI.gem)}"/><span>Boutique</span></button>
@@ -67,29 +105,32 @@ function showMap(): void {
     if (tab === 'heroes') heroesSheet(refresh);
     else if (tab === 'shop') shopSheet(refresh);
     else if (tab === 'tour') openTournament();
-    else if (tab === 'settings') settingsSheet();
+    else if (tab === 'settings') settingsSheet(refresh);
   });
   screen.appendChild(nav);
   root.appendChild(screen);
-  const timer = screen.querySelector<HTMLElement>('.timer');
-  const tickLives = () => {
+  function tickLives(loop = true): void {
+    const timer = screen.querySelector<HTMLElement>('.timer');
+    if (!screen.isConnected || !timer) return;
     const l = lives();
-    if (!timer || !timer.isConnected) return;
-    screen.querySelector('.lives b')!.textContent = String(l.lives);
-    if (l.lives >= 5) timer.textContent = 'max';
+    const dragon = subscribed();
+    screen.querySelector('.topbar .lives b')!.textContent = dragon ? '∞' : String(l.lives);
+    if (dragon) timer.textContent = '';
+    else if (l.lives >= 5) timer.textContent = 'max';
     else {
       const left = Math.max(0, 1800 - (Date.now() / 1000 - l.refillFrom));
       timer.textContent = `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`;
     }
-    setTimeout(tickLives, 1000);
-  };
+    if (loop) setTimeout(() => tickLives(), 1000);
+  }
   tickLives();
 }
 
 async function openLevel(n: number): Promise<void> {
-  if (lives().lives <= 0) {
-    toast('Plus de vies — reviens dans un instant ✨');
-    return;
+  if (!canPlay()) {
+    // §11 : 1re fois sans vie → offre de l'Ordre, puis feuille des vies (pub récompensée, gemmes)
+    await outOfLives(() => refreshMap());
+    if (!canPlay()) return;
   }
   const lvl = level(n);
   const choice = await preLevel(lvl);
@@ -132,7 +173,12 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
         retry: () => {
           recordAttempt(lvl.n, false, 0);
           c.destroy();
-          play(lvl, { potion: false, scroll: false, aegis: false });
+          if (canPlay()) play(lvl, { potion: false, scroll: false, aegis: false });
+          else {
+            // dernière vie perdue : retour à la carte, où l'on propose des vies (jamais en combat)
+            showMap();
+            void openLevel(lvl.n);
+          }
         },
         quit: () => {
           recordAttempt(lvl.n, false, 0);

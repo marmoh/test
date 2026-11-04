@@ -1,0 +1,168 @@
+{
+  "identifier" : "6F3A1C20",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "6740000101",
+      "localizations" : [
+        {
+          "description" : "100 gemmes.",
+          "displayName" : "Poignée de gemmes",
+          "locale" : "fr"
+        }
+      ],
+      "productID" : "ombrelune.gems.handful",
+      "referenceName" : "Poignée de gemmes",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "6740000102",
+      "localizations" : [
+        {
+          "description" : "550 gemmes.",
+          "displayName" : "Bourse de gemmes",
+          "locale" : "fr"
+        }
+      ],
+      "productID" : "ombrelune.gems.pouch",
+      "referenceName" : "Bourse de gemmes",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "6740000103",
+      "localizations" : [
+        {
+          "description" : "1 200 gemmes.",
+          "displayName" : "Coffre de gemmes",
+          "locale" : "fr"
+        }
+      ],
+      "productID" : "ombrelune.gems.chest",
+      "referenceName" : "Coffre de gemmes",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "6740000104",
+      "localizations" : [
+        {
+          "description" : "300 gemmes, le Moine du vent et 5 bonus. Une seule fois.",
+          "displayName" : "Offre de départ",
+          "locale" : "fr"
+        }
+      ],
+      "productID" : "ombrelune.starter",
+      "referenceName" : "Offre de départ",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "6740000105",
+      "localizations" : [
+        {
+          "description" : "Piste premium de 30 paliers : or, gemmes, bonus et apparences.",
+          "displayName" : "Pass de saison 1",
+          "locale" : "fr"
+        }
+      ],
+      "productID" : "ombrelune.pass.season1",
+      "referenceName" : "Pass de saison 1",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6740000100",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "fr_FR",
+    "_storefront" : "FRA"
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21566001",
+      "localizations" : [
+        {
+          "description" : "Vies illimitées, 60 gemmes par semaine, Parure du Dragon, +25 % d’or.",
+          "displayName" : "Ordre du Dragon",
+          "locale" : "fr"
+        }
+      ],
+      "name" : "Ordre du Dragon",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000201",
+          "introductoryOffer" : {
+            "internalID" : "6740000211",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Vies illimitées, 60 gemmes par semaine, Parure du Dragon, +25 % d’or.",
+              "displayName" : "Ordre du Dragon (annuel)",
+              "locale" : "fr"
+            }
+          ],
+          "productID" : "ombrelune.dragon.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Ordre du Dragon annuel",
+          "subscriptionGroupID" : "21566001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000202",
+          "introductoryOffer" : {
+            "internalID" : "6740000212",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Vies illimitées, 60 gemmes par semaine, Parure du Dragon, +25 % d’or.",
+              "displayName" : "Ordre du Dragon (mensuel)",
+              "locale" : "fr"
+            }
+          ],
+          "productID" : "ombrelune.dragon.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Ordre du Dragon mensuel",
+          "subscriptionGroupID" : "21566001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
