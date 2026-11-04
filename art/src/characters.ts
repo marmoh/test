@@ -514,26 +514,28 @@ export const drawSkeleton: Painter = (ctx, p) => {
   groundShadow(ctx, 11, 4, 12);
   ctx.save();
   ctx.translate(rattle, -bob);
-  // côtes
-  ctx.strokeStyle = C('#e9e4d4');
+  // côtes et jambes : contour sombre puis os (lisibles même sur la neige)
   ctx.lineCap = 'round';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.moveTo(0, -4);
-  ctx.lineTo(0, 9);
-  ctx.stroke();
-  for (let i = 0; i < 3; i++) {
+  for (const [col, lw] of [
+    [INK, 5],
+    [C('#e9e4d4'), 2.5],
+  ] as [string, number][]) {
+    ctx.strokeStyle = col;
+    ctx.lineWidth = lw;
     ctx.beginPath();
-    ctx.ellipse(0, -1 + i * 3.5, 6 - i, 1.6, 0, Math.PI * 0.05, Math.PI * 0.95);
+    ctx.moveTo(0, -4);
+    ctx.lineTo(0, 9);
+    ctx.moveTo(-3, 9);
+    ctx.lineTo(-4 + (moving ? Math.sin(p.t * 9) * 2 : 0), 13);
+    ctx.moveTo(3, 9);
+    ctx.lineTo(4 - (moving ? Math.sin(p.t * 9) * 2 : 0), 13);
     ctx.stroke();
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.ellipse(0, -1 + i * 3.5, 6 - i, 1.6, 0, Math.PI * 0.05, Math.PI * 0.95);
+      ctx.stroke();
+    }
   }
-  // jambes
-  ctx.beginPath();
-  ctx.moveTo(-3, 9);
-  ctx.lineTo(-4 + (moving ? Math.sin(p.t * 9) * 2 : 0), 13);
-  ctx.moveTo(3, 9);
-  ctx.lineTo(4 - (moving ? Math.sin(p.t * 9) * 2 : 0), 13);
-  ctx.stroke();
   // crâne
   ctx.beginPath();
   ctx.arc(0, -11, 7.5, Math.PI, 0);
