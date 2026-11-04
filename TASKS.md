@@ -15,34 +15,37 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] 8 ennemis télégraphiés (≥ 0,5 s), élites, 5 boss × 3 variantes × 3 phases avec souffle
 - [x] 24 pouvoirs, offres à graine, soins entre salles, orbes de soin
 - [x] Formules §7/§8/§10 (difficulté, budget, étoiles, or, vies, score de tournoi, semaine ISO)
-- [~] Tests vitest (déterminisme, formules, contrôles, bornes 150 projectiles / 30 ennemis)
+- [x] Tests vitest (déterminisme, formules, contrôles, bornes 150 projectiles / 30 ennemis)
 
 ## M2 — Contenu
 - [x] 24 gabarits de salle (`content/rooms/`) validés par `pnpm rooms:check`
-- [~] Générateur `pnpm levels:gen` (recherche de graine + budget ±10 %)
-- [ ] 300 niveaux `content/levels/level_0001.json` … `level_0300.json` + `index.json`
+- [x] Générateur `pnpm levels:gen` (recherche de graine + budget ±10 %, `--revalidate`)
+- [x] 300 niveaux `content/levels/level_0001.json` … `level_0300.json` + `index.json`
 
 ## M3 — Bots et équilibrage
 - [x] Bots novice / moyen / expert (réaction, précision d'esquive, politique de pouvoirs)
-- [~] Réglage des courbes pour rendre les bandes §9 atteignables (journal dans DECISIONS)
-- [ ] `pnpm levels:validate` + `content/reports/difficulty.html`
-- [ ] Test d'équilibrage des pouvoirs (aucun > +12 pts vs médiane)
+- [x] Réglage des courbes pour rendre les bandes §9 atteignables (journal dans DECISIONS)
+- [x] Tir automatique par défaut, bots mesurés avec
+- [x] `pnpm levels:validate` + `content/reports/difficulty.html`
+- [x] Test d'équilibrage des pouvoirs (aucun > +12 pts vs médiane) — `pnpm bots:balance`
 
 ## M4 — Direction artistique et pipeline d'art (`art/`)
-- [x] Palette des 5 royaumes, typographies (Cinzel Decorative + Fredoka, OFL)
+- [x] Direction « théâtre d'ombres » (`docs/ART.md`), palette des 5 royaumes, typographies IM Fell English SC + Alegreya Sans (OFL)
 - [x] Héroïne, 8 ennemis, 5 boss en vectoriel animé (respiration, course, anticipation, impact)
 - [x] Décors d'arène par royaume (sol, murs, rochers, eau/lave animées, haies, portail)
 - [x] 24 icônes de pouvoirs + icônes d'interface (SVG)
-- [ ] Moine du vent, Sorcier de braise
-- [ ] `pnpm art:atlas` : rastérisation @2x/@3x en `.spriteatlas` (personnages, ennemis, boss, décors, VFX, icônes)
+- [x] Moine du vent, Sorcier de braise
+- [x] `pnpm art:atlas` : héros, ennemis, boss, icônes en @2x/@3x (`ios/Resources/Atlases/*.atlas`)
+- [ ] Atlas des décors des 5 royaumes et des VFX
 
 ## M5 — Prototype web (`web/`)
 - [x] Combat jouable au doigt et au clavier, interpolation, télégraphes, particules, secousses, arrêt sur image
 - [x] Carte saga 300 niveaux, pré-niveau (bonus), choix du pouvoir, victoire, défaite (continuer), pause
 - [x] Sons synthétisés WebAudio, vibrations
 - [x] Build mono-fichier publiable (`pnpm web:artifact`)
-- [ ] Niveaux 1 à 40 jouables avec les niveaux validés
-- [ ] Écrans Héros et talents, Boutique, Pass de saison, Tournoi, Réglages complets
+- [x] Niveaux validés chargés par le prototype (`content/levels/index.json`)
+- [x] Écrans Héros et talents, Boutique (achats simulés), Tournoi jouable, Réglages
+- [ ] Pass de saison
 - [ ] Captures de chaque écran (`pnpm web:shots`)
 
 ## M6 — iOS (`ios/`)
@@ -56,7 +59,7 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 ## M7 — Parité et qualité
 - [ ] Traces de rejeu TS (entrée → état) et tests XCTest de parité
 - [ ] Tests de bornes de performance (150 projectiles, 30 ennemis)
-- [ ] Tournoi hebdomadaire (niveau à graine ISO, 5 essais, score)
+- [~] Tournoi hebdomadaire : jouable dans le prototype web (graine ISO, 5 essais, score) ; Game Center à faire
 
 ## M8 — Phase Mac
 - [ ] `docs/MAC_PHASE.md` : génération XcodeGen, signature, StoreKit local, Game Center sandbox, profilage iPhone 11, TestFlight
