@@ -1,0 +1,22 @@
+{
+  "name": "ombrelune",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "rooms:check": "tsx tools/src/rooms-check.ts",
+    "levels:gen": "tsx tools/src/levels-gen.ts",
+    "levels:validate": "tsx tools/src/levels-validate.ts",
+    "bots:balance": "tsx tools/src/powers-balance.ts",
+    "verify": "pnpm typecheck && pnpm test && pnpm rooms:check && pnpm levels:validate --check"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
