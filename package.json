@@ -11,12 +11,18 @@
     "levels:gen": "tsx tools/src/levels-gen.ts",
     "levels:validate": "tsx tools/src/levels-validate.ts",
     "bots:balance": "tsx tools/src/powers-balance.ts",
-    "verify": "pnpm typecheck && pnpm test && pnpm rooms:check && pnpm levels:validate --check"
+    "verify": "pnpm typecheck && pnpm test && pnpm rooms:check && pnpm levels:validate --check",
+    "web:dev": "vite --config web/vite.config.ts",
+    "web:build": "vite build --config web/vite.config.ts",
+    "web:shots": "node tools/web-shots.mjs",
+    "web:artifact": "pnpm web:build && node tools/web-artifact.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
+    "vite": "5.4.11",
+    "vite-plugin-singlefile": "2.0.3",
     "vitest": "^2.1.8"
   }
 }

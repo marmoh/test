@@ -1,0 +1,156 @@
+import './style.css';
+import type { RoomTemplate } from '../../sim/src/arena.js';
+import { generateLevel, type LevelDef } from '../../sim/src/level.js';
+import { Bot, BOTS } from '../../sim/src/bot.js';
+import { isoWeek } from '../../sim/src/formulas.js';
+import { APP_NAME, LEVEL_COUNT } from '../../sim/src/constants.js';
+import { UI_ICONS, iconURL } from '../../art/src/icons.js';
+import { Combat } from './combat.js';
+import { buildMap, topBar } from './map.js';
+import { mountSheet } from './sheet.js';
+import { titleScreen, preLevel, choosePower, victory, defeat, pauseMenu, toast, el } from './ui.js';
+import { save, lives, recordAttempt, persist } from './state.js';
+import { setSound } from './audio.js';
+
+document.title = APP_NAME;
+const root = document.getElementById('app')!;
+
+const roomFiles = import.meta.glob('../../content/rooms/*.json', { eager: true, import: 'default' }) as Record<string, RoomTemplate>;
+const ROOMS: RoomTemplate[] = Object.values(roomFiles).sort((a, b) => a.id.localeCompare(b.id));
+const TEMPLATES = new Map(ROOMS.map((r) => [r.id, r]));
+/** Index produit par `pnpm levels:gen` (graine + facteur de budget validés par les bots). */
+const indexFiles = import.meta.glob('../../content/levels/index.json', { eager: true, import: 'default' }) as Record<string, Record<string, { seed: number; budgetScale: number }>>;
+const LEVEL_INDEX = Object.values(indexFiles)[0] ?? {};
+
+function level(n: number): LevelDef {
+  const e = LEVEL_INDEX[n];
+  return generateLevel(n, e?.seed ?? 1, ROOMS, e?.budgetScale ?? 1);
+}
+
+const params = new URLSearchParams(location.search);
+
+function clear(): void {
+  root.innerHTML = '';
+}
+
+function showMap(): void {
+  clear();
+  setSound(save().settings.sound);
+  const screen = el(`<div class="screen map-screen"></div>`);
+  screen.appendChild(topBar());
+  screen.appendChild(buildMap((n) => void openLevel(n)));
+  const wk = isoWeek(new Date());
+  const banner = el(`<button class="tournament"><img src="${iconURL(UI_ICONS.trophy)}"/><div><b>Tournoi de la semaine ${wk.week}</b><small>Mêmes conditions pour tous · 5 essais</small></div><span class="go">›</span></button>`);
+  banner.addEventListener('click', () => toast('Le tournoi ouvre lundi à 00:00 UTC'));
+  screen.appendChild(banner);
+  root.appendChild(screen);
+  const timer = screen.querySelector<HTMLElement>('.timer');
+  const tickLives = () => {
+    const l = lives();
+    if (!timer || !timer.isConnected) return;
+    screen.querySelector('.lives b')!.textContent = String(l.lives);
+    if (l.lives >= 5) timer.textContent = 'max';
+    else {
+      const left = Math.max(0, 1800 - (Date.now() / 1000 - l.refillFrom));
+      timer.textContent = `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`;
+    }
+    setTimeout(tickLives, 1000);
+  };
+  tickLives();
+}
+
+async function openLevel(n: number): Promise<void> {
+  if (lives().lives <= 0) {
+    toast('Plus de vies — reviens dans un instant ✨');
+    return;
+  }
+  const lvl = level(n);
+  const choice = await preLevel(lvl);
+  if (!choice) return;
+  play(lvl, choice);
+}
+
+function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: boolean }): void {
+  clear();
+  const screen = el(`<div class="screen combat-screen"></div>`);
+  root.appendChild(screen);
+  const st = save().settings;
+  const start = (scrollPick: import('../../sim/src/content.js').PowerId | null) => {
+    const c: Combat = new Combat(
+      screen,
+      {
+        level: lvl,
+        templates: TEMPLATES,
+        potion: choice.potion,
+        aegis: choice.aegis,
+        scroll: scrollPick,
+        autoFire: st.autoFire,
+        reduceMotion: st.reduceMotion,
+        haptics: st.haptics,
+        demoBot: params.has('demo') ? new Bot(BOTS.expert, 7) : undefined,
+      },
+      {
+        choosePower: (offer, hero) => choosePower(offer, hero),
+        defeat: (used) => defeat(used),
+        pause: () => pauseMenu(),
+        finish: async (r) => {
+          const { firstThree } = recordAttempt(lvl.n, true, r.stars);
+          const next = await victory(lvl, r, firstThree);
+          c.destroy();
+          showMap();
+          if (next === 'next' && lvl.n < LEVEL_COUNT) void openLevel(lvl.n + 1);
+        },
+        retry: () => {
+          recordAttempt(lvl.n, false, 0);
+          c.destroy();
+          play(lvl, { potion: false, scroll: false, aegis: false });
+        },
+        quit: () => {
+          recordAttempt(lvl.n, false, 0);
+          c.destroy();
+          showMap();
+        },
+      },
+    );
+  };
+  if (choice.scroll) {
+    // Parchemin : choisir un pouvoir parmi trois avant d'entrer
+    void import('../../sim/src/level.js').then(async ({ offerPowers }) => {
+      const { Rng } = await import('../../sim/src/rng.js');
+      const { newHero } = await import('../../sim/src/world.js');
+      const { NO_TALENTS } = await import('../../sim/src/hero.js');
+      const pick = await choosePower(offerPowers(new Rng(lvl.powerSeed ^ 0x5c), {}), newHero(NO_TALENTS), 'Parchemin : pouvoir de départ');
+      start(pick);
+    });
+  } else start(null);
+}
+
+// démo : ?level=12&play lance directement un niveau ; ?sheet affiche la planche ; ?ui=… montre un écran
+async function demoUi(kind: string): Promise<void> {
+  const { newHero } = await import('../../sim/src/world.js');
+  const { NO_TALENTS } = await import('../../sim/src/hero.js');
+  if (kind === 'powers') {
+    play(level(5), { potion: false, scroll: false, aegis: false });
+    setTimeout(() => void choosePower(['multishot', 'frost', 'crit'], newHero(NO_TALENTS)), 300);
+  } else if (kind === 'victory') {
+    play(level(5), { potion: false, scroll: false, aegis: false });
+    setTimeout(() => void victory(level(5), { won: true, stars: 3, hpFrac: 0.9, seconds: 74, kills: 23, continues: 0 }, true), 300);
+  } else if (kind === 'defeat') {
+    play(level(5), { potion: false, scroll: false, aegis: false });
+    setTimeout(() => void defeat(0), 300);
+  }
+}
+if (params.has('ui')) void demoUi(params.get('ui')!);
+else if (params.has('sheet')) mountSheet(root);
+else if (params.has('level')) {
+  const n = Number(params.get('level'));
+  if (params.has('play')) play(level(n), { potion: false, scroll: false, aegis: false });
+  else {
+    showMap();
+    void openLevel(n);
+  }
+} else if (params.has('map')) showMap();
+else {
+  root.appendChild(titleScreen(() => showMap()));
+}
+persist();
