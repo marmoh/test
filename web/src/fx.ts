@@ -1,8 +1,9 @@
 /** Motion design du combat : particules, textes flottants, secousses, arrêt sur image. */
 import { alpha, circle, glow, star, type Ctx } from '../../art/src/draw.js';
+import { INK, INK2, CUT } from '../../art/src/palette.js';
 
 interface Particle {
-  kind: 'dot' | 'spark' | 'puff' | 'ring' | 'star' | 'wisp';
+  kind: 'dot' | 'spark' | 'puff' | 'ring' | 'star' | 'wisp' | 'scrap';
   x: number;
   y: number;
   vx: number;
@@ -82,6 +83,16 @@ export class Fx {
     this.burst(x, y, color, n, 220, 'star', 5, 0.8, 260);
   }
 
+  /** Chutes de papier découpé (mort d'une marionnette, impact). */
+  scraps(x: number, y: number, n: number, power = 1): void {
+    for (let i = 0; i < n; i++) {
+      const a = this.rand() * Math.PI * 2;
+      const sp = (60 + this.rand() * 160) * power;
+      const r = this.rand();
+      this.parts.push({ kind: 'scrap', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60 * power, life: 0.9 + this.rand() * 0.4, max: 1.3, size: 2.5 + this.rand() * 3.5 * power, color: r < 0.6 ? INK : r < 0.85 ? INK2 : CUT, grav: 260, drag: 2.2, rot: this.rand() * 6 });
+    }
+  }
+
   text(x: number, y: number, text: string, color: string, size = 14): void {
     this.texts.push({ x, y, text, color, size, life: 0.8, max: 0.8, vx: (this.rand() - 0.5) * 30 });
   }
@@ -154,6 +165,21 @@ export class Fx {
           ctx.fill();
           ctx.restore();
           break;
+        case 'scrap':
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.scale(1, Math.cos(p.rot * 1.7));
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.moveTo(-p.size, -p.size * 0.6);
+          ctx.lineTo(p.size * 0.8, -p.size * 0.4);
+          ctx.lineTo(p.size * 0.5, p.size * 0.7);
+          ctx.lineTo(-p.size * 0.7, p.size * 0.5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+          break;
         case 'wisp':
           glow(ctx, p.x + Math.sin(p.rot + p.life * 6) * 4, p.y, p.size * 3, p.color, 0.7 * k);
           break;
@@ -165,9 +191,9 @@ export class Fx {
       const k = t.life / t.max;
       const pop = k > 0.8 ? 1 + (k - 0.8) * 3 : 1;
       ctx.globalAlpha = Math.min(1, k * 2);
-      ctx.font = `700 ${Math.round(t.size * pop)}px Fredoka, sans-serif`;
+      ctx.font = `800 ${Math.round(t.size * pop)}px "Alegreya Sans", sans-serif`;
       ctx.lineWidth = 4;
-      ctx.strokeStyle = alpha('#140d24', 0.9);
+      ctx.strokeStyle = alpha('#f4e8c8', 0.95);
       ctx.strokeText(t.text, t.x, t.y);
       ctx.fillStyle = t.color;
       ctx.fillText(t.text, t.x, t.y);

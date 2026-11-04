@@ -28,7 +28,7 @@ function fresh(): Save {
     lives: { lives: 5, refillFrom: now() },
     gems: 120,
     gold: 300,
-    settings: { sound: true, haptics: true, autoFire: false, reduceMotion: false },
+    settings: { sound: true, haptics: true, autoFire: true, reduceMotion: false },
     bonuses: { potion: 1, scroll: 1, aegis: 1 },
     heroId: 'scout',
     heroes: ['scout'],
@@ -45,6 +45,11 @@ export function save(): Save {
   try {
     const raw = localStorage.getItem(KEY);
     cache = raw ? { ...fresh(), ...JSON.parse(raw) } : fresh();
+    // migration : le tir automatique devient le réglage par défaut (DECISIONS #auto-fire)
+    if (!(cache as Save & { autoFireDefault?: boolean }).autoFireDefault) {
+      cache!.settings.autoFire = true;
+      (cache as Save & { autoFireDefault?: boolean }).autoFireDefault = true;
+    }
   } catch {
     cache = fresh();
   }

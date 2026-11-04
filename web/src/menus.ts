@@ -2,7 +2,7 @@
 import { HEROES, type HeroId } from '../../sim/src/content.js';
 import { TALENTS } from '../../sim/src/constants.js';
 import { tournamentScore } from '../../sim/src/formulas.js';
-import { UI_ICONS, iconURL } from '../../art/src/icons.js';
+import { INK_UI, iconURL } from '../../art/src/icons.js';
 import { liveSprite } from './portraits.js';
 import { save, persist, talentCost, tournamentState } from './state.js';
 import { el, toast } from './ui.js';
@@ -37,7 +37,7 @@ export function heroesSheet(onChange: () => void): void {
   const talentRow = (k: keyof typeof s.talents, name: string, per: string, icon: string) => {
     const r = s.talents[k];
     const max = r >= TALENTS.maxRank;
-    return `<div class="talent" data-k="${k}"><img src="${iconURL(icon)}"/><div class="tinfo"><b>${name}</b><small>${per} par rang</small><div class="pips">${Array.from({ length: 10 }, (_, i) => `<i class="${i < r ? 'on' : ''}"></i>`).join('')}</div></div><button class="btn small buy" ${max || s.gold < talentCost(r) ? 'disabled' : ''}>${max ? 'Max' : `<img src="${iconURL(UI_ICONS.coin)}"/>${talentCost(r)}`}</button></div>`;
+    return `<div class="talent" data-k="${k}"><img src="${iconURL(icon)}"/><div class="tinfo"><b>${name}</b><small>${per} par rang</small><div class="pips">${Array.from({ length: 10 }, (_, i) => `<i class="${i < r ? 'on' : ''}"></i>`).join('')}</div></div><button class="btn small buy" ${max || s.gold < talentCost(r) ? 'disabled' : ''}>${max ? 'Max' : `<img src="${iconURL(INK_UI.coin)}"/>${talentCost(r)}`}</button></div>`;
   };
   const { o } = sheet(
     'heroes',
@@ -49,7 +49,7 @@ export function heroesSheet(onChange: () => void): void {
       })
       .join('')}</div>
     <h3 class="sec">Talents permanents <small>désactivés en tournoi</small></h3>
-    <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', UI_ICONS.heart)}${talentRow('strength', 'Force', '+2 % dégâts', UI_ICONS.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', UI_ICONS.coin)}${talentRow('fortune', 'Fortune', '+5 % or', UI_ICONS.chest)}</div>
+    <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', INK_UI.heart)}${talentRow('strength', 'Force', '+2 % dégâts', INK_UI.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', INK_UI.coin)}${talentRow('fortune', 'Fortune', '+5 % or', INK_UI.chest)}</div>
     <p class="fine">Or disponible : <b>${s.gold}</b></p>`,
   );
   o.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 92, 2.1, 'idle', { aiming: true, facing: 0.15 })));
@@ -76,7 +76,7 @@ export function heroesSheet(onChange: () => void): void {
       row.querySelectorAll('.pips i')[s.talents[k] - 1]?.classList.add('on', 'pop');
       const btn = row.querySelector<HTMLButtonElement>('.buy')!;
       const r = s.talents[k];
-      btn.innerHTML = r >= TALENTS.maxRank ? 'Max' : `<img src="${iconURL(UI_ICONS.coin)}"/>${talentCost(r)}`;
+      btn.innerHTML = r >= TALENTS.maxRank ? 'Max' : `<img src="${iconURL(INK_UI.coin)}"/>${talentCost(r)}`;
       o.querySelectorAll<HTMLElement>('.talent').forEach((tr) => {
         const kk = tr.dataset.k as keyof typeof s.talents;
         tr.querySelector<HTMLButtonElement>('.buy')!.disabled = s.talents[kk] >= TALENTS.maxRank || s.gold < talentCost(s.talents[kk]);
@@ -110,13 +110,13 @@ export function shopSheet(onChange: () => void): void {
     'shop',
     'Boutique',
     `<div class="offer starter${s.starterPack ? ' owned' : ''}"><div class="ribbon">Une seule fois</div><div class="of-sprite" data-sprite="windMonk"></div><div><b>Offre de départ</b><small>300 gemmes · Moine du vent · 5 bonus</small></div><button class="btn primary small" data-buy="starter" ${s.starterPack ? 'disabled' : ''}>${s.starterPack ? 'Acquise' : '2,99 €'}</button></div>
-    <div class="offer dragon"><img src="${iconURL(UI_ICONS.crown)}"/><div><b>Ordre du Dragon</b><small>Vies illimitées · 60 gemmes/semaine · +25 % or · apparence exclusive</small><small class="trial">Essai gratuit de 3 jours, puis 4,99 €/mois ou 39,99 €/an</small></div><button class="btn primary small" data-buy="sub">S’abonner</button></div>
+    <div class="offer dragon"><img src="${iconURL(INK_UI.crown)}"/><div><b>Ordre du Dragon</b><small>Vies illimitées · 60 gemmes/semaine · +25 % or · apparence exclusive</small><small class="trial">Essai gratuit de 3 jours, puis 4,99 €/mois ou 39,99 €/an</small></div><button class="btn primary small" data-buy="sub">S’abonner</button></div>
     <h3 class="sec">Gemmes</h3>
-    <div class="gem-grid">${PRODUCTS.map((p, i) => `<button class="gem-pack" data-buy="${p.id}"><div class="gp-gems" style="--n:${i + 1}">${`<img src="${iconURL(UI_ICONS.gem)}"/>`.repeat(i + 1)}</div><b>${p.note}</b><span class="price">${p.price}</span></button>`).join('')}</div>
+    <div class="gem-grid">${PRODUCTS.map((p, i) => `<button class="gem-pack" data-buy="${p.id}"><div class="gp-gems" style="--n:${i + 1}">${`<img src="${iconURL(INK_UI.gem)}"/>`.repeat(i + 1)}</div><b>${p.note}</b><span class="price">${p.price}</span></button>`).join('')}</div>
     <h3 class="sec">Avec tes gemmes</h3>
-    <div class="spend"><button class="btn ghost" data-spend="lives"><img src="${iconURL(UI_ICONS.heart)}"/> 5 vies <em><img src="${iconURL(UI_ICONS.gem)}"/>90</em></button>
-    <button class="btn ghost" data-spend="potion"><img src="${iconURL(UI_ICONS.potion)}"/> Potion <em><img src="${iconURL(UI_ICONS.coin)}"/>150</em></button>
-    <button class="btn ghost" data-spend="aegis"><img src="${iconURL(UI_ICONS.aegis)}"/> Égide <em><img src="${iconURL(UI_ICONS.coin)}"/>200</em></button></div>
+    <div class="spend"><button class="btn ghost" data-spend="lives"><img src="${iconURL(INK_UI.heart)}"/> 5 vies <em><img src="${iconURL(INK_UI.gem)}"/>90</em></button>
+    <button class="btn ghost" data-spend="potion"><img src="${iconURL(INK_UI.potion)}"/> Potion <em><img src="${iconURL(INK_UI.coin)}"/>150</em></button>
+    <button class="btn ghost" data-spend="aegis"><img src="${iconURL(INK_UI.aegis)}"/> Égide <em><img src="${iconURL(INK_UI.coin)}"/>200</em></button></div>
     <p class="fine">Prototype web : les achats réels passent par StoreKit 2 dans l’app iOS. Ici, ils sont simulés. Aucun objet aléatoire, aucune publicité.</p>`,
   );
   o.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 64, 1.5, 'idle', { aiming: true })));
@@ -170,7 +170,7 @@ export function tournamentSheet(weekKey: string, weekNo: number, onPlay: () => v
   const { o, close } = sheet(
     'tournament-sheet',
     `Tournoi · semaine ${weekNo}`,
-    `<div class="tour-hero"><img src="${iconURL(UI_ICONS.trophy)}"/><div><b>4 salles · difficulté niveau 120</b><small>Même niveau, mêmes pouvoirs proposés et même héros pour tout le monde.</small></div></div>
+    `<div class="tour-hero"><img src="${iconURL(INK_UI.trophy)}"/><div><b>4 salles · difficulté niveau 120</b><small>Même niveau, mêmes pouvoirs proposés et même héros pour tout le monde.</small></div></div>
     <div class="tour-stats"><div><span>Essais restants</span><b>${t.attempts}/5</b></div><div><span>Ton meilleur score</span><b>${t.best || '—'}</b></div></div>
     <h3 class="sec">Règles</h3>
     <ul class="rules"><li>Talents, bonus et « continuer » désactivés.</li><li>5 essais par semaine pour tout le monde, non achetables.</li><li>Score = ennemis × 100 + PV restants × 5 + (240 − secondes) × 40. Exemple : 42 ennemis, 380 PV, 150 s → <b>${ex}</b>.</li><li>Ton meilleur essai compte. Récompenses cosmétiques : top 1 %, 10 %, 50 % et participation.</li></ul>
@@ -191,10 +191,10 @@ export function settingsSheet(): void {
   const { o } = sheet(
     'settings',
     'Réglages',
-    `${tog('sound', 'Son')}${tog('haptics', 'Vibrations')}${tog('autoFire', 'Tir auto permanent', 'Mode facile · désactivé en tournoi')}${tog('reduceMotion', 'Réduire les animations')}
+    `${tog('sound', 'Son')}${tog('haptics', 'Vibrations')}${tog('autoFire', 'Tir automatique', 'Le héros tire aussi en se déplaçant')}${tog('reduceMotion', 'Réduire les animations')}
     <button class="btn ghost wide restore">Restaurer les achats</button>
     <h3 class="sec">Confidentialité</h3><p class="fine left">Ta progression reste sur ton appareil (et dans ton iCloud sur iOS). Aucune publicité, aucun traçage.</p>
-    <h3 class="sec">Crédits</h3><p class="fine left">Polices <b>Cinzel Decorative</b> (Natanael Gama) et <b>Fredoka</b> (Milena Brandão), licence SIL Open Font License 1.1. Sons synthétisés en direct.</p>
+    <h3 class="sec">Crédits</h3><p class="fine left">Polices <b>IM Fell English SC</b> (Igino Marini) et <b>Alegreya Sans</b> (Juan Pablo del Peral), licence SIL Open Font License 1.1. Sons synthétisés en direct.</p>
     <button class="btn ghost wide reset">Effacer la progression</button>`,
   );
   o.querySelectorAll<HTMLInputElement>('input[data-k]').forEach((i) =>

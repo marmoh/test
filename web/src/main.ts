@@ -6,7 +6,7 @@ import { isoWeek, tournamentSeed, tournamentScore } from '../../sim/src/formulas
 import { NO_TALENTS } from '../../sim/src/hero.js';
 import { heroesSheet, shopSheet, tournamentSheet, settingsSheet } from './menus.js';
 import { APP_NAME, LEVEL_COUNT } from '../../sim/src/constants.js';
-import { UI_ICONS, iconURL } from '../../art/src/icons.js';
+import { INK_UI, PAPER_UI, iconURL } from '../../art/src/icons.js';
 import { Combat } from './combat.js';
 import { buildMap, topBar } from './map.js';
 import { mountSheet } from './sheet.js';
@@ -45,7 +45,7 @@ function showMap(): void {
   const wk = isoWeek(new Date());
   const weekKey = `${wk.year}-W${wk.week}`;
   const tState = tournamentState(weekKey);
-  const banner = el(`<button class="tournament"><img src="${iconURL(UI_ICONS.trophy)}"/><div><b>Tournoi de la semaine ${wk.week}</b><small>Mêmes conditions pour tous · ${tState.attempts} essai${tState.attempts > 1 ? 's' : ''}</small></div><span class="go">›</span></button>`);
+  const banner = el(`<button class="tournament"><img src="${iconURL(INK_UI.trophy)}"/><div><b>Tournoi de la semaine ${wk.week}</b><small>Mêmes conditions pour tous · ${tState.attempts} essai${tState.attempts > 1 ? 's' : ''}</small></div><span class="go">›</span></button>`);
   const openTournament = () => tournamentSheet(weekKey, wk.week, () => playTournament(weekKey));
   banner.addEventListener('click', openTournament);
   screen.appendChild(banner);
@@ -54,11 +54,11 @@ function showMap(): void {
     old?.replaceWith(topBar());
   };
   const nav = el(`<nav class="bottom-nav">
-    <button data-tab="heroes"><img src="${iconURL(UI_ICONS.aegis)}"/><span>Héros</span></button>
-    <button data-tab="shop"><img src="${iconURL(UI_ICONS.gem)}"/><span>Boutique</span></button>
-    <button data-tab="map" class="on"><img src="${iconURL(UI_ICONS.star)}"/><span>Carte</span></button>
-    <button data-tab="tour"><img src="${iconURL(UI_ICONS.trophy)}"/><span>Tournoi</span></button>
-    <button data-tab="settings"><img src="${iconURL(UI_ICONS.scroll)}"/><span>Réglages</span></button>
+    <button data-tab="heroes"><img src="${iconURL(PAPER_UI.aegis)}"/><span>Héros</span></button>
+    <button data-tab="shop"><img src="${iconURL(PAPER_UI.gem)}"/><span>Boutique</span></button>
+    <button data-tab="map" class="on"><img src="${iconURL(PAPER_UI.star)}"/><span>Carte</span></button>
+    <button data-tab="tour"><img src="${iconURL(PAPER_UI.trophy)}"/><span>Tournoi</span></button>
+    <button data-tab="settings"><img src="${iconURL(PAPER_UI.scroll)}"/><span>Réglages</span></button>
   </nav>`);
   nav.addEventListener('click', (e) => {
     const b = (e.target as Element).closest('button');
@@ -178,7 +178,7 @@ function playTournament(weekKey: string): void {
   let kills = 0;
   const c: Combat = new Combat(
     screen,
-    { level: lvl, templates: TEMPLATES, heroId: 'scout', talents: NO_TALENTS, autoFire: false, reduceMotion: save().settings.reduceMotion, haptics: save().settings.haptics },
+    { level: lvl, templates: TEMPLATES, heroId: 'scout', talents: NO_TALENTS, autoFire: true, reduceMotion: save().settings.reduceMotion, haptics: save().settings.haptics },
     {
       choosePower: (offer, hero) => choosePower(offer, hero),
       defeat: async () => {

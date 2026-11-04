@@ -2,7 +2,8 @@
 
 export type Ctx = CanvasRenderingContext2D;
 
-export const INK = '#140d24';
+import { INK, CUT } from './palette.js';
+export { INK };
 
 const cache = new Map<string, [number, number, number]>();
 function rgb(hex: string): [number, number, number] {
@@ -53,38 +54,40 @@ export function circle(ctx: Ctx, x: number, y: number, r: number, fill: string, 
 export function groundShadow(ctx: Ctx, rx: number, ry: number, y = 0, a = 0.32): void {
   ctx.beginPath();
   ctx.ellipse(0, y, rx, ry, 0, 0, Math.PI * 2);
-  ctx.fillStyle = `rgba(8,4,20,${a})`;
+  ctx.fillStyle = `rgba(27,20,24,${a * 0.55})`;
   ctx.fill();
 }
 
-/** Yeux expressifs (regard décalé selon la direction). */
-export function eyes(ctx: Ctx, x: number, y: number, gap: number, r: number, look: number, color = '#ffffff', pupil = INK, blink = false): void {
+/** Yeux de marionnette : des trous découpés par où passe la lumière, avec une petite pupille. */
+export function eyes(ctx: Ctx, x: number, y: number, gap: number, r: number, look: number, _color = CUT, pupil = INK, blink = false): void {
   for (const s of [-1, 1]) {
     const ex = x + s * gap;
     if (blink) {
       ctx.beginPath();
       ctx.moveTo(ex - r, y);
       ctx.lineTo(ex + r, y);
-      ctx.strokeStyle = pupil;
-      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = CUT;
+      ctx.lineWidth = 1.4;
       ctx.stroke();
       continue;
     }
-    circle(ctx, ex, y, r, color);
-    circle(ctx, ex + look * r * 0.35, y + r * 0.1, r * 0.55, pupil);
-    circle(ctx, ex + look * r * 0.35 - r * 0.2, y - r * 0.2, r * 0.18, '#ffffff');
+    circle(ctx, ex, y, r, CUT);
+    circle(ctx, ex + look * r * 0.35, y + r * 0.1, r * 0.45, pupil);
   }
 }
 
-/** Lueur radiale additive (télégraphes, magie). */
-export function glow(ctx: Ctx, x: number, y: number, r: number, color: string, a = 0.6): void {
-  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-  g.addColorStop(0, alpha(color, a));
-  g.addColorStop(1, alpha(color, 0));
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fill();
+/**
+ * Théâtre d'ombres : pas de halos. Conservé pour compatibilité, ne dessine rien.
+ * Les effets lumineux voulus passent par `lightPatch`.
+ */
+export function glow(_ctx: Ctx, _x: number, _y: number, _r: number, _color: string, _a = 0.6): void {}
+
+/** Tache de lumière franche (papier éclairé), sans dégradé. */
+export function lightPatch(ctx: Ctx, x: number, y: number, r: number, color = CUT, a = 0.5): void {
+  ctx.save();
+  ctx.globalAlpha *= a;
+  circle(ctx, x, y, r, color);
+  ctx.restore();
 }
 
 export function blobPath(ctx: Ctx, r: number, t: number, lobes: number, amp: number, sx = 1, sy = 1): void {

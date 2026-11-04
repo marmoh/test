@@ -5,7 +5,7 @@
  * rastérise en @2x/@3x, le web les dessine en direct.
  */
 import { INK, mix, shade, ellipse, circle, groundShadow, eyes, glow, blobPath, star, type Ctx } from './draw.js';
-import { UI } from './palette.js';
+import { UI, INK2, CUT, DANGER, JADE, GOLD_LEAF } from './palette.js';
 
 export type AnimState = 'idle' | 'move' | 'windup' | 'charge' | 'recover' | 'spawn' | 'breath';
 
@@ -33,8 +33,20 @@ export interface Pose {
 
 type Painter = (ctx: Ctx, p: Pose) => void;
 
-const W = '#ffffff';
-const tint = (p: Pose) => (c: string) => mix(c, W, p.flash * 0.85);
+const W = CUT;
+/** Couleurs que la marionnette garde (gel teinté des héros). */
+const KEEP = new Set<string>([UI.heroCloak, UI.heroCloakDark, '#f0a43a', '#c47a1a', '#5a3a8a', '#3a2266', '#5fd8ff', '#ffb347', GOLD_LEAF]);
+function lum(hex: string): number {
+  if (!hex.startsWith('#')) return 0;
+  const n = parseInt(hex.slice(1), 16);
+  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+}
+/** Théâtre d'ombres : toute couleur devient encre (foncé) ou encre claire (pièces claires), sauf le gel des héros. */
+function puppet(c: string): string {
+  if (KEEP.has(c)) return c;
+  return lum(c) > 0.6 ? INK2 : INK;
+}
+const tint = (p: Pose) => (c: string) => mix(puppet(c), CUT, p.flash * 0.9);
 
 function facingSign(p: Pose): number {
   return Math.cos(p.facing) < -0.1 ? -1 : 1;
@@ -42,11 +54,9 @@ function facingSign(p: Pose): number {
 
 function eliteAura(ctx: Ctx, p: Pose, r: number): void {
   if (!p.elite) return;
-  const pulse = 0.5 + 0.5 * Math.sin(p.t * 5 + p.seed);
-  glow(ctx, 0, 0, r * 1.9, UI.gold, 0.35 + 0.2 * pulse);
   ctx.save();
-  ctx.strokeStyle = UI.gold;
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = GOLD_LEAF;
+  ctx.lineWidth = 2.5;
   ctx.setLineDash([5, 6]);
   ctx.lineDashOffset = -p.t * 20;
   ctx.beginPath();
@@ -76,18 +86,19 @@ function eliteCrown(ctx: Ctx, p: Pose, y: number): void {
   ctx.restore();
 }
 
-/** Lueur d'anticipation (télégraphe « lueur » ≥ 0,5 s). */
-function windupGlow(ctx: Ctx, p: Pose, x: number, y: number, r: number, color: string): void {
+/** Anticipation (télégraphe « lueur » ≥ 0,5 s) : un anneau vermillon qui se resserre sur la source. */
+function windupGlow(ctx: Ctx, p: Pose, x: number, y: number, r: number, _color: string): void {
   if (p.state !== 'windup') return;
   const k = Math.min(1, p.windup);
-  glow(ctx, x, y, r * (1 + k * 1.2), color, 0.35 + 0.5 * k);
   ctx.save();
-  ctx.strokeStyle = color;
-  ctx.globalAlpha = 0.5 + 0.5 * k;
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = DANGER;
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([4, 3]);
   ctx.beginPath();
-  ctx.arc(x, y, r * (2.2 - k * 1.2), 0, Math.PI * 2);
+  ctx.arc(x, y, r * (2.6 - k * 1.5), 0, Math.PI * 2);
   ctx.stroke();
+  ctx.setLineDash([]);
+  circle(ctx, x, y, r * (0.35 + k * 0.4), DANGER);
   ctx.restore();
 }
 
@@ -128,7 +139,7 @@ export const drawScout: Painter = (ctx, p) => {
   ctx.fill();
   ctx.stroke();
   for (let i = -1; i <= 1; i++) {
-    ctx.fillStyle = C(i === 0 ? '#ffe9a8' : '#f4ecd8');
+    ctx.fillStyle = C(i === 0 ? CUT : '#f4ecd8');
     ctx.beginPath();
     ctx.moveTo(i * 2, -9);
     ctx.lineTo(i * 2 - 1.5, -14);
@@ -225,7 +236,7 @@ export const drawScout: Painter = (ctx, p) => {
     ctx.strokeStyle = C('#f4ecd8');
     ctx.lineWidth = 1.6;
     ctx.stroke();
-    glow(ctx, 10, 0, 6, UI.moonGlow, 0.7);
+    circle(ctx, 10, 0, 1.6, INK);
   }
   ctx.restore();
   ctx.globalAlpha = 1;
@@ -315,7 +326,7 @@ export const drawWindMonk: Painter = (ctx, p) => {
           ctx.arc(6 + i * 4, 0, 5 + i * 3, -1.2 + p.t * 8, 1.2 + p.t * 8);
           ctx.stroke();
         }
-        glow(ctx, 8, 0, 10, '#bff4ff', 0.6);
+        glow(ctx, 8, 0, 10, CUT, 0.6);
       }
     },
   );
@@ -345,7 +356,7 @@ export const drawEmberSorcerer: Painter = (ctx, p) => {
       ctx.lineWidth = 2;
       ctx.strokeStyle = INK;
       ctx.stroke();
-      circle(ctx, hx - fx * 10 + w, -34, 2.4, C('#ffcf4a'), INK, 1.2);
+      circle(ctx, hx - fx * 10 + w, -34, 2.4, C(CUT), INK, 1.2);
     },
     (C) => {
       ctx.beginPath();
@@ -355,9 +366,9 @@ export const drawEmberSorcerer: Painter = (ctx, p) => {
       ctx.lineWidth = 3;
       ctx.stroke();
       const fl = 3.5 + Math.sin(p.t * 16) * 0.8 + (p.aiming ? 2 : 0);
-      glow(ctx, 8, -3, fl * 3.5, '#ff8a3d', 0.7);
-      circle(ctx, 8, -3, fl, '#ffd36b', INK, 1.5);
-      circle(ctx, 7, -4, fl * 0.45, '#fff3c2');
+      glow(ctx, 8, -3, fl * 3.5, CUT, 0.7);
+      circle(ctx, 8, -3, fl, CUT, INK, 1.5);
+      circle(ctx, 7, -4, fl * 0.45, CUT);
     },
   );
 };
@@ -384,10 +395,10 @@ export const drawGoblin: Painter = (ctx, p) => {
     ctx.beginPath();
     ctx.moveTo(fx * 6, -8);
     ctx.lineTo(fx * 4 + Math.cos(a) * 9, -20 + Math.sin(a) * 9);
-    ctx.strokeStyle = '#6b4226';
+    ctx.strokeStyle = INK2;
     ctx.stroke();
     windupGlow(ctx, p, fx * 4 + Math.cos(a) * 9, -20 + Math.sin(a) * 9, 4, '#ffb347');
-    circle(ctx, fx * 4 + Math.cos(a) * 9, -20 + Math.sin(a) * 9, 3.5, '#8d7b6a', INK, 1.5);
+    circle(ctx, fx * 4 + Math.cos(a) * 9, -20 + Math.sin(a) * 9, 3.5, CUT, INK, 1.5);
   }
   // corps poire
   ctx.beginPath();
@@ -420,7 +431,7 @@ export const drawGoblin: Painter = (ctx, p) => {
     ctx.fill();
     ctx.stroke();
   }
-  eyes(ctx, fx * 2, -4, 4, 2.8, fx, '#ffe26b', INK);
+  eyes(ctx, fx * 2, -4, 4, 2.8, fx, CUT, INK);
   // dent
   ctx.fillStyle = W;
   ctx.beginPath();
@@ -476,7 +487,7 @@ export const drawBat: Painter = (ctx, p) => {
   groundShadow(ctx, 9, 3.5, 20, 0.22); // vole : ombre décalée au sol
   ctx.save();
   ctx.translate(0, Math.sin(p.t * 5 + p.seed) * 2);
-  windupGlow(ctx, p, 0, 0, 10, '#ff4d5e');
+  windupGlow(ctx, p, 0, 0, 10, DANGER);
   for (const s of [-1, 1]) {
     ctx.beginPath();
     ctx.moveTo(s * 5, -2);
@@ -501,7 +512,7 @@ export const drawBat: Painter = (ctx, p) => {
     ctx.fill();
     ctx.stroke();
   }
-  const eg = p.state === 'windup' ? '#ff4d5e' : '#ffcf4a';
+  const eg = p.state === 'windup' ? DANGER : CUT;
   glow(ctx, -3, -1, 5, eg, 0.5);
   glow(ctx, 3, -1, 5, eg, 0.5);
   circle(ctx, -3, -1, 1.8, eg);
@@ -543,7 +554,7 @@ export const drawMushroom: Painter = (ctx, p) => {
   ctx.save();
   ctx.translate(0, -5);
   ctx.scale(s, s);
-  windupGlow(ctx, p, 0, -6, 12, '#9fff6b');
+  windupGlow(ctx, p, 0, -6, 12, CUT);
   ctx.beginPath();
   ctx.moveTo(-17, 2);
   ctx.bezierCurveTo(-17, -20, 17, -20, 17, 2);
@@ -628,8 +639,8 @@ export const drawWolf: Painter = (ctx, p) => {
   ctx.fillStyle = C('#2a2440');
   ctx.fill();
   ctx.stroke();
-  const eye = mix('#ff6a3d', '#ffffff', crouch * 0.5);
-  glow(ctx, 16, -6, 6 + crouch * 6, '#ff6a3d', 0.6);
+  const eye = crouch > 0.05 ? DANGER : CUT;
+  glow(ctx, 16, -6, 6 + crouch * 6, CUT, 0.6);
   circle(ctx, 16, -6, 1.8, eye);
   ctx.restore();
   eliteCrown(ctx, p, -20);
@@ -678,7 +689,7 @@ export const drawSkeleton: Painter = (ctx, p) => {
   ctx.lineWidth = 2;
   ctx.strokeStyle = INK;
   ctx.stroke();
-  const eyeC = p.state === 'windup' ? '#5fd8ff' : '#9fe8ff';
+  const eyeC = p.state === 'windup' ? DANGER : CUT;
   circle(ctx, fx * 1 - 3, -11, 2.2, INK);
   circle(ctx, fx * 1 + 3, -11, 2.2, INK);
   glow(ctx, fx * 1 - 3, -11, 4, eyeC, 0.7);
@@ -700,7 +711,7 @@ export const drawSkeleton: Painter = (ctx, p) => {
       ctx.beginPath();
       ctx.moveTo(-4, 0);
       ctx.lineTo(9, 0);
-      ctx.strokeStyle = '#bfe8ff';
+      ctx.strokeStyle = CUT;
       ctx.lineWidth = 1.5;
       ctx.stroke();
       ctx.restore();
@@ -726,7 +737,7 @@ export const drawTotem: Painter = (ctx, p) => {
     ctx.save();
     ctx.translate(Math.cos(a) * 22, Math.sin(a) * 22 * 0.55 + 4);
     ctx.globalAlpha = 0.35 + 0.65 * Math.max(w, pulse * 0.4);
-    ctx.fillStyle = '#5fd8ff';
+    ctx.fillStyle = w > 0.05 ? DANGER : CUT;
     ctx.fillRect(-1.5, -3, 3, 6);
     ctx.restore();
   }
@@ -745,7 +756,7 @@ export const drawTotem: Painter = (ctx, p) => {
     ctx.strokeStyle = INK;
     ctx.stroke();
   }
-  const rune = mix('#3a8fb8', '#bff4ff', Math.max(w, pulse * 0.3));
+  const rune = w > 0.05 ? DANGER : CUT;
   glow(ctx, 0, -4, 10 + w * 10, '#5fd8ff', 0.3 + w * 0.5);
   ctx.strokeStyle = rune;
   ctx.lineWidth = 2;
@@ -803,9 +814,9 @@ export const drawMage: Painter = (ctx, p) => {
   ctx.lineWidth = 2;
   ctx.strokeStyle = INK;
   ctx.stroke();
-  ellipse(ctx, fx * 1, -11, 5, 4.5, '#1a0a12');
-  glow(ctx, fx * 1 - 2, -11, 4, '#ff8a3d', 0.8);
-  glow(ctx, fx * 1 + 2, -11, 4, '#ff8a3d', 0.8);
+  ellipse(ctx, fx * 1, -11, 5, 4.5, INK);
+  circle(ctx, fx * 1 - 2, -11, 1.3, w > 0.05 ? DANGER : CUT);
+  circle(ctx, fx * 1 + 2, -11, 1.3, w > 0.05 ? DANGER : CUT);
   // bâton
   const sx = fx * 11;
   const raise = w * 8;
@@ -816,12 +827,12 @@ export const drawMage: Painter = (ctx, p) => {
   ctx.lineWidth = 3;
   ctx.stroke();
   const fl = 4 + Math.sin(p.t * 18) * 1 + w * 6;
-  glow(ctx, sx, -20 - raise, fl * 3, '#ff8a3d', 0.6);
+  glow(ctx, sx, -20 - raise, fl * 3, CUT, 0.6);
   ctx.beginPath();
   ctx.moveTo(sx - fl * 0.6, -18 - raise);
   ctx.quadraticCurveTo(sx, -20 - raise - fl * 2.2, sx + fl * 0.6, -18 - raise);
   ctx.quadraticCurveTo(sx, -15 - raise, sx - fl * 0.6, -18 - raise);
-  ctx.fillStyle = '#ffd36b';
+  ctx.fillStyle = w > 0.05 ? DANGER : CUT;
   ctx.fill();
   eliteCrown(ctx, p, -27);
   ctx.restore();
@@ -902,7 +913,7 @@ export const drawTreant: Painter = (ctx, p) => {
     circle(ctx, Math.cos(a) * 24, -26 + Math.sin(a) * 14, 11, C(shade(leaf, (i % 2) * 0.12)), INK, 2);
   }
   // visage
-  const eye = mix('#ffcf4a', '#ff4d5e', w);
+  const eye = mix(CUT, DANGER, w);
   glow(ctx, -7, -6, 9, eye, 0.6);
   glow(ctx, 7, -6, 9, eye, 0.6);
   ellipse(ctx, -7, -6, 3.5, 2.5, eye);
@@ -934,11 +945,11 @@ export const drawQueen: Painter = (ctx, p) => {
   ellipse(ctx, 0, 6, 30 + breathe, 22 - breathe * 0.4, C(body), INK, 2.5);
   ellipse(ctx, 0, 12, 18, 11, C(shade(body, 0.35)));
   // sac vocal qui gonfle à l'anticipation
-  if (w > 0) circle(ctx, 0, 16, 6 + w * 10, alpha2('#ffb3d9', 0.85), INK, 2);
+  if (w > 0) circle(ctx, 0, 16, 6 + w * 10, DANGER, INK, 2);
   // yeux globuleux
   for (const s of [-1, 1]) {
     circle(ctx, s * 13, -14, 9, C(body), INK, 2.5);
-    circle(ctx, s * 13, -15, 6, '#fff7c2');
+    circle(ctx, s * 13, -15, 6, CUT);
     ellipse(ctx, s * 13 + Math.cos(p.facing) * 1.5, -15, 1.8, 4.5, INK);
   }
   // couronne
@@ -952,7 +963,7 @@ export const drawQueen: Painter = (ctx, p) => {
   ctx.lineWidth = 2;
   ctx.strokeStyle = INK;
   ctx.stroke();
-  circle(ctx, 0, -27, 2.5, '#ff5fa8');
+  circle(ctx, 0, -27, 2.5, CUT);
   ctx.beginPath();
   ctx.moveTo(-14, 0);
   ctx.quadraticCurveTo(0, 6, 14, 0);
@@ -1000,7 +1011,7 @@ export const drawScorpion: Painter = (ctx, p) => {
     y -= Math.sin(a) * 9;
     circle(ctx, x, y, 7 - i * 0.6, C(shade(body, -i * 0.05)), INK, 2);
   }
-  const sting = mix('#ffe26b', '#ff4d5e', w);
+  const sting = mix(CUT, DANGER, w);
   glow(ctx, x + 4, y + 4, 10 + w * 10, sting, 0.7);
   ctx.beginPath();
   ctx.moveTo(x - 2, y - 3);
@@ -1039,7 +1050,7 @@ export const drawScorpion: Painter = (ctx, p) => {
     ctx.stroke();
     ctx.restore();
   }
-  eyes(ctx, 14, -2, 3.5, 2.5, 1, '#1a0a12', '#ff4d5e');
+  eyes(ctx, 14, -2, 3.5, 2.5, 1);
   ctx.restore();
   dizzy(ctx, p, -26);
 };
@@ -1098,11 +1109,11 @@ export const drawWyvern: Painter = (ctx, p) => {
     ctx.moveTo(26 + k * 3, -10);
     ctx.lineTo(22 + k * 4, -20 - k * 2);
     ctx.lineTo(30 + k * 2, -9);
-    ctx.fillStyle = '#eaf6ff';
+    ctx.fillStyle = CUT;
     ctx.fill();
     ctx.stroke();
   }
-  glow(ctx, 29, -6, 7, '#bfe8ff', 0.8);
+  glow(ctx, 29, -6, 7, CUT, 0.8);
   circle(ctx, 29, -6, 1.8, '#ffffff');
   // givre
   for (let i = 0; i < 4; i++) {
@@ -1145,7 +1156,7 @@ export const drawAshlord: Painter = (ctx, p) => {
   ctx.stroke();
   // fissures de braise
   glow(ctx, 0, 0, 20 + w * 14, ember, 0.35 + w * 0.4);
-  ctx.strokeStyle = mix(ember, '#ffe9a8', 0.3 + w * 0.5);
+  ctx.strokeStyle = w > 0.05 ? DANGER : CUT;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(-8, -10);
@@ -1169,15 +1180,15 @@ export const drawAshlord: Painter = (ctx, p) => {
   }
   glow(ctx, -4, -24, 6, ember, 0.9);
   glow(ctx, 4, -24, 6, ember, 0.9);
-  circle(ctx, -4, -24, 1.8, '#ffe9a8');
-  circle(ctx, 4, -24, 1.8, '#ffe9a8');
+  circle(ctx, -4, -24, 1.8, CUT);
+  circle(ctx, 4, -24, 1.8, CUT);
   // couronne de flammes
   for (let i = -2; i <= 2; i++) {
     const h = 6 + Math.sin(p.t * 12 + i * 2) * 2.5 + w * 4;
     ctx.beginPath();
     ctx.moveTo(i * 4 - 2.5, -33);
     ctx.quadraticCurveTo(i * 4, -33 - h * 2, i * 4 + 2.5, -33);
-    ctx.fillStyle = i % 2 === 0 ? '#ffd36b' : ember;
+    ctx.fillStyle = i % 2 === 0 ? CUT : INK2;
     ctx.fill();
   }
   ctx.restore();

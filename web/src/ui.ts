@@ -3,7 +3,7 @@ import { levelInfo, goldReward } from '../../sim/src/formulas.js';
 import { POWER_BY_ID, BOSSES, ENEMIES, BOSS_BY_KINGDOM, type PowerId, type MinionType } from '../../sim/src/content.js';
 import type { LevelDef } from '../../sim/src/level.js';
 import type { HeroState } from '../../sim/src/world.js';
-import { POWER_ICONS, UI_ICONS, iconURL } from '../../art/src/icons.js';
+import { INK_POWERS, INK_UI, iconURL } from '../../art/src/icons.js';
 import { KINGDOMS } from '../../art/src/palette.js';
 import { portrait, liveSprite } from './portraits.js';
 import { save, persist } from './state.js';
@@ -39,19 +39,25 @@ function close(o: HTMLElement): Promise<void> {
 export function titleScreen(onStart: () => void): HTMLElement {
   const th = KINGDOMS[0];
   const s = el(`<div class="title-screen">
-    <div class="title-sky"></div>
-    <div class="title-moon"><div class="glow"></div><div class="disc"></div><div class="bite"></div></div>
-    <div class="title-stars">${Array.from({ length: 40 }, (_, i) => `<i style="left:${(i * 37) % 100}%;top:${(i * 53) % 60}%;animation-delay:${(i % 7) * 0.4}s"></i>`).join('')}</div>
-    <div class="title-hills"><svg viewBox="0 0 400 200" preserveAspectRatio="none"><path d="M0 120 C60 80 120 90 180 110 C240 130 300 70 400 100 V200 H0 Z" fill="${th.hedge}"/><path d="M0 150 C80 120 160 140 220 150 C290 162 340 130 400 140 V200 H0 Z" fill="${th.wall}"/></svg></div>
-    <div class="title-hero"></div>
-    <h1 class="logo"><span>Ombre</span><span>lune</span></h1>
-    <p class="tagline">Un héros, un doigt, trois cents niveaux.<br/>Bouge pour esquiver, arrête-toi pour frapper.</p>
-    <button class="btn primary big start">Jouer</button>
+    <div class="stage">
+      <div class="screen-paper" style="--light:${th.light};--paper:${th.paper};--edge:${th.edge}">
+        <div class="moon-cut"></div>
+        <svg class="title-trees" viewBox="0 0 400 160" preserveAspectRatio="none"><path fill="${th.far}" d="M0 160 V110 L20 80 L34 104 L52 60 L72 104 L90 86 L112 112 L140 70 L166 112 L190 92 L214 116 L246 64 L276 112 L300 90 L326 114 L352 72 L380 108 L400 92 V160 Z"/><path fill="#1b1418" d="M0 160 V132 L30 104 L48 126 L70 96 L96 130 L128 120 L160 134 L200 124 L240 136 L272 118 L300 132 L330 108 L360 130 L400 116 V160 Z"/></svg>
+        <div class="puppet"><div class="rod"></div></div>
+      </div>
+    </div>
+    <div class="curtain left"></div><div class="curtain right"></div><div class="valance"></div>
+    <div class="title-text">
+      <h1 class="logo">Ombrelune</h1>
+      <p class="tagline">Un héros, un doigt, trois cents niveaux.<br/>Bouge pour esquiver ; ta héroïne tire toute seule.</p>
+      <button class="btn primary big start">Lever le rideau</button>
+    </div>
   </div>`);
-  s.querySelector('.title-hero')!.appendChild(liveSprite('hero', 180, 3.4, 'idle', { aiming: true, facing: -0.3 }));
+  s.querySelector('.puppet')!.prepend(liveSprite('hero', 170, 3.3, 'idle', { aiming: true, facing: -0.25 }));
   s.querySelector('.start')!.addEventListener('click', () => {
     sfx('tap');
-    onStart();
+    s.classList.add('opening');
+    setTimeout(onStart, 650);
   });
   return s;
 }
@@ -69,20 +75,21 @@ export function preLevel(level: LevelDef): Promise<PreLevelChoice | null> {
   const s = save();
   const th = KINGDOMS[info.kingdom - 1];
   const st = s.stars[level.n] ?? 0;
+  void th;
   const types = new Set<MinionType>();
   for (const r of level.rooms) for (const w of r.waves) for (const e of w) types.add(e.type);
   const boss = level.rooms.find((r) => r.boss)?.boss;
-  const badge = info.kind === 'boss' ? `<span class="badge boss">Boss</span>` : info.kind === 'hard' ? `<span class="badge hard"><img src="${iconURL(UI_ICONS.skull)}"/>Difficile</span>` : '';
+  const badge = info.kind === 'boss' ? `<span class="badge boss">Boss</span>` : info.kind === 'hard' ? `<span class="badge hard"><img src="${iconURL(INK_UI.skull)}"/>Difficile</span>` : '';
   const bonus = (id: keyof PreLevelChoice, icon: string, name: string, desc: string) =>
     `<button class="bonus" data-b="${id}" ${s.bonuses[id] > 0 ? '' : 'disabled'}><img src="${iconURL(icon)}"/><b>${name}</b><small>${desc}</small><i class="count">${s.bonuses[id]}</i></button>`;
   const o = overlay(
     'sheet-overlay',
-    `<div class="sheet" style="--accent:${th.accent}">
+    `<div class="sheet">
       <div class="sheet-head"><div class="lvl-num">Niveau ${level.n}</div>${badge}</div>
-      <div class="sheet-stars">${[0, 1, 2].map((i) => `<img class="${i < st ? 'on' : ''}" src="${iconURL(i < st ? UI_ICONS.star : UI_ICONS.starEmpty)}"/>`).join('')}</div>
+      <div class="sheet-stars">${[0, 1, 2].map((i) => `<img class="${i < st ? 'on' : ''}" src="${iconURL(i < st ? INK_UI.star : INK_UI.starEmpty)}"/>`).join('')}</div>
       <p class="objective">Traverse ${level.rooms.length} salles${boss ? ` et terrasse <b>${BOSSES[boss.archetype].name}</b>` : ''}.</p>
       <div class="foes">${boss ? `<div class="foe boss"><img src="${portrait(BOSS_BY_KINGDOM[info.kingdom - 1], 84, { scale: 0.75, dy: 12, variant: boss.variant })}"/></div>` : ''}${[...types].map((t) => `<div class="foe" title="${ENEMIES[t].name}"><img src="${portrait(t, 56, { scale: 1.2, dy: 6, variant: t === 'jellySmall' ? 1 : 0 })}"/></div>`).join('')}</div>
-      <div class="bonuses">${bonus('potion', UI_ICONS.potion, 'Potion', '+25 % PV')}${bonus('scroll', UI_ICONS.scroll, 'Parchemin', '1 pouvoir')}${bonus('aegis', UI_ICONS.aegis, 'Égide', '1 bouclier')}</div>
+      <div class="bonuses">${bonus('potion', INK_UI.potion, 'Potion', '+25 % PV')}${bonus('scroll', INK_UI.scroll, 'Parchemin', '1 pouvoir')}${bonus('aegis', INK_UI.aegis, 'Égide', '1 bouclier')}</div>
       <button class="btn primary big play">Jouer</button>
       <p class="fine">Une vie n’est retirée qu’en cas de défaite.</p>
       <button class="close-x" aria-label="Fermer">×</button>
@@ -128,7 +135,7 @@ export function choosePower(offer: PowerId[], hero: HeroState, title = 'Choisis 
           <div class="pcard-back"><div class="moonmark"></div></div>
           <div class="pcard-front">
             <div class="rarity">${RARITY_LABEL[p.rarity]}</div>
-            <div class="picon"><img src="${iconURL(POWER_ICONS[id])}" alt=""/></div>
+            <div class="picon"><img src="${iconURL(INK_POWERS[id])}" alt=""/></div>
             <div class="pname">${p.name}${owned ? ` <small>×${owned + 1}</small>` : ''}</div>
             <div class="pdesc">${p.desc}</div>
           </div>
@@ -167,9 +174,9 @@ export function victory(level: LevelDef, r: CombatResult, firstThree: boolean): 
     `<div class="result">
       <div class="rays"></div>
       <h2 class="rtitle">Victoire&nbsp;!</h2>
-      <div class="rstars">${[0, 1, 2].map((i) => `<div class="slot"><img class="empty" src="${iconURL(UI_ICONS.starEmpty)}"/>${i < r.stars ? `<img class="full" style="--d:${0.6 + i * 0.45}s" src="${iconURL(UI_ICONS.star)}"/>` : ''}</div>`).join('')}</div>
+      <div class="rstars">${[0, 1, 2].map((i) => `<div class="slot"><img class="empty" src="${iconURL(INK_UI.starEmpty)}"/>${i < r.stars ? `<img class="full" style="--d:${0.6 + i * 0.45}s" src="${iconURL(INK_UI.star)}"/>` : ''}</div>`).join('')}</div>
       <div class="rhero"></div>
-      <div class="rstats"><div><img src="${iconURL(UI_ICONS.coin)}"/><b class="count" data-to="${gold}">0</b></div><div><span>Ennemis</span><b>${r.kills}</b></div><div><span>Temps</span><b>${Math.round(r.seconds)} s</b></div></div>
+      <div class="rstats"><div><img src="${iconURL(INK_UI.coin)}"/><b class="count" data-to="${gold}">0</b></div><div><span>Ennemis</span><b>${r.kills}</b></div><div><span>Temps</span><b>${Math.round(r.seconds)} s</b></div></div>
       <div class="ractions"><button class="btn ghost map">Carte</button><button class="btn primary next">Niveau suivant</button></div>
     </div>`,
   );
@@ -200,7 +207,7 @@ export function defeat(continuesUsed: number): Promise<'continue' | 'retry' | 'm
       <h2 class="rtitle">Défaite</h2>
       <p class="rsub">L’ombre t’a rattrapée…</p>
       <div class="ghost-hero"></div>
-      ${can ? `<button class="btn gem big cont" ${s.gems >= cost ? '' : 'disabled'}><span>Continuer</span><em><img src="${iconURL(UI_ICONS.gem)}"/>${cost}</em></button><p class="fine">Rend 50 % des PV et efface les projectiles.</p>` : ''}
+      ${can ? `<button class="btn gem big cont" ${s.gems >= cost ? '' : 'disabled'}><span>Continuer</span><em><img src="${iconURL(INK_UI.gem)}"/>${cost}</em></button><p class="fine">Rend 50 % des PV et efface les projectiles.</p>` : ''}
       <div class="ractions"><button class="btn ghost map">Carte</button><button class="btn primary retry">Réessayer</button></div>
     </div>`,
   );

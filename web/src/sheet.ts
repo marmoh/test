@@ -14,7 +14,7 @@ export function mountSheet(root: HTMLElement): void {
     const t = ms / 1000;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, KINGDOMS[0].ground); g.addColorStop(1, KINGDOMS[0].groundAlt);
+    g.addColorStop(0, KINGDOMS[0].light); g.addColorStop(1, KINGDOMS[0].paper);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     names.forEach((n, i) => {
       const boss = ['treant', 'queen', 'scorpion', 'wyvern', 'ashlord'].includes(n);

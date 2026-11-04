@@ -1,13 +1,17 @@
-/** Décor d'arène : sol, murs, rochers, eau/lave, haies, portail (5 royaumes). */
-import { INK, mix, shade, alpha, circle, ellipse, glow, type Ctx } from './draw.js';
-import type { KingdomTheme } from './palette.js';
+/**
+ * Décor d'arène « théâtre d'ombres » : un écran de papier éclairé par derrière,
+ * des obstacles découpés dans l'encre, l'eau et la lave vues à travers un gel coloré,
+ * une scène encadrée de rideaux.
+ */
+import { INK, INK2, CUT, CURTAIN, CURTAIN_LIGHT, DANGER, type KingdomTheme } from './palette.js';
+import { mix, alpha, circle, type Ctx } from './draw.js';
 
 export const CELL = 44;
 export const COLS = 9;
 export const ROWS = 15;
 export const AW = CELL * COLS;
 export const AH = CELL * ROWS;
-/** épaisseur des murs dessinés autour de l'arène */
+/** épaisseur du cadre (montants de la scène) autour de l'écran */
 export const WALL = 26;
 
 function hashCell(c: number, r: number, k = 0): number {
@@ -16,226 +20,209 @@ function hashCell(c: number, r: number, k = 0): number {
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 
-/** Couche statique (sol + murs + obstacles), dessinée une fois par salle. */
-export function paintArenaStatic(ctx: Ctx, grid: string[], th: KingdomTheme): void {
-  // murs extérieurs
-  ctx.fillStyle = th.wall;
-  ctx.fillRect(-WALL, -WALL, AW + WALL * 2, AH + WALL * 2);
-  for (let i = -1; i <= COLS; i++) {
-    for (const y of [-WALL, AH]) brick(ctx, i * CELL, y, CELL, WALL, th, i);
-  }
-  for (let j = -1; j <= ROWS; j++) {
-    for (const x of [-WALL, AW]) brick(ctx, x, j * CELL, WALL, CELL, th, j + 7);
-  }
-  // sol en damier doux
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      ctx.fillStyle = (r + c) % 2 === 0 ? th.ground : th.groundAlt;
-      ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
-    }
-  }
-  // détails de sol
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      if (grid[r][c] !== '.' && grid[r][c] !== 'S' && grid[r][c] !== 'P') continue;
-      const n = hashCell(c, r) < 0.35 ? 0 : 1 + Math.floor(hashCell(c, r, 99) * 2);
-      for (let k = 0; k < n; k++) {
-        const x = c * CELL + 6 + hashCell(c, r, k + 1) * (CELL - 12);
-        const y = r * CELL + 6 + hashCell(c, r, k + 11) * (CELL - 12);
-        groundDetail(ctx, x, y, th, hashCell(c, r, k + 21));
-      }
-    }
-  }
-  // flaques de clair de lune (relief doux du sol)
-  for (let i = 0; i < 5; i++) {
-    const x = hashCell(i, 3, 7) * AW;
-    const y = hashCell(i, 5, 9) * AH;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, 90 + hashCell(i, 1, 1) * 60);
-    g.addColorStop(0, alpha(th.groundDetail, 0.16));
-    g.addColorStop(1, alpha(th.groundDetail, 0));
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, AW, AH);
-  }
-  // ombre portée des murs
-  const sh = ctx.createLinearGradient(0, 0, 0, 22);
-  sh.addColorStop(0, 'rgba(5,3,15,0.45)');
-  sh.addColorStop(1, 'rgba(5,3,15,0)');
-  ctx.fillStyle = sh;
-  ctx.fillRect(0, 0, AW, 22);
-  const sl = ctx.createLinearGradient(0, 0, 14, 0);
-  sl.addColorStop(0, 'rgba(5,3,15,0.35)');
-  sl.addColorStop(1, 'rgba(5,3,15,0)');
-  ctx.fillStyle = sl;
-  ctx.fillRect(0, 0, 14, AH);
-  const sr = ctx.createLinearGradient(AW, 0, AW - 14, 0);
-  sr.addColorStop(0, 'rgba(5,3,15,0.35)');
-  sr.addColorStop(1, 'rgba(5,3,15,0)');
-  ctx.fillStyle = sr;
-  ctx.fillRect(AW - 14, 0, 14, AH);
+/** Contour irrégulier, comme découpé aux ciseaux. */
+function cutPath(ctx: Ctx, pts: [number, number][], seed: number, jitter = 1.2): void {
+  ctx.beginPath();
+  pts.forEach(([x, y], i) => {
+    const jx = (hashCell(i, seed, 1) - 0.5) * jitter * 2;
+    const jy = (hashCell(i, seed, 2) - 0.5) * jitter * 2;
+    if (i === 0) ctx.moveTo(x + jx, y + jy);
+    else ctx.lineTo(x + jx, y + jy);
+  });
+  ctx.closePath();
+}
 
-  // liquides (fond statique ; le miroitement est animé)
+/** Couche statique (écran, cadre, obstacles), dessinée une fois par salle. */
+export function paintArenaStatic(ctx: Ctx, grid: string[], th: KingdomTheme): void {
+  // cadre de scène en bois sombre
+  ctx.fillStyle = INK;
+  ctx.fillRect(-WALL, -WALL, AW + WALL * 2, AH + WALL * 2);
+  ctx.strokeStyle = INK2;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-WALL + 5, -WALL + 5, AW + WALL * 2 - 10, AH + WALL * 2 - 10);
+  // clous du cadre
+  for (let i = 0; i <= 12; i++) {
+    const y = -WALL / 2 + (i * (AH + WALL)) / 12;
+    circle(ctx, -WALL / 2, y, 2, INK2);
+    circle(ctx, AW + WALL / 2, y, 2, INK2);
+  }
+
+  // écran de papier : lumière au centre, bords brûlés
+  const g = ctx.createRadialGradient(AW / 2, AH * 0.45, 30, AW / 2, AH * 0.5, AH * 0.72);
+  g.addColorStop(0, th.light);
+  g.addColorStop(0.55, th.paper);
+  g.addColorStop(1, th.edge);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, AW, AH);
+
+  // fibres du papier
+  for (let i = 0; i < 260; i++) {
+    const x = hashCell(i, 1, 3) * AW;
+    const y = hashCell(i, 2, 4) * AH;
+    const l = 3 + hashCell(i, 3, 5) * 9;
+    const a = hashCell(i, 4, 6) * Math.PI;
+    ctx.strokeStyle = alpha(hashCell(i, 5, 7) > 0.5 ? INK : CUT, 0.05 + hashCell(i, 6, 8) * 0.05);
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l);
+    ctx.stroke();
+  }
+  // plis du papier (repères discrets de la grille)
+  ctx.strokeStyle = alpha(INK, 0.06);
+  ctx.lineWidth = 1;
+  for (let c = 1; c < COLS; c++) {
+    ctx.beginPath();
+    ctx.moveTo(c * CELL, 0);
+    ctx.lineTo(c * CELL, AH);
+    ctx.stroke();
+  }
+  for (let r = 1; r < ROWS; r++) {
+    ctx.beginPath();
+    ctx.moveTo(0, r * CELL);
+    ctx.lineTo(AW, r * CELL);
+    ctx.stroke();
+  }
+
+  // silhouettes lointaines projetées sur l'écran (décor, encre diluée)
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (!'.SP'.includes(grid[r][c]) || hashCell(c, r) < 0.62) continue;
+      const x = c * CELL + 8 + hashCell(c, r, 1) * (CELL - 16);
+      const y = r * CELL + 10 + hashCell(c, r, 2) * (CELL - 16);
+      farDetail(ctx, x, y, th, hashCell(c, r, 3));
+    }
+  }
+
+  // liquides (gel coloré), puis haies et rochers découpés
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (grid[r][c] === '~') liquidCell(ctx, grid, c, r, th);
-  // haies puis rochers (ordre de profondeur)
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (grid[r][c] === '%') hedge(ctx, c, r, th);
-      if (grid[r][c] === '#') rock(ctx, c, r, th);
+      if (grid[r][c] === '#') rock(ctx, c, r);
     }
   }
-  // vignette
-  const v = ctx.createRadialGradient(AW / 2, AH / 2, AH * 0.3, AW / 2, AH / 2, AH * 0.75);
-  v.addColorStop(0, 'rgba(0,0,0,0)');
-  v.addColorStop(1, 'rgba(5,3,15,0.35)');
-  ctx.fillStyle = v;
-  ctx.fillRect(0, 0, AW, AH);
 }
 
-function brick(ctx: Ctx, x: number, y: number, w: number, h: number, th: KingdomTheme, i: number): void {
-  const k = hashCell(i, Math.round(x + y));
-  ctx.fillStyle = mix(th.wall, th.wallLight, 0.25 + k * 0.4);
-  ctx.beginPath();
-  ctx.roundRect(x + 2, y + 2, w - 4, h - 4, 5);
-  ctx.fill();
-  ctx.strokeStyle = alpha('#000000', 0.35);
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.fillStyle = alpha('#ffffff', 0.08);
-  ctx.fillRect(x + 4, y + 3, w - 8, 3);
-}
-
-function groundDetail(ctx: Ctx, x: number, y: number, th: KingdomTheme, k: number): void {
+function farDetail(ctx: Ctx, x: number, y: number, th: KingdomTheme, k: number): void {
   ctx.save();
-  ctx.globalAlpha = 0.7;
   ctx.translate(x, y);
+  ctx.fillStyle = alpha(th.far, 0.55);
+  ctx.strokeStyle = alpha(th.far, 0.55);
+  ctx.lineCap = 'round';
   switch (th.moteKind) {
-    case 'firefly': // forêt : touffes d'herbe, petites fleurs
-      if (k < 0.7) {
-        ctx.strokeStyle = th.groundDetail;
+    case 'firefly':
+      if (k < 0.5) {
+        // brins d'herbe
         ctx.lineWidth = 1.6;
-        ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(-3, 2);
-        ctx.lineTo(-4, -3);
-        ctx.moveTo(0, 2);
-        ctx.lineTo(0, -4);
-        ctx.moveTo(3, 2);
-        ctx.lineTo(4, -2);
+        ctx.moveTo(-3, 3);
+        ctx.quadraticCurveTo(-4, -2, -6, -5);
+        ctx.moveTo(0, 3);
+        ctx.lineTo(0, -6);
+        ctx.moveTo(3, 3);
+        ctx.quadraticCurveTo(4, -1, 6, -4);
         ctx.stroke();
       } else {
-        for (let i = 0; i < 4; i++) circle(ctx, Math.cos(i * 1.57) * 2, Math.sin(i * 1.57) * 2, 1.6, k > 0.85 ? '#f6e7b8' : '#c8a8ff');
-        circle(ctx, 0, 0, 1.2, '#ffcf4a');
+        // petite fleur découpée
+        for (let i = 0; i < 5; i++) circle(ctx, Math.cos((i * 2 * Math.PI) / 5) * 2.6, Math.sin((i * 2 * Math.PI) / 5) * 2.6, 1.8, alpha(th.far, 0.55));
       }
       break;
-    case 'spore': // marais : flaques sombres, roseaux
-      if (k < 0.5) ellipse(ctx, 0, 0, 5, 2.5, alpha('#1a1a10', 0.25));
-      else {
-        ctx.strokeStyle = th.groundDetail;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(0, 3);
-        ctx.quadraticCurveTo(1, -2, -1, -6);
-        ctx.stroke();
-        ellipse(ctx, -1, -6, 1.3, 2.4, '#6b4a2a');
+    case 'spore':
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(0, 4);
+      ctx.quadraticCurveTo(1, -3, -1, -8);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(-1, -8, 1.4, 2.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 'sand':
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(0, 5, 7, Math.PI * 1.15, Math.PI * 1.85);
+      ctx.stroke();
+      break;
+    case 'snow':
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (let i = 0; i < 3; i++) {
+        const a = (i * Math.PI) / 3;
+        ctx.moveTo(-Math.cos(a) * 4, -Math.sin(a) * 4);
+        ctx.lineTo(Math.cos(a) * 4, Math.sin(a) * 4);
       }
+      ctx.stroke();
       break;
-    case 'sand': // désert : ondulations, cailloux
-      if (k < 0.6) {
-        ctx.strokeStyle = alpha('#ffffff', 0.18);
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.arc(0, 4, 6, Math.PI * 1.15, Math.PI * 1.85);
-        ctx.stroke();
-      } else ellipse(ctx, 0, 0, 2.2, 1.6, shade(th.rock, 0.1));
-      break;
-    case 'snow': // givre : éclats
-      ctx.strokeStyle = alpha('#ffffff', 0.7);
-      ctx.lineWidth = 1;
-      if (k < 0.5) {
-        ctx.beginPath();
-        for (let i = 0; i < 3; i++) {
-          const a = (i * Math.PI) / 3;
-          ctx.moveTo(-Math.cos(a) * 3, -Math.sin(a) * 3);
-          ctx.lineTo(Math.cos(a) * 3, Math.sin(a) * 3);
-        }
-        ctx.stroke();
-      } else ellipse(ctx, 0, 0, 4, 2, alpha('#9fb8d8', 0.35));
-      break;
-    case 'ember': // cendres : fissures rougeoyantes
-      if (k < 0.55) {
-        ctx.strokeStyle = alpha('#ff6a3d', 0.35);
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(-5, -2);
-        ctx.lineTo(-1, 1);
-        ctx.lineTo(2, -1);
-        ctx.lineTo(5, 3);
-        ctx.stroke();
-      } else ellipse(ctx, 0, 0, 2.4, 1.6, alpha('#120a0c', 0.45));
+    case 'ember':
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(-6, -2);
+      ctx.lineTo(-1, 1);
+      ctx.lineTo(2, -2);
+      ctx.lineTo(6, 3);
+      ctx.stroke();
       break;
   }
   ctx.restore();
 }
 
-function rock(ctx: Ctx, c: number, r: number, th: KingdomTheme): void {
+function rock(ctx: Ctx, c: number, r: number): void {
   const cx = c * CELL + CELL / 2;
   const cy = r * CELL + CELL / 2;
-  ellipse(ctx, cx + 3, cy + 15, 21, 8, 'rgba(5,3,15,0.35)');
-  ctx.beginPath();
-  const N = 9;
+  const N = 10;
+  const pts: [number, number][] = [];
   for (let i = 0; i < N; i++) {
     const a = (i / N) * Math.PI * 2;
-    const rr = 20 + hashCell(c, r, i) * 4;
-    const x = cx + Math.cos(a) * rr;
-    const y = cy + Math.sin(a) * rr * 0.92 - 2;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    const rr = 19 + hashCell(c, r, i) * 5;
+    pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.92]);
   }
-  ctx.closePath();
-  const g = ctx.createLinearGradient(cx - 18, cy - 20, cx + 14, cy + 20);
-  g.addColorStop(0, th.rockLight);
-  g.addColorStop(0.45, th.rock);
-  g.addColorStop(1, th.rockDark);
-  ctx.fillStyle = g;
+  cutPath(ctx, pts, c * 31 + r);
+  ctx.fillStyle = INK;
   ctx.fill();
-  ctx.lineWidth = 2.5;
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = INK;
-  ctx.stroke();
-  // facettes
-  ctx.strokeStyle = alpha('#000000', 0.25);
-  ctx.lineWidth = 1.5;
+  // facettes découpées : fines entailles de lumière
+  ctx.strokeStyle = alpha(CUT, 0.55);
+  ctx.lineWidth = 1.4;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.moveTo(cx - 6, cy - 14);
-  ctx.lineTo(cx + 2, cy - 2);
-  ctx.lineTo(cx + 14, cy + 2);
-  ctx.moveTo(cx + 2, cy - 2);
-  ctx.lineTo(cx - 2, cy + 14);
+  ctx.moveTo(cx - 9, cy - 9);
+  ctx.lineTo(cx - 2, cy - 1);
+  ctx.moveTo(cx + 3, cy - 12);
+  ctx.lineTo(cx + 8, cy - 5);
   ctx.stroke();
-  ellipse(ctx, cx - 8, cy - 10, 5, 2.5, alpha('#ffffff', 0.35));
-  if (th.moteKind === 'firefly' || th.moteKind === 'spore') {
-    ellipse(ctx, cx - 4, cy - 15, 9, 3.5, alpha(th.hedgeLight, 0.85));
-  }
-  if (th.moteKind === 'snow') ellipse(ctx, cx - 2, cy - 15, 11, 4, '#f4fbff');
 }
 
 function hedge(ctx: Ctx, c: number, r: number, th: KingdomTheme): void {
   const cx = c * CELL + CELL / 2;
   const cy = r * CELL + CELL / 2;
-  ellipse(ctx, cx + 2, cy + 14, 22, 7, 'rgba(5,3,15,0.3)');
-  const pts: [number, number, number][] = [
-    [-10, 4, 11],
-    [10, 4, 11],
-    [0, 7, 12],
-    [-7, -6, 11],
-    [7, -6, 11],
-    [0, -10, 10],
+  ctx.fillStyle = INK;
+  const blobs: [number, number, number][] = [
+    [-11, 5, 11],
+    [11, 5, 11],
+    [0, 8, 12],
+    [-8, -6, 11],
+    [8, -6, 11],
+    [0, -11, 10],
   ];
-  for (const [x, y, rr] of pts) circle(ctx, cx + x, cy + y, rr, th.hedge, INK, 2.2);
-  for (const [x, y, rr] of pts) circle(ctx, cx + x - 2, cy + y - 3, rr * 0.55, alpha(th.hedgeLight, 0.55));
-  // baies / fleurs
-  for (let i = 0; i < 3; i++) {
-    const k = hashCell(c, r, i + 40);
-    circle(ctx, cx - 12 + k * 24, cy - 8 + hashCell(c, r, i + 50) * 16, 2, th.moteKind === 'snow' ? '#ffffff' : th.moteKind === 'ember' ? '#ff6a3d' : '#ff5f7a');
+  ctx.beginPath();
+  for (const [x, y, rr] of blobs) {
+    ctx.moveTo(cx + x + rr, cy + y);
+    ctx.arc(cx + x, cy + y, rr, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  // feuilles découpées
+  ctx.fillStyle = mix(th.light, CUT, 0.4);
+  for (let i = 0; i < 5; i++) {
+    const x = cx - 12 + hashCell(c, r, i + 40) * 24;
+    const y = cy - 10 + hashCell(c, r, i + 50) * 18;
+    const a = hashCell(c, r, i + 60) * Math.PI;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(a);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 3.2, 1.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
 }
 
@@ -248,21 +235,20 @@ function liquidCell(ctx: Ctx, grid: string[], c: number, r: number, th: KingdomT
   const tr = !isL(c + 1, r) && !isL(c, r - 1) ? rad : 0;
   const br = !isL(c + 1, r) && !isL(c, r + 1) ? rad : 0;
   const bl = !isL(c - 1, r) && !isL(c, r + 1) ? rad : 0;
-  // berge
+  // bord d'encre puis gel coloré
   ctx.beginPath();
   ctx.roundRect(x - 1, y - 1, CELL + 2, CELL + 2, [tl, tr, br, bl]);
-  ctx.fillStyle = th.liquidIsLava ? '#2a1414' : shade(th.ground, -0.35);
+  ctx.fillStyle = INK;
   ctx.fill();
+  const ix = isL(c - 1, r) ? 0 : 4;
+  const iy = isL(c, r - 1) ? 0 : 4;
   ctx.beginPath();
-  ctx.roundRect(x + (isL(c - 1, r) ? 0 : 3), y + (isL(c, r - 1) ? 0 : 4), CELL - (isL(c - 1, r) ? 0 : 3) - (isL(c + 1, r) ? 0 : 3), CELL - (isL(c, r - 1) ? 0 : 4) - (isL(c, r + 1) ? 0 : 3), [tl, tr, br, bl]);
-  const g = ctx.createLinearGradient(x, y, x, y + CELL);
-  g.addColorStop(0, shade(th.liquid, -0.25));
-  g.addColorStop(1, th.liquid);
-  ctx.fillStyle = g;
+  ctx.roundRect(x + ix, y + iy, CELL - ix - (isL(c + 1, r) ? 0 : 4), CELL - iy - (isL(c, r + 1) ? 0 : 4), [tl * 0.7, tr * 0.7, br * 0.7, bl * 0.7]);
+  ctx.fillStyle = th.gel;
   ctx.fill();
 }
 
-/** Miroitement animé des liquides. */
+/** Vaguelettes découpées qui défilent dans le gel. */
 export function paintLiquids(ctx: Ctx, grid: string[], th: KingdomTheme, t: number): void {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
@@ -271,140 +257,133 @@ export function paintLiquids(ctx: Ctx, grid: string[], th: KingdomTheme, t: numb
       const y = r * CELL;
       ctx.save();
       ctx.beginPath();
-      ctx.rect(x + 3, y + 4, CELL - 6, CELL - 7);
+      ctx.rect(x + 4, y + 4, CELL - 8, CELL - 8);
       ctx.clip();
+      ctx.strokeStyle = th.gelLight;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      for (let k = 0; k < 3; k++) {
+        const yy = y + 11 + k * 11 + Math.sin(t * 1.4 + c + k) * 1.5;
+        const xx = x + 2 + ((t * (th.liquidIsLava ? 5 : 9) + k * 13 + c * 7) % 34);
+        ctx.beginPath();
+        ctx.moveTo(xx, yy);
+        ctx.quadraticCurveTo(xx + 4, yy - 3, xx + 8, yy);
+        ctx.quadraticCurveTo(xx + 12, yy + 3, xx + 16, yy);
+        ctx.stroke();
+      }
       if (th.liquidIsLava) {
-        const pulse = 0.5 + 0.5 * Math.sin(t * 2 + c + r);
-        glow(ctx, x + CELL / 2, y + CELL / 2, 30, th.liquidLight, 0.25 + 0.2 * pulse);
-        for (let k = 0; k < 2; k++) {
-          const ph = (t * 0.6 + hashCell(c, r, k) * 3) % 1;
-          circle(ctx, x + 8 + hashCell(c, r, k + 5) * 28, y + 10 + hashCell(c, r, k + 9) * 24, 1 + ph * 4, alpha('#ffd36b', 1 - ph));
-        }
-      } else {
-        ctx.strokeStyle = alpha(th.liquidLight, 0.55);
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = 'round';
-        for (let k = 0; k < 3; k++) {
-          const yy = y + 10 + k * 12 + Math.sin(t * 1.5 + c + k) * 2;
-          const xx = x + 6 + ((t * 8 + k * 13 + c * 7) % 30);
-          ctx.beginPath();
-          ctx.moveTo(xx, yy);
-          ctx.quadraticCurveTo(xx + 4, yy - 2, xx + 8, yy);
-          ctx.stroke();
-        }
+        const ph = (t * 0.7 + hashCell(c, r)) % 1;
+        circle(ctx, x + 10 + hashCell(c, r, 5) * 24, y + 12 + hashCell(c, r, 9) * 20, 1 + ph * 3.5, alpha(th.gelLight, 1 - ph));
       }
       ctx.restore();
     }
   }
 }
 
-/** Portail en haut de l'arène (fermé → ouvert avec tourbillon). */
+/** Porte de scène en haut de l'arène : close (encre) puis ouverte (lumière qui se déploie). */
 export function paintPortal(ctx: Ctx, th: KingdomTheme, t: number, open01: number): void {
   const cx = AW / 2;
-  const cy = -4;
+  const cy = -2;
   ctx.save();
-  // arche
+  // fronton découpé
+  ctx.fillStyle = INK;
   ctx.beginPath();
-  ctx.moveTo(cx - 30, cy + 10);
-  ctx.lineTo(cx - 30, cy - 12);
-  ctx.arc(cx, cy - 12, 30, Math.PI, 0);
-  ctx.lineTo(cx + 30, cy + 10);
+  ctx.moveTo(cx - 36, cy + 8);
+  ctx.lineTo(cx - 36, cy - 14);
+  ctx.arc(cx, cy - 14, 36, Math.PI, 0);
+  ctx.lineTo(cx + 36, cy + 8);
   ctx.closePath();
-  ctx.fillStyle = shade(th.wallLight, 0.15);
   ctx.fill();
-  ctx.lineWidth = 2.5;
-  ctx.strokeStyle = INK;
-  ctx.stroke();
-  // intérieur
+  // ouverture
   ctx.beginPath();
-  ctx.moveTo(cx - 21, cy + 10);
-  ctx.lineTo(cx - 21, cy - 12);
-  ctx.arc(cx, cy - 12, 21, Math.PI, 0);
-  ctx.lineTo(cx + 21, cy + 10);
+  ctx.moveTo(cx - 22, cy + 10);
+  ctx.lineTo(cx - 22, cy - 12);
+  ctx.arc(cx, cy - 12, 22, Math.PI, 0);
+  ctx.lineTo(cx + 22, cy + 10);
   ctx.closePath();
-  ctx.fillStyle = '#07040f';
+  ctx.fillStyle = open01 > 0 ? mix(INK2, CUT, open01) : INK2;
   ctx.fill();
-  ctx.save();
-  ctx.clip();
   if (open01 > 0) {
-    glow(ctx, cx, cy - 6, 40, th.accent, 0.7 * open01);
-    for (let i = 0; i < 5; i++) {
+    // rayons de lumière découpés qui tournent
+    ctx.save();
+    ctx.clip();
+    ctx.translate(cx, cy - 6);
+    ctx.rotate(t * 0.8);
+    ctx.fillStyle = alpha(th.light, 0.9 * open01);
+    for (let i = 0; i < 8; i++) {
+      ctx.rotate(Math.PI / 4);
       ctx.beginPath();
-      ctx.strokeStyle = alpha(i % 2 ? '#ffffff' : th.accent, 0.8 * open01);
-      ctx.lineWidth = 2;
-      const a0 = t * 3 + i * 1.25;
-      for (let k = 0; k < 20; k++) {
-        const a = a0 + k * 0.25;
-        const rr = 2 + k * 1.1;
-        const x = cx + Math.cos(a) * rr;
-        const y = cy - 6 + Math.sin(a) * rr;
-        if (k === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-4, -40);
+      ctx.lineTo(4, -40);
+      ctx.closePath();
+      ctx.fill();
     }
+    ctx.restore();
+    // lumière qui coule sur l'écran
+    ctx.fillStyle = alpha(CUT, 0.35 * open01);
+    ctx.beginPath();
+    ctx.moveTo(cx - 22, cy + 10);
+    ctx.lineTo(cx + 22, cy + 10);
+    ctx.lineTo(cx + 44, cy + 10 + 120 * open01);
+    ctx.lineTo(cx - 44, cy + 10 + 120 * open01);
+    ctx.closePath();
+    ctx.fill();
   }
-  ctx.restore();
-  // runes de l'arche
-  for (let i = 0; i < 5; i++) {
-    const a = Math.PI + (i + 0.5) * (Math.PI / 5);
-    const x = cx + Math.cos(a) * 25.5;
-    const y = cy - 12 + Math.sin(a) * 25.5;
-    circle(ctx, x, y, 2.2, open01 > 0 ? mix(th.accent, '#ffffff', 0.3) : alpha('#000000', 0.4));
-    if (open01 > 0) glow(ctx, x, y, 7, th.accent, 0.6 * open01);
-  }
+  // lune découpée au sommet
+  circle(ctx, cx, cy - 40, 6, open01 > 0 ? CUT : INK2);
+  circle(ctx, cx + 2.5, cy - 41.5, 5, INK);
   ctx.restore();
 }
 
-/** Décor hors arène (haut et bas de l'écran) : silhouettes du royaume. */
-export function paintFrame(ctx: Ctx, w: number, h: number, top: number, bottom: number, th: KingdomTheme): void {
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, th.sky[0]);
-  g.addColorStop(1, th.sky[1]);
-  ctx.fillStyle = g;
+/** Coulisses : rideaux de théâtre et lambrequin festonné autour de l'écran. */
+export function paintFrame(ctx: Ctx, w: number, h: number, top: number, bottom: number, _th: KingdomTheme): void {
+  ctx.fillStyle = CURTAIN;
   ctx.fillRect(0, 0, w, h);
-  // étoiles
-  for (let i = 0; i < 40; i++) {
-    const x = hashCell(i, 1, 2) * w;
-    const y = hashCell(i, 2, 3) * Math.max(40, top);
-    circle(ctx, x, y, 0.6 + hashCell(i, 3, 4) * 1.1, alpha('#ffffff', 0.3 + hashCell(i, 4, 5) * 0.6));
+  // plis verticaux des rideaux
+  for (let x = 0; x < w; x += 22) {
+    const k = hashCell(Math.floor(x / 22), 7);
+    ctx.fillStyle = alpha(CURTAIN_LIGHT, 0.35 + k * 0.4);
+    ctx.fillRect(x + 4, 0, 7 + k * 4, h);
+    ctx.fillStyle = alpha('#000000', 0.25);
+    ctx.fillRect(x + 16, 0, 3, h);
   }
-  const band = (y0: number, dir: 1 | -1, col: string, amp: number, k: number) => {
-    ctx.fillStyle = col;
+  // lambrequin festonné en haut
+  if (top > 12) {
+    const vy = Math.min(top - 6, 60);
+    ctx.fillStyle = INK;
+    ctx.fillRect(0, 0, w, vy - 14);
     ctx.beginPath();
-    ctx.moveTo(0, dir > 0 ? h : 0);
-    for (let x = 0; x <= w + 20; x += 18) {
-      const n = hashCell(Math.floor(x / 18), k, 11);
-      let yy: number;
-      switch (th.moteKind) {
-        case 'snow':
-        case 'ember':
-          yy = y0 - dir * (amp * (0.3 + n) * (Math.floor(x / 18) % 3 === 0 ? 1.6 : 0.6));
-          break;
-        case 'sand':
-          yy = y0 - dir * amp * (0.5 + 0.5 * Math.sin(x * 0.02 + k));
-          break;
-        default:
-          yy = y0 - dir * amp * (0.4 + n * 0.8);
-      }
-      ctx.lineTo(x, yy);
-    }
-    ctx.lineTo(w + 20, dir > 0 ? h : 0);
+    ctx.moveTo(0, vy - 15);
+    for (let x = 0; x <= w + 30; x += 30) ctx.arc(x + 15, vy - 15, 15, Math.PI, 0, true);
+    ctx.lineTo(w, 0);
+    ctx.lineTo(0, 0);
     ctx.closePath();
     ctx.fill();
-  };
-  // haut : cime / crêtes lointaines ; bas : premier plan
-  if (top > 10) {
-    band(top * 0.95, 1, alpha(th.wallLight, 0.45), Math.min(40, top * 0.5), 1);
-    band(top + 6, 1, th.wall, Math.min(26, top * 0.35), 2);
+    // galon doré
+    ctx.strokeStyle = alpha('#c9a13b', 0.8);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, vy - 20);
+    ctx.lineTo(w, vy - 20);
+    ctx.stroke();
   }
-  if (bottom > 10) {
+  // rampe de scène en bas (planches)
+  if (bottom > 12) {
     const y0 = h - bottom;
-    band(y0 + bottom * 0.35, -1, shade(th.hedge, -0.1), 22, 3);
-    for (let i = 0; i < 9; i++) {
-      const x = hashCell(i, 7, 7) * w;
-      const yy = y0 + bottom * (0.45 + hashCell(i, 8, 8) * 0.4);
-      circle(ctx, x, yy, 16 + hashCell(i, 9, 9) * 18, shade(th.hedge, -0.2 + hashCell(i, 2, 2) * 0.15));
+    ctx.fillStyle = INK;
+    ctx.fillRect(0, y0, w, bottom);
+    ctx.strokeStyle = INK2;
+    ctx.lineWidth = 1.5;
+    for (let y = y0 + 14; y < h; y += 14) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+    // lampes de rampe
+    for (let x = 30; x < w; x += 60) {
+      circle(ctx, x, y0 + 7, 4, '#e9c46a');
     }
   }
 }

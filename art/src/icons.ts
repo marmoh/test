@@ -58,3 +58,29 @@ export const UI_ICONS = {
 export function iconURL(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
+
+/** Rend une icône en silhouette d'encre (théâtre d'ombres) : couleurs foncées → encre, claires → papier ; `accents` garde certaines teintes. */
+export function inkIcon(svg: string, accents: Record<string, string> = {}, ink = '#1b1418', light = '#efe3c6'): string {
+  const lum = (hex: string) => {
+    let h = hex.slice(1);
+    if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+    const n = parseInt(h, 16);
+    return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  };
+  return svg.replace(/(fill|stroke)="(#[0-9a-fA-F]{3,6})"/g, (_m, attr: string, col: string) => {
+    const c = col.toLowerCase();
+    if (accents[c]) return `${attr}="${accents[c]}"`;
+    return `${attr}="${lum(c) > 0.72 ? light : ink}"`;
+  });
+}
+
+const ACCENTS = { '#ff5f7a': '#d8431f', '#5fd8ff': '#2b8a74', '#ffcf4a': '#c9a13b' };
+/** Icônes d'interface dans le style encre : cœur vermillon, gemme jade, or à la feuille. */
+export const INK_UI: Record<keyof typeof UI_ICONS, string> = Object.fromEntries(
+  Object.entries(UI_ICONS).map(([k, v]) => [k, inkIcon(v, k === 'starEmpty' ? { '#2a2148': '#efe3c6' } : ['heart', 'gem', 'coin', 'star', 'potion'].includes(k) ? ACCENTS : {})]),
+) as Record<keyof typeof UI_ICONS, string>;
+/** Variante claire pour les fonds d'encre (barre de navigation). */
+export const PAPER_UI: Record<keyof typeof UI_ICONS, string> = Object.fromEntries(
+  Object.entries(UI_ICONS).map(([k, v]) => [k, inkIcon(v, {}, '#efe3c6', '#1b1418')]),
+) as Record<keyof typeof UI_ICONS, string>;
+export const INK_POWERS: Record<string, string> = Object.fromEntries(Object.entries(POWER_ICONS).map(([k, v]) => [k, inkIcon(v)]));

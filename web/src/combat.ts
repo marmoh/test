@@ -9,7 +9,7 @@ import { Rng, seedOf } from '../../sim/src/rng.js';
 import { World, newHero, grantPower, type Enemy, type HeroState, type Hazard, type Projectile } from '../../sim/src/world.js';
 import { PAINTERS, type AnimState } from '../../art/src/characters.js';
 import { paintArenaStatic, paintLiquids, paintPortal, paintFrame, AW, AH, WALL } from '../../art/src/arena-art.js';
-import { KINGDOMS, UI, type KingdomTheme } from '../../art/src/palette.js';
+import { KINGDOMS, UI, INK2, CUT, DANGER, JADE, GOLD_LEAF, type KingdomTheme } from '../../art/src/palette.js';
 import { alpha, circle, ellipse, glow, mix, INK, easeOutBack, type Ctx } from '../../art/src/draw.js';
 import { Fx, Ambience } from './fx.js';
 import { sfx } from './audio.js';
@@ -102,7 +102,7 @@ export class Combat {
     host.append(this.canvas, this.hud);
     this.hud.querySelector('.pause-btn')!.addEventListener('click', () => this.openPause());
     this.fx.reduceMotion = !!opt.reduceMotion;
-    this.amb = new Ambience(AW, AH, this.theme.moteKind, this.theme.mote);
+    this.amb = new Ambience(AW, AH, this.theme.moteKind, INK2);
 
     const talents = opt.talents ?? talentsForLevel(opt.level.n);
     this.hero = newHero(talents, {}, opt.autoFire);
@@ -196,8 +196,8 @@ export class Combat {
     if (choice === 'continue') {
       this.continues++;
       this.world.revive();
-      this.fx.ring(this.hero.pos.x, this.hero.pos.y, UI.moon, 140, 0.6);
-      this.fx.stars(this.hero.pos.x, this.hero.pos.y, UI.moon, 14);
+      this.fx.ring(this.hero.pos.x, this.hero.pos.y, JADE, 140, 0.6);
+      this.fx.scraps(this.hero.pos.x, this.hero.pos.y, 14, 1);
       this.busy = false;
       this.last = performance.now();
     } else if (choice === 'retry') this.hooks.retry();
@@ -291,7 +291,7 @@ export class Combat {
     if (w.dead) {
       this.fx.hitStop(0.25);
       this.fx.shake(1);
-      this.fx.burst(w.hero.pos.x, w.hero.pos.y, UI.heroCloak, 24, 200, 'dot', 4, 0.9);
+      this.fx.scraps(w.hero.pos.x, w.hero.pos.y, 24, 1.3);
       void this.onDeath();
       return;
     }
@@ -318,10 +318,9 @@ export class Combat {
           break;
         case 'kill': {
           const big = ev.type === 'boss';
-          fx.puff(ev.x, ev.y, '#ffffff', big ? 18 : 7, big ? 16 : 9);
-          fx.wisps(ev.x, ev.y, this.theme.accent, big ? 14 : 4);
-          fx.burst(ev.x, ev.y, UI.gold, big ? 30 : 6, big ? 260 : 140, 'spark', 2.5, 0.5);
-          fx.ring(ev.x, ev.y, '#ffffff', big ? 140 : 34, big ? 0.7 : 0.3);
+          // la marionnette se déchire : chutes de papier
+          fx.scraps(ev.x, ev.y, big ? 34 : 10, big ? 1.6 : 1);
+          fx.ring(ev.x, ev.y, INK, big ? 140 : 30, big ? 0.7 : 0.3);
           fx.shake(big ? 0.9 : 0.12);
           if (big) {
             fx.hitStop(0.35);
@@ -340,18 +339,18 @@ export class Combat {
           sfx('hurt');
           break;
         case 'dodge':
-          fx.text(w.hero.pos.x, w.hero.pos.y - 30, 'Esquive', UI.moon, 14);
+          fx.text(w.hero.pos.x, w.hero.pos.y - 30, 'Esquive', INK, 14);
           break;
         case 'shield':
-          fx.ring(w.hero.pos.x, w.hero.pos.y, '#9fb8ff', 40, 0.4);
-          fx.text(w.hero.pos.x, w.hero.pos.y - 30, 'Bloqué', '#9fb8ff', 14);
+          fx.ring(w.hero.pos.x, w.hero.pos.y, JADE, 40, 0.4);
+          fx.text(w.hero.pos.x, w.hero.pos.y - 30, 'Bloqué', JADE, 14);
           break;
         case 'wave':
           if (ev.index > 0) this.banner = { text: `Vague ${ev.index + 1}`, sub: '', t: 0.25 };
           break;
         case 'cleared':
-          fx.text(AW / 2, AH * 0.42, 'Salle nettoyée !', UI.moon, 22);
-          fx.stars(AW / 2, 10, this.theme.accent, 16);
+          fx.text(AW / 2, AH * 0.42, 'Salle nettoyée', INK, 22);
+          fx.scraps(AW / 2, 14, 14, 1);
           sfx('clear');
           break;
       }
@@ -365,14 +364,14 @@ export class Combat {
       const hit = hits.find((h) => Math.abs(h.x - e.pos.x) < 1 && Math.abs(h.y - e.pos.y) < 1);
       if (hit) {
         this.flashes.set(e.id, 1);
-        fx.text(e.pos.x + (fx.rand() - 0.5) * 12, e.pos.y - e.radius - 8, `${Math.round(d)}`, hit.crit ? UI.gold : '#ffffff', hit.crit ? 19 : 13);
-        fx.burst(e.pos.x, e.pos.y, hit.crit ? UI.gold : '#fff6d8', hit.crit ? 9 : 4, 150, 'spark', 2, 0.25);
+        fx.text(e.pos.x + (fx.rand() - 0.5) * 12, e.pos.y - e.radius - 8, `${Math.round(d)}`, hit.crit ? DANGER : INK, hit.crit ? 20 : 14);
+        fx.burst(e.pos.x, e.pos.y, hit.crit ? DANGER : INK, hit.crit ? 8 : 4, 150, 'spark', 2, 0.25);
         if (hit.crit) fx.shake(0.12);
         sfx('hit');
       } else {
         const acc = (this.dot.get(e.id) ?? 0) + d;
         if (acc > 25) {
-          fx.text(e.pos.x, e.pos.y - e.radius - 4, `${Math.round(acc)}`, '#ffb347', 11);
+          fx.text(e.pos.x, e.pos.y - e.radius - 4, `${Math.round(acc)}`, INK2, 11);
           this.dot.set(e.id, 0);
         } else this.dot.set(e.id, acc);
       }
@@ -381,7 +380,7 @@ export class Combat {
     const alive = new Set(w.projectiles);
     for (const p of beforeProj) {
       if (alive.has(p) || !p.fromHero) continue;
-      if (!w.enemies.some((e) => Math.hypot(e.pos.x - p.pos.x, e.pos.y - p.pos.y) < e.radius + 14)) fx.burst(p.pos.x, p.pos.y, '#e8dcc0', 3, 80, 'dot', 2, 0.25);
+      if (!w.enemies.some((e) => Math.hypot(e.pos.x - p.pos.x, e.pos.y - p.pos.y) < e.radius + 14)) fx.burst(p.pos.x, p.pos.y, INK2, 3, 80, 'dot', 1.6, 0.25);
     }
   }
 
@@ -448,7 +447,6 @@ export class Combat {
     for (const z of w.hazards) this.drawHazard(ctx, z, t);
     for (const o of w.orbs) {
       const bob = Math.sin(t * 4 + o.pos.x) * 3;
-      glow(ctx, o.pos.x, o.pos.y + bob, 16, UI.heal, 0.6);
       heartShape(ctx, o.pos.x, o.pos.y + bob, 7, UI.heal);
     }
 
@@ -457,7 +455,7 @@ export class Combat {
     if (this.anchor.touching) {
       ctx.save();
       ctx.globalAlpha = 0.5;
-      ctx.strokeStyle = th.accent;
+      ctx.strokeStyle = JADE;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.ellipse(hp.x, hp.y + 12, 22, 9, 0, 0, Math.PI * 2);
@@ -487,13 +485,13 @@ export class Combat {
     if (boss) this.drawBossBar(ctx, boss, cw);
     if (this.fx.heroFlash > 0) {
       const v = ctx.createRadialGradient(cw / 2, ch / 2, Math.min(cw, ch) * 0.3, cw / 2, ch / 2, Math.max(cw, ch) * 0.7);
-      v.addColorStop(0, 'rgba(255,40,60,0)');
-      v.addColorStop(1, `rgba(255,40,60,${0.45 * this.fx.heroFlash})`);
+      v.addColorStop(0, 'rgba(27,20,24,0)');
+      v.addColorStop(1, `rgba(27,20,24,${0.6 * this.fx.heroFlash})`);
       ctx.fillStyle = v;
       ctx.fillRect(0, 0, cw, ch);
     }
     if (w.dead) {
-      ctx.fillStyle = 'rgba(10,6,20,0.45)';
+      ctx.fillStyle = 'rgba(27,20,24,0.5)';
       ctx.fillRect(0, 0, cw, ch);
     }
     this.drawBanner(ctx, cw, ch);
@@ -502,7 +500,7 @@ export class Combat {
       const k = 1 + this.transition;
       const r = Math.hypot(cw, ch) * easeOutCubic(k);
       ctx.save();
-      ctx.fillStyle = '#07040f';
+      ctx.fillStyle = INK;
       ctx.beginPath();
       ctx.rect(0, 0, cw, ch);
       ctx.arc(this.ox + hp.x * this.scale, this.oy + hp.y * this.scale, Math.max(1, r), 0, Math.PI * 2, true);
@@ -517,7 +515,7 @@ export class Combat {
       const k = (t * 0.8 + i / 4) % 1;
       const y = 120 - k * 100;
       ctx.globalAlpha = Math.sin(k * Math.PI) * 0.8;
-      ctx.fillStyle = this.theme.accent;
+      ctx.fillStyle = INK;
       ctx.beginPath();
       ctx.moveTo(AW / 2 - 9, y + 6);
       ctx.lineTo(AW / 2, y - 3);
@@ -536,15 +534,17 @@ export class Combat {
     if (h.stats.orb) {
       const ox = Math.cos(h.orbAngle) * 56;
       const oy = Math.sin(h.orbAngle) * 56;
-      glow(ctx, ox, oy, 18, '#5fd8ff', 0.7);
-      circle(ctx, ox, oy, 7, '#bff4ff', INK, 2);
+      circle(ctx, ox, oy, 7, JADE, INK, 2);
+      circle(ctx, ox - 2, oy - 2, 2.2, CUT);
     }
     if (h.shieldReady) {
       ctx.globalAlpha = 0.35 + 0.15 * Math.sin(t * 4);
-      circle(ctx, 0, -2, 22, 'rgba(120,160,255,0.18)', '#9fb8ff', 2);
+      ctx.setLineDash([5, 4]);
+      circle(ctx, 0, -2, 22, 'rgba(43,138,116,0.12)', JADE, 2);
+      ctx.setLineDash([]);
       ctx.globalAlpha = 1;
     }
-    if (h.flashT > 0) glow(ctx, 0, 0, 30, '#ffffff', 0.6);
+    if (h.flashT > 0) circle(ctx, 0, 0, 24, alpha(CUT, 0.6));
     const aiming = !h.moving && !!this.world.target;
     const state: AnimState = h.moving ? 'move' : 'idle';
     PAINTERS[this.opt.heroId ?? 'scout'](ctx, { t, facing: h.facing, state, windup: 0, flash: 0, elite: false, seed: 0, aiming, blink: h.invuln > 0 });
@@ -573,14 +573,13 @@ export class Combat {
       const k = 1 - Math.max(0, e.t) / (e.boss ? 1.2 : 0.8);
       ctx.save();
       ctx.rotate(t * 2);
-      ctx.strokeStyle = alpha(this.theme.accent, 0.9 * (1 - k * 0.5));
+      ctx.strokeStyle = alpha(INK, 0.8 * (1 - k * 0.5));
       ctx.lineWidth = 2;
       ctx.setLineDash([6, 5]);
       ctx.beginPath();
       ctx.arc(0, 4, e.radius * 1.4, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
-      glow(ctx, 0, 0, e.radius * 2, this.theme.accent, 0.5 * (1 - k));
       const s = Math.max(0.01, easeOutBack(Math.min(1, k * 1.25)));
       ctx.scale(s, s);
       ctx.globalAlpha = Math.min(1, k * 2);
@@ -593,18 +592,24 @@ export class Combat {
       ctx.globalAlpha = 1;
       ctx.translate(e.aim.x * 12, e.aim.y * 12);
     }
-    if (e.slowT > 0) glow(ctx, 0, 0, e.radius * 1.6, '#bfe8ff', 0.35);
+    if (e.slowT > 0) {
+      ctx.strokeStyle = alpha('#6f9fc4', 0.9);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, e.radius * 1.3, 0, Math.PI * 2);
+      ctx.stroke();
+    }
     painter(ctx, { t, facing, state, windup, flash, elite: e.elite, seed: e.id, variant: e.type === 'jellySmall' ? 1 : e.boss?.variant, hpFrac: e.hp / e.maxHp });
-    if (e.burnT > 0) for (let i = 0; i < 2; i++) glow(ctx, Math.sin(t * 9 + i * 3) * 8, -e.radius + Math.cos(t * 7 + i) * 4, 7, '#ff8a3d', 0.7);
-    if (e.poisonStacks > 0) for (let i = 0; i < e.poisonStacks; i++) circle(ctx, -8 + i * 4, -e.radius - 6 + Math.sin(t * 5 + i) * 2, 1.8, '#9fff6b');
+    if (e.burnT > 0) for (let i = 0; i < 3; i++) flameCut(ctx, -8 + i * 8, -e.radius - 2 + Math.sin(t * 9 + i) * 1.5, 4 + Math.sin(t * 14 + i * 2) * 1.2);
+    if (e.poisonStacks > 0) for (let i = 0; i < e.poisonStacks; i++) circle(ctx, -8 + i * 4, -e.radius - 6 + Math.sin(t * 5 + i) * 2, 2, '#5f8a63', INK, 1);
     ctx.restore();
     // mini-barre de vie des ennemis blessés
     if (!e.boss && e.hp < e.maxHp && e.state !== 'spawn') {
       const wbar = e.radius * 1.8;
       const y = p.y - e.radius - 10;
-      ctx.fillStyle = 'rgba(10,6,20,0.7)';
+      ctx.fillStyle = INK;
       ctx.fillRect(p.x - wbar / 2 - 1, y - 1, wbar + 2, 5);
-      ctx.fillStyle = e.elite ? UI.gold : '#ff6b6b';
+      ctx.fillStyle = e.elite ? GOLD_LEAF : CUT;
       ctx.fillRect(p.x - wbar / 2, y, wbar * Math.max(0, e.hp / e.maxHp), 3);
     }
   }
@@ -623,24 +628,28 @@ export class Combat {
       ctx.save();
       ctx.translate(z.pos.x, z.pos.y);
       ctx.rotate(Math.atan2(dy, dx));
-      ctx.fillStyle = alpha(UI.danger, 0.18 + 0.12 * k);
       ctx.beginPath();
       ctx.roundRect(0, -z.radius, len, z.radius * 2, z.radius);
-      ctx.fill();
-      ctx.fillStyle = alpha(UI.danger, 0.4);
-      ctx.beginPath();
-      ctx.roundRect(0, -z.radius, len * k, z.radius * 2, z.radius);
-      ctx.fill();
-      // chevrons qui défilent
-      ctx.strokeStyle = alpha('#ffffff', 0.7);
-      ctx.lineWidth = 2.5;
-      for (let x = ((t * 140) % 22) - 22; x < len - 8; x += 22) {
-        if (x < 4) continue;
+      ctx.save();
+      ctx.clip();
+      hatch(ctx, -z.radius, -z.radius, len + z.radius * 2, z.radius * 2, t, 0.55);
+      ctx.fillStyle = alpha(DANGER, 0.85);
+      ctx.fillRect(0, -z.radius, len * k, z.radius * 2);
+      ctx.restore();
+      ctx.strokeStyle = DANGER;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // flèches découpées qui avancent
+      ctx.fillStyle = CUT;
+      for (let x = ((t * 120) % 24) - 24; x < len - 10; x += 24) {
+        if (x < 6) continue;
         ctx.beginPath();
-        ctx.moveTo(x, -6);
+        ctx.moveTo(x, -5);
         ctx.lineTo(x + 7, 0);
-        ctx.lineTo(x, 6);
-        ctx.stroke();
+        ctx.lineTo(x, 5);
+        ctx.lineTo(x + 3, 0);
+        ctx.closePath();
+        ctx.fill();
       }
       ctx.restore();
       return;
@@ -650,18 +659,20 @@ export class Combat {
       const k = Math.min(1, (now - z.born) / Math.max(0.01, z.activeAt - z.born));
       ctx.save();
       ctx.translate(z.pos.x, z.pos.y);
-      ctx.fillStyle = alpha(UI.danger, 0.16);
       ctx.beginPath();
       ctx.arc(0, 0, z.radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = alpha(UI.danger, 0.35);
+      ctx.save();
+      ctx.clip();
+      hatch(ctx, -z.radius, -z.radius, z.radius * 2, z.radius * 2, t, 0.5);
+      ctx.restore();
+      // le disque plein se referme vers le centre jusqu'à l'impact
+      ctx.fillStyle = alpha(DANGER, 0.8);
       ctx.beginPath();
-      ctx.arc(0, 0, z.radius * k, 0, Math.PI * 2);
+      ctx.arc(0, 0, z.radius, 0, Math.PI * 2);
+      ctx.arc(0, 0, z.radius * (1 - k), 0, Math.PI * 2, true);
       ctx.fill();
-      ctx.rotate(t * 1.5);
-      ctx.strokeStyle = alpha(UI.danger, 0.95);
-      ctx.lineWidth = 2;
-      ctx.setLineDash([8, 6]);
+      ctx.strokeStyle = DANGER;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.arc(0, 0, z.radius, 0, Math.PI * 2);
       ctx.stroke();
@@ -670,49 +681,59 @@ export class Combat {
     }
     const lasting = z.endAt - z.activeAt > 0.5;
     if (!lasting) {
-      // impact bref : onde de choc
       const k = (now - z.activeAt) / Math.max(0.01, z.endAt - z.activeAt);
       if (k < 0.2 && !this.flashes.has(-z.nextTick)) {
-        this.fx.ring(z.pos.x, z.pos.y, '#ffffff', z.radius * 1.1, 0.4);
-        this.fx.puff(z.pos.x, z.pos.y, kind === 'wyvern' ? '#eaf6ff' : '#d8c8b8', 6, 10);
+        this.fx.ring(z.pos.x, z.pos.y, INK, z.radius * 1.1, 0.4);
+        this.fx.scraps(z.pos.x, z.pos.y, 8, 0.8);
         this.fx.shake(z.radius > 90 ? 0.4 : 0.15);
         this.flashes.set(-z.nextTick, 0);
       }
       return;
     }
-    // flaque persistante : feu, poison ou givre
-    const col = kind === 'queen' ? '#7ad15a' : kind === 'wyvern' ? '#bfe8ff' : '#ff7a3d';
+    // zone persistante : flammes, poison ou givre découpés, sur fond vermillon hachuré
     const fade = Math.min(1, (z.endAt - now) * 2);
     ctx.save();
     ctx.globalAlpha = fade;
-    glow(ctx, z.pos.x, z.pos.y, z.radius * 1.2, col, 0.55);
-    ctx.fillStyle = alpha(col, 0.3);
+    ctx.translate(z.pos.x, z.pos.y);
     ctx.beginPath();
-    ctx.arc(z.pos.x, z.pos.y, z.radius, 0, Math.PI * 2);
-    ctx.fill();
-    for (let i = 0; i < 7; i++) {
-      const aa = i * 0.9 + z.born;
-      const rr = (z.radius * 0.75 * ((i * 37) % 10)) / 10;
-      const fx = z.pos.x + Math.cos(aa) * rr;
-      const fy = z.pos.y + Math.sin(aa) * rr;
-      const h = 6 + Math.sin(t * 10 + i) * 3;
-      ctx.fillStyle = i % 2 ? col : mix(col, '#ffffff', 0.5);
-      ctx.beginPath();
-      ctx.moveTo(fx - 4, fy);
-      ctx.quadraticCurveTo(fx, fy - h * 2, fx + 4, fy);
-      ctx.fill();
+    ctx.arc(0, 0, z.radius, 0, Math.PI * 2);
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = alpha(DANGER, 0.35);
+    ctx.fillRect(-z.radius, -z.radius, z.radius * 2, z.radius * 2);
+    hatch(ctx, -z.radius, -z.radius, z.radius * 2, z.radius * 2, t, 0.6);
+    ctx.restore();
+    ctx.strokeStyle = DANGER;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    for (let i = 0; i < 6; i++) {
+      const aa = i * 1.05 + z.born;
+      const rr = (z.radius * 0.65 * ((i * 37) % 10)) / 10;
+      const h = 7 + Math.sin(t * 10 + i) * 2.5;
+      const x = Math.cos(aa) * rr;
+      const y = Math.sin(aa) * rr;
+      if (kind === 'wyvern') {
+        ctx.fillStyle = INK;
+        ctx.beginPath();
+        ctx.moveTo(x, y - h);
+        ctx.lineTo(x + 3, y);
+        ctx.lineTo(x - 3, y);
+        ctx.fill();
+      } else if (kind === 'queen') circle(ctx, x, y - (t * 12 + i * 5) % 10, 2.4, INK);
+      else flameCut(ctx, x, y, h * 0.6);
     }
     ctx.restore();
   }
 
-  private drawProjectile(ctx: Ctx, p: Projectile, q: { x: number; y: number }, t: number): void {
+  private drawProjectile(ctx: Ctx, p: Projectile, q: { x: number; y: number }, _t: number): void {
     const ang = Math.atan2(p.vel.y, p.vel.x);
-    if (p.fromHero && this.opt.heroId && this.opt.heroId !== 'scout') {
-      ctx.save();
-      ctx.translate(q.x, q.y);
-      ctx.rotate(ang);
-      if (this.opt.heroId === 'windMonk') {
-        ctx.strokeStyle = 'rgba(191,244,255,0.9)';
+    ctx.save();
+    ctx.translate(q.x, q.y);
+    ctx.rotate(ang);
+    if (p.fromHero) {
+      const hero = this.opt.heroId ?? 'scout';
+      if (hero === 'windMonk') {
+        ctx.strokeStyle = CUT;
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         for (let i = 0; i < 2; i++) {
@@ -720,86 +741,68 @@ export class Combat {
           ctx.arc(-i * 9, 0, 7 - i * 2, -1.1, 1.1);
           ctx.stroke();
         }
-        glow(ctx, 0, 0, 12, '#bff4ff', 0.45);
+      } else if (hero === 'emberSorcerer') {
+        circle(ctx, 0, 0, 5, CUT, INK, 2);
+        ctx.fillStyle = alpha(INK, 0.5);
+        ctx.fillRect(-16, -1, 10, 2);
       } else {
-        ctx.fillStyle = alpha('#ff8a3d', 0.4);
+        // flèche : trait de lumière qui traverse l'écran, empennage d'encre
+        ctx.strokeStyle = alpha(INK, 0.35);
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.ellipse(-10, 0, 12, 4, 0, 0, Math.PI * 2);
+        ctx.moveTo(-26, 0);
+        ctx.lineTo(-8, 0);
+        ctx.stroke();
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(-10, 0);
+        ctx.lineTo(5, 0);
+        ctx.stroke();
+        ctx.fillStyle = INK;
+        ctx.beginPath();
+        ctx.moveTo(9, 0);
+        ctx.lineTo(3, -4);
+        ctx.lineTo(3, 4);
         ctx.fill();
-        glow(ctx, 0, 0, 12, '#ff8a3d', 0.7);
-        circle(ctx, 0, 0, 4.5, '#ffd36b', INK, 1.5);
+        ctx.beginPath();
+        ctx.moveTo(-10, 0);
+        ctx.lineTo(-14, -4);
+        ctx.lineTo(-12, 0);
+        ctx.lineTo(-14, 4);
+        ctx.fill();
       }
       ctx.restore();
       return;
     }
-    if (p.fromHero) {
-      ctx.save();
-      ctx.translate(q.x, q.y);
-      ctx.rotate(ang);
-      const tr = ctx.createLinearGradient(-34, 0, 0, 0);
-      tr.addColorStop(0, alpha(UI.moonGlow, 0));
-      tr.addColorStop(1, alpha(UI.moonGlow, 0.8));
-      ctx.strokeStyle = tr;
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(-34, 0);
-      ctx.lineTo(0, 0);
-      ctx.stroke();
-      ctx.strokeStyle = '#f4ecd8';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(-12, 0);
-      ctx.lineTo(4, 0);
-      ctx.stroke();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.moveTo(8, 0);
-      ctx.lineTo(2, -3.5);
-      ctx.lineTo(2, 3.5);
-      ctx.fill();
-      ctx.restore();
-      return;
-    }
+    // projectiles ennemis : toujours vermillon cerné d'encre (lisibles sur tous les papiers)
     const sp = Math.hypot(p.vel.x, p.vel.y);
-    // couleur selon la source (déduite de la vitesse)
-    let col = this.theme.accent === '#ff7a3d' ? '#ff5fa8' : '#ff5fa8';
-    let core = '#ffffff';
-    let arrowLike = false;
-    if (Math.abs(sp - 300) < 2) col = '#c8a070';
-    else if (Math.abs(sp - 340) < 2) {
-      col = '#9fe8ff';
-      arrowLike = true;
-    } else if (Math.abs(sp - 150) < 2) col = '#9fff6b';
-    else if (Math.abs(sp - 170) < 2) col = '#5fd8ff';
-    else if (Math.abs(sp - 140) < 2) {
-      col = UI.gold;
-      core = '#fff3c2';
-    }
-    ctx.save();
-    ctx.translate(q.x, q.y);
+    const arrowLike = Math.abs(sp - 340) < 2;
     if (arrowLike) {
-      ctx.rotate(ang);
-      glow(ctx, 0, 0, 12, col, 0.5);
-      ctx.strokeStyle = col;
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = INK;
+      ctx.lineWidth = 5;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(-12, 0);
       ctx.lineTo(6, 0);
       ctx.stroke();
+      ctx.strokeStyle = DANGER;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
     } else {
-      // traînée + halo + noyau, contour sombre pour la lisibilité
-      ctx.rotate(ang);
-      ctx.fillStyle = alpha(col, 0.35);
+      ctx.fillStyle = alpha(DANGER, 0.3);
       ctx.beginPath();
-      ctx.ellipse(-p.radius * 1.2, 0, p.radius * 2, p.radius * 0.8, 0, 0, Math.PI * 2);
+      ctx.ellipse(-p.radius * 1.3, 0, p.radius * 1.8, p.radius * 0.7, 0, 0, Math.PI * 2);
       ctx.fill();
-      glow(ctx, 0, 0, p.radius * 2.6, col, 0.55);
-      circle(ctx, 0, 0, p.radius + 1, INK);
-      circle(ctx, 0, 0, p.radius, col);
-      circle(ctx, -p.radius * 0.25, -p.radius * 0.25, p.radius * 0.45, core);
-      void t;
+      circle(ctx, 0, 0, p.radius + 1.5, INK);
+      circle(ctx, 0, 0, p.radius - 0.5, DANGER);
+      // forme découpée au centre selon la source
+      if (Math.abs(sp - 150) < 2) circle(ctx, 0, 0, p.radius * 0.35, CUT); // spore
+      else if (Math.abs(sp - 170) < 2) {
+        ctx.fillStyle = CUT;
+        ctx.fillRect(-1.2, -p.radius * 0.5, 2.4, p.radius); // rune
+      } else if (Math.abs(sp - 140) < 2) circle(ctx, 0, 0, p.radius * 0.45, GOLD_LEAF); // élite
+      else circle(ctx, -p.radius * 0.25, -p.radius * 0.25, p.radius * 0.3, CUT);
     }
     ctx.restore();
   }
@@ -810,22 +813,17 @@ export class Combat {
     const wbar = 40;
     const x = p.x - wbar / 2;
     const y = p.y - 40;
-    ctx.fillStyle = 'rgba(10,6,20,0.75)';
-    ctx.beginPath();
-    ctx.roundRect(x - 2, y - 2, wbar + 4, 8, 4);
-    ctx.fill();
-    const col = k > 0.5 ? UI.heal : k > 0.25 ? '#ffcf4a' : UI.danger;
-    ctx.fillStyle = col;
-    ctx.beginPath();
-    ctx.roundRect(x, y, Math.max(2, wbar * k), 4, 2);
-    ctx.fill();
-    ctx.font = '700 9px Fredoka, sans-serif';
+    ctx.fillStyle = INK;
+    ctx.fillRect(x - 2, y - 2, wbar + 4, 8);
+    ctx.fillStyle = k > 0.3 ? JADE : DANGER;
+    ctx.fillRect(x, y, Math.max(2, wbar * k), 4);
+    // graduations tous les 100 PV
+    ctx.fillStyle = INK;
+    for (let v = 100; v < h.stats.maxHp; v += 100) ctx.fillRect(x + (wbar * v) / h.stats.maxHp, y, 1, 4);
+    ctx.font = '700 10px "Alegreya Sans", sans-serif';
     ctx.textAlign = 'center';
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = INK;
-    ctx.strokeText(`${Math.ceil(Math.max(0, h.hp))}`, p.x, y - 3);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(`${Math.ceil(Math.max(0, h.hp))}`, p.x, y - 3);
+    ctx.fillStyle = INK;
+    ctx.fillText(`${Math.ceil(Math.max(0, h.hp))}`, p.x, y - 4);
   }
 
   private drawBossBar(ctx: Ctx, b: Enemy, cw: number): void {
@@ -835,18 +833,12 @@ export class Combat {
     const x = (cw - wbar) / 2;
     const y = HUD_TOP - 6 - (1 - this.bossShown) * 30;
     ctx.globalAlpha = this.bossShown;
-    ctx.fillStyle = 'rgba(10,6,20,0.8)';
-    ctx.beginPath();
-    ctx.roundRect(x - 3, y - 3, wbar + 6, 12, 6);
-    ctx.fill();
-    const g = ctx.createLinearGradient(x, 0, x + wbar, 0);
-    g.addColorStop(0, '#ff4d5e');
-    g.addColorStop(1, '#ff9a5e');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.roundRect(x, y, wbar * k, 6, 3);
-    ctx.fill();
-    // repères de phase (66 %, 33 %)
+    ctx.fillStyle = INK;
+    ctx.fillRect(x - 3, y - 3, wbar + 6, 12);
+    ctx.fillStyle = UI.paperDark;
+    ctx.fillRect(x, y, wbar, 6);
+    ctx.fillStyle = DANGER;
+    ctx.fillRect(x, y, wbar * k, 6);
     ctx.fillStyle = INK;
     for (const f of [1 / 3, 2 / 3]) ctx.fillRect(x + wbar * f - 1, y - 2, 2, 10);
     ctx.globalAlpha = 1;
@@ -860,32 +852,70 @@ export class Combat {
       this.banner = null;
       return;
     }
-    const inK = Math.min(1, b.t / 0.35);
-    const outK = Math.max(0, (b.t - (dur - 0.4)) / 0.4);
-    const y = ch * 0.36;
+    // une étiquette de papier qui descend au bout de deux fils, puis remonte
+    const inK = Math.min(1, b.t / 0.4);
+    const outK = Math.max(0, (b.t - (dur - 0.35)) / 0.35);
+    const drop = easeOutBack(inK) * (1 - easeOutCubic(outK));
+    const y = -60 + drop * (ch * 0.34 + 60);
+    const wv = Math.min(cw - 60, 280);
+    const hv = b.sub ? 74 : 54;
     ctx.save();
-    ctx.globalAlpha = 1 - outK;
-    ctx.translate(cw / 2 + (1 - easeOutBack(inK)) * -cw * 0.5 + outK * cw * 0.3, y);
-    const g = ctx.createLinearGradient(-cw / 2, 0, cw / 2, 0);
-    g.addColorStop(0, 'rgba(10,6,20,0)');
-    g.addColorStop(0.5, 'rgba(10,6,20,0.7)');
-    g.addColorStop(1, 'rgba(10,6,20,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(-cw / 2, -34, cw, b.sub ? 70 : 52);
+    ctx.translate(cw / 2, y);
+    ctx.rotate(Math.sin(b.t * 5) * 0.02 * (1 - inK * 0.5));
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-wv / 2 + 20, -ch);
+    ctx.lineTo(-wv / 2 + 20, 0);
+    ctx.moveTo(wv / 2 - 20, -ch);
+    ctx.lineTo(wv / 2 - 20, 0);
+    ctx.stroke();
+    ctx.fillStyle = INK;
+    ctx.fillRect(-wv / 2 + 4, 4, wv, hv);
+    ctx.fillStyle = UI.paper;
+    ctx.fillRect(-wv / 2, 0, wv, hv);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-wv / 2 + 5, 5, wv - 10, hv - 10);
     ctx.textAlign = 'center';
-    ctx.font = `900 30px "Cinzel Decorative", Georgia, serif`;
-    ctx.fillStyle = UI.moon;
-    ctx.shadowColor = this.theme.accent;
-    ctx.shadowBlur = 16;
-    ctx.fillText(b.text, 0, 4);
-    ctx.shadowBlur = 0;
+    ctx.fillStyle = INK;
+    ctx.font = `400 30px "IM Fell English SC", Georgia, serif`;
+    ctx.fillText(b.text, 0, 37);
     if (b.sub) {
-      ctx.font = '500 14px Fredoka, sans-serif';
-      ctx.fillStyle = UI.inkSoft;
-      ctx.fillText(b.sub, 0, 26);
+      ctx.font = 'italic 500 14px "Alegreya Sans", sans-serif';
+      ctx.fillStyle = INK2;
+      ctx.fillText(b.sub, 0, 58);
     }
     ctx.restore();
   }
+}
+
+/** Hachures diagonales vermillon (marque du danger, façon gravure). */
+function hatch(ctx: Ctx, x: number, y: number, w: number, h: number, t: number, a: number): void {
+  ctx.strokeStyle = alpha(DANGER, a);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  const off = (t * 14) % 8;
+  for (let k = -h; k < w + h; k += 8) {
+    ctx.moveTo(x + k + off, y);
+    ctx.lineTo(x + k + off - h, y + h);
+  }
+  ctx.stroke();
+}
+
+/** Petite flamme découpée dans l'encre. */
+function flameCut(ctx: Ctx, x: number, y: number, h: number): void {
+  ctx.fillStyle = INK;
+  ctx.beginPath();
+  ctx.moveTo(x - h * 0.6, y);
+  ctx.quadraticCurveTo(x - h * 0.4, y - h * 1.2, x, y - h * 2);
+  ctx.quadraticCurveTo(x + h * 0.4, y - h * 1.2, x + h * 0.6, y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = CUT;
+  ctx.beginPath();
+  ctx.ellipse(x, y - h * 0.5, h * 0.2, h * 0.45, 0, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function heartShape(ctx: Ctx, x: number, y: number, s: number, col: string): void {

@@ -1,6 +1,6 @@
 /** Rendu des images d'atlas (utilisé par tools/art-atlas.mjs via ?atlas). */
 import { PAINTERS, type AnimState } from '../../art/src/characters.js';
-import { POWER_ICONS, UI_ICONS, iconURL } from '../../art/src/icons.js';
+import { INK_POWERS as POWER_ICONS, INK_UI as UI_ICONS, iconURL } from '../../art/src/icons.js';
 
 export interface FrameSpec {
   name: string;
