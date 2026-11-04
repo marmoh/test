@@ -59,7 +59,7 @@ export function expectedTalentRank(n: number): number {
 export const HEAL_BETWEEN_ROOMS = 0.15;
 
 // §5 Mise à l'échelle : PV 0,03/D (SPEC 0,09), dégâts 0,06/D (SPEC) — cf. DECISIONS n° 18
-export const SCALE = { hpPerD: 0.03, dmgPerD: 0.06 } as const;
+export const SCALE = { hpPerD: 0.02, dmgPerD: 0.035 } as const;
 
 /**
  * §7 Budget d'une salle (forme SPEC conservée, cf. `roomBudget`) :
@@ -74,19 +74,21 @@ export const SCALE = { hpPerD: 0.03, dmgPerD: 0.06 } as const;
 export const BUDGET = {
   base: 6,
   perD: 3.2,
-  powerPerD: 0.25,
-  byRooms: { 2: 2.4, 3: 1.75, 4: 2.2 } as Record<number, number>,
-  waveCap: 18,
-  waveCapPerD: 1.5,
+  powerPerD: 0.5,
+  byRooms: { 2: 1.5, 3: 1.9, 4: 2.2 } as Record<number, number>,
+  waveCap: 8,
+  waveCapPerD: 0.8,
 } as const;
+/** La vague suivante arrive quand il reste au plus ce nombre d'ennemis (DECISIONS #30). */
+export const WAVE_NEXT_ALIVE = 1;
 export const ELITE = { hpMult: 2.2, fromChapter: 3, maxPerRoom: 1, maxPerRoomHard: 2 } as const;
 export const TELEGRAPH_MIN = 0.5;
-export const BOSS_BASE_HP = 6000;
+export const BOSS_BASE_HP = 1800;
 /**
  * Niveaux de boss : facteur sur le budget des salles qui précèdent le boss (mult = 1,55 de la SPEC conservé).
  * La difficulté d'un niveau de boss doit venir du boss, pas d'un couloir de salles à ×1,55.
  */
-export const BOSS_LEVEL_PRE_ROOMS = 0.6;
+export const BOSS_LEVEL_PRE_ROOMS = 0.45;
 export const BOSS_BREATH = 1.2;
 /** Onde de choc du boss : télégraphe = max(0,8 s, (rayon + 7) / vitesse héros + marge) — sinon indépassable au contact. */
 export const BOSS_SLAM_MARGIN = 0.35;
@@ -137,7 +139,7 @@ export const THREAD = {
   /** aire minimale d'une boucle (pt²) : évite les découpes accidentelles en zigzag */
   minArea: 1400,
   /** dégâts de base d'une découpe, × dégâts du héros / 100 */
-  cutBase: 300,
+  cutBase: 600,
   /** bonus par ennemi supplémentaire pris dans la même boucle */
   comboPerExtra: 0.2,
   /** dégâts du fil barbelé (par seconde de contact, × dégâts du héros / 100) */
@@ -149,4 +151,4 @@ export const THREAD = {
 } as const;
 
 /** Le tir automatique d'aiguilles devient l'attaque secondaire. */
-export const SHOT_DMG_MULT = 0.5;
+export const SHOT_DMG_MULT = 0.3;

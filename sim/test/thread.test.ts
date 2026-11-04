@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Arena, World, newHero, NO_TALENTS, segX, pointInPoly, polyArea, type RoomTemplate } from '../src/index.js';
+import { Arena, World, newHero, NO_TALENTS, segX, pointInPoly, polyArea, Bot, BOTS, type RoomTemplate } from '../src/index.js';
 import { loadRooms } from './helpers.js';
 
 const open = loadRooms().find((r) => r.id === 'room_01') as RoomTemplate;
@@ -74,5 +74,42 @@ describe('Ciseaux de lune', () => {
     w.enemyShot({ x: mid.x, y: mid.y - 30 }, Math.PI / 2, 300, 10, 6);
     for (let i = 0; i < 6; i++) w.step({ mx: 0, my: 0, touching: false });
     expect(w.hero.thread.length).toBeLessThan(n);
+  });
+});
+
+describe('Ciseaux de lune — bots', () => {
+  it('le bot trace des boucles autour des poursuivants et les découpe', () => {
+    const hero = newHero(NO_TALENTS);
+    const waves = [0, 1, 2].map((k) => [
+      { type: 'jelly' as const, c: 2 + k, r: 3 },
+      { type: 'jelly' as const, c: 6 - k, r: 6 },
+    ]);
+    const w = new World({ arena: new Arena(open), D: 1, waves, seed: 3 }, hero);
+    const bot = new Bot(BOTS.expert, 5);
+    bot.beginRoom();
+    while (!w.cleared && !w.dead && w.t < 120) w.step(bot.input(w));
+    expect(w.cleared).toBe(true);
+    expect(bot.loops.started).toBeGreaterThan(0);
+    expect(hero.cuts).toBeGreaterThan(2);
+    // les découpes portent l'essentiel des dégâts contre des gelées
+    expect(hero.dmgBy.cut).toBeGreaterThan(hero.dmgBy.shot);
+  });
+
+  it('instrumentation : dégâts par source plafonnés aux PV', () => {
+    const w = setup(true);
+    const e = w.enemies[0];
+    const hp0 = e.hp;
+    const cut0 = w.hero.dmgBy.cut;
+    w.performCut(
+      [
+        { x: e.pos.x - 50, y: e.pos.y - 50 },
+        { x: e.pos.x + 50, y: e.pos.y - 50 },
+        { x: e.pos.x + 50, y: e.pos.y + 50 },
+        { x: e.pos.x - 50, y: e.pos.y + 50 },
+      ],
+      100,
+      false,
+    );
+    expect(w.hero.dmgBy.cut - cut0).toBeCloseTo(hp0, 5);
   });
 });

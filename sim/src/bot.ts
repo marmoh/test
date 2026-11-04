@@ -70,20 +70,39 @@ const LOOP_MAX_APPROACH = 700;
 /** Préférence pour la boucle face aux autres trajectoires (en unités de score : danger × 10 + confort). */
 const LOOP_BONUS = 2.5;
 /** Valeur minimale d'une boucle (dégâts utiles par seconde de boucle). */
-const LOOP_MIN_VALUE = 5;
+const LOOP_MIN_VALUE = 1;
 /** Planification toutes les N décisions (N × 1/15 s) sans orbite ; re-planification (avec hystérésis) en orbite. */
-const LOOP_PLAN_EVERY = 3;
+const LOOP_PLAN_EVERY = 6;
+/** Ennemis les plus proches examinés comme centres d'orbite. */
+const LOOP_SEEDS = 6;
 const LOOP_REPLAN_EVERY = 24;
 /** Une autre orbite ne remplace l'orbite en cours que si elle vaut nettement plus. */
 const LOOP_KEEP = 1.5;
 /** Chances plancher de l'orbite en cours (une coupure ne fait que retarder la découpe). */
-const LOOP_KEEP_ODDS = 0.4;
+const LOOP_KEEP_ODDS = 0.2;
+const LOOP_ODDS_FLOOR = 0.03;
 /** Distance au cercle à partir de laquelle on passe de l'approche à l'orbite (la poursuite rattrape l'écart). */
 const LOOP_CATCH = 24;
+/** Suivi du centre en orbite (pt par décision, 1/15 s). */
+const LOOP_TRACK = 4;
+/** Rayon minimal autour d'un tireur visé (gobelin, squelette). */
+const LOOP_SHOOTER_R = 46;
+/**
+ * Rayon minimal par type : tireurs visés (le tir à bout portant doit passer derrière l'héroïne qui tourne) et
+ * anneaux (champignon 8 spores, totem 6 runes : assez d'écart entre deux projectiles pour s'y glisser).
+ */
+const LOOP_TYPE_R: Partial<Record<string, number>> = { goblin: LOOP_SHOOTER_R, skeleton: 76, mushroom: 66, totem: 58 };
+/** Points du cercle (sur ~20) qui peuvent tomber dans un obstacle ou hors de l'arène. */
+const LOOP_RING_SLACK = 3;
 const SIM_STEP = 0.05;
 const SIM_STEPS = Math.round(PLAN_T[PLAN_T.length - 1] / SIM_STEP);
 const SHOOTER_SPEED: Partial<Record<string, number>> = { goblin: 300, skeleton: 340, mushroom: 150, totem: 170 };
 const CHASERS = new Set(['jelly', 'jellySmall', 'wolf', 'snipper', 'bat', 'moth']);
+/**
+ * Jamais au centre d'une boucle : la mite (elle file vers le fil et le mange : on l'abat aux aiguilles) et le
+ * squelette (éventail de 3 flèches à bout portant : on le laisse aux aiguilles).
+ */
+const LOOP_SKIP = new Set(['moth', 'skeleton']);
 
 interface LoopState {
   circling: boolean;
@@ -125,6 +144,11 @@ export interface LoopStats {
 
 function loopRadius(pl: LoopPlan, s: number): number {
   return pl.r + LOOP_WOBBLE * Math.sin(LOOP_FREQ * s);
+}
+
+/** Orbite « la même » : même sens, cibles communes, centre proche. */
+function sameOrbit(pl: LoopPlan, cx: number, cy: number, dir: 1 | -1, members: Enemy[]): boolean {
+  return pl.dir === dir && Math.hypot(pl.cx - cx, pl.cy - cy) < 45 && members.some((m) => pl.members.includes(m));
 }
 
 /**
@@ -202,7 +226,11 @@ export class Bot implements Controller {
   // menaces perçues (tableaux réutilisés)
   private th: number[] = [];
   private ch: number[] = [];
+  /** tirs armés : (x, y, tFire, vitesse, rayon de contact, dégâts, nombre, écart angulaire) */
+  private pend: number[] = [];
   private chE: Enemy[] = [];
+  /** vitesses observées des ennemis (position à la décision précédente) */
+  private vel = new Map<number, { x: number; y: number; vx: number; vy: number; t: number }>();
   private zs: Hazard[] = [];
   private chasers: Enemy[] = [];
   private readonly probe: Pt = { x: 0, y: 0 };
@@ -214,15 +242,14 @@ export class Bot implements Controller {
   private readonly loopPath = new Float64Array(NP * 2);
   private readonly simSt: LoopState = { circling: false, sw: 0, lastAng: 0 };
   private readonly ldir: Pt = { x: 0, y: 0 };
-  /** diagnostic : raisons de rejet des cercles candidats */
+  /** Diagnostic (outils) : compte les raisons de rejet des cercles candidats quand `diagnostics` est vrai. */
+  diagnostics = false;
   readonly rej: Record<string, number> = {};
-  private rj(k: string): false {
-    this.rej[k] = (this.rej[k] ?? 0) + 1;
-    return false;
-  }
   private rjv(k: string): void {
-    this.rej[k] = (this.rej[k] ?? 0) + 1;
+    if (this.diagnostics) this.rej[k] = (this.rej[k] ?? 0) + 1;
   }
+  /** le dernier calcul de chances a vu un motif du boss tomber pendant la boucle (orbite proche du boss) */
+  private bossRisk = false;
   readonly loops: LoopStats = { planned: 0, started: 0, cut: 0, snipped: 0, aborted: 0, missed: 0 };
 
   constructor(readonly profile: BotProfile, seed: number) {
@@ -230,6 +257,7 @@ export class Bot implements Controller {
   }
 
   beginRoom(): void {
+    this.vel.clear();
     this.plan = null;
     this.planCd = 0;
     this.seen = new WeakMap();
@@ -340,6 +368,53 @@ export class Bot implements Controller {
         }
       }
     }
+    // tirs armés (télégraphe visible) : le projectile partira dans tFire vers la position de l'héroïne à cet instant
+    const pend = this.pend;
+    for (let k = 0; k < pend.length; k += 8) {
+      const ex = pend[k], ey = pend[k + 1], tf = pend[k + 2], sp = pend[k + 3], rr = pend[k + 4], dmg = pend[k + 5], n = pend[k + 6], spread = pend[k + 7];
+      if (tf >= HORIZON) continue;
+      // position visée : la trajectoire à l'instant du tir (interpolée)
+      let i1 = 1;
+      while (i1 < NP - 1 && PLAN_T[i1] < tf) i1++;
+      const ja = (i1 - 1 < stop ? i1 - 1 : stop) * 2;
+      const jb = (i1 < stop ? i1 : stop) * 2;
+      const f = (tf - PLAN_T[i1 - 1]) / (PLAN_T[i1] - PLAN_T[i1 - 1]);
+      const ax = pts[ja] + (pts[jb] - pts[ja]) * f;
+      const ay = pts[ja + 1] + (pts[jb + 1] - pts[ja + 1]) * f;
+      const base = Math.atan2(ay - ey, ax - ex);
+      for (let q = 0; q < n; q++) {
+        const ang = base + (q - (n - 1) / 2) * spread;
+        const tvx = Math.cos(ang) * sp;
+        const tvy = Math.sin(ang) * sp;
+        // projectile virtuel parti de (ex, ey) à tf : p(t) = e + v (t − tf)
+        const px = ex - tvx * tf;
+        const py = ey - tvy * tf;
+        for (let i = i1; i < NP; i++) {
+          const t0 = Math.max(tf, PLAN_T[i - 1]);
+          const ia = (i - 1 < stop ? i - 1 : stop) * 2;
+          const ib = (i < stop ? i : stop) * 2;
+          const span = PLAN_T[i] - PLAN_T[i - 1];
+          const hvx = (pts[ib] - pts[ia]) / span;
+          const hvy = (pts[ib + 1] - pts[ia + 1]) / span;
+          const hx0 = pts[ia] + hvx * (t0 - PLAN_T[i - 1]);
+          const hy0 = pts[ia + 1] + hvy * (t0 - PLAN_T[i - 1]);
+          const rx = px + tvx * t0 - hx0;
+          const ry = py + tvy * t0 - hy0;
+          const vx = tvx - hvx;
+          const vy = tvy - hvy;
+          const v2 = vx * vx + vy * vy;
+          let tau = v2 > 1e-9 ? -(rx * vx + ry * vy) / v2 : 0;
+          const tl = PLAN_T[i] - t0;
+          tau = tau < 0 ? 0 : tau > tl ? tl : tau;
+          const mx = rx + vx * tau;
+          const my = ry + vy * tau;
+          if (mx * mx + my * my < rr * rr) {
+            d += dmg / (t0 + tau + 0.15);
+            break;
+          }
+        }
+      }
+    }
     // (l'instant 0 est commun à toutes les trajectoires : il ne départage rien)
     for (const z of this.zs) {
       for (let i = 1; i < NP; i++) {
@@ -428,6 +503,21 @@ export class Bot implements Controller {
       const life = shotLife(w, p);
       th.push(p.pos.x, p.pos.y, p.vel.x, p.vel.y, rr, life, p.dmg);
     }
+    // tirs armés (gobelin, squelette) : l'armement est un télégraphe, perçu après le temps de réaction et esquivé
+    // selon la précision (un tirage par attaque, comme les autres télégraphes)
+    const pend = this.pend;
+    pend.length = 0;
+    for (const e of w.enemies) {
+      if (e.state !== 'windup' || (e.type !== 'goblin' && e.type !== 'skeleton')) continue;
+      const since = 0.5 - e.t;
+      if (since < this.profile.reaction) continue;
+      const key = 'w' + e.id + ':' + Math.round((now - since) * 30);
+      let ok = this.attacks.get(key);
+      if (ok === undefined) this.attacks.set(key, (ok = this.rng.chance(this.profile.dodge)));
+      if (!ok) continue;
+      const sk = e.type === 'skeleton';
+      pend.push(e.pos.x, e.pos.y, e.t, sk ? 340 : 300, HERO.radius + (sk ? 6 : 7) + 3, e.shotDmg, sk ? 3 : 1, (15 * Math.PI) / 180);
+    }
     const zs = this.zs;
     zs.length = 0;
     for (const z of w.hazards) {
@@ -455,6 +545,20 @@ export class Bot implements Controller {
       this.chE.push(e);
     }
 
+    // vitesses observées (pour prévoir où vont les cibles d'une boucle)
+    for (const e of w.enemies) {
+      const o = this.vel.get(e.id);
+      if (!o) this.vel.set(e.id, { x: e.pos.x, y: e.pos.y, vx: 0, vy: 0, t: now });
+      else if (now > o.t) {
+        const dt = now - o.t;
+        o.vx = (e.pos.x - o.x) / dt;
+        o.vy = (e.pos.y - o.y) / dt;
+        o.x = e.pos.x;
+        o.y = e.pos.y;
+        o.t = now;
+      }
+    }
+
     // Ciseaux de lune : suivre la boucle en cours (ou en planifier une) tant que le danger le permet
     let loopScore = Infinity;
     const lp = this.loopTick(w);
@@ -467,8 +571,7 @@ export class Bot implements Controller {
       this.fillLoopPath(lp, hp.x, hp.y, speed);
       // en boucle, les poursuivants marchent vers l'héroïne qui tourne (modèle orienté, pas « tout point à portée »)
       const ld = this.danger(this.loopPath, NP - 1, now, true, lp.circling ? lp.members : null);
-      (this as unknown as { dbg: string }).dbg = `ld=${ld.toFixed(1)}`;
-      if (ld === 0 || process.env.BLIND) return { mx: this.ldir.x, my: this.ldir.y, touching: true };
+      if (ld === 0) return { mx: this.ldir.x, my: this.ldir.y, touching: this.ldir.x !== 0 || this.ldir.y !== 0 };
       loopScore = ld * 10 - LOOP_BONUS;
       // menace sur l'orbite (un poursuivant non entouré s'en approche, un tir…) : on re-planifie vite
       if (lp.circling && this.planCd < LOOP_REPLAN_EVERY - 6) this.planCd = LOOP_REPLAN_EVERY - 1;
@@ -562,7 +665,7 @@ export class Bot implements Controller {
         }
       }
     }
-    if (lp && loopScore <= bestScore) return { mx: this.ldir.x, my: this.ldir.y, touching: true };
+    if (lp && loopScore <= bestScore) return { mx: this.ldir.x, my: this.ldir.y, touching: this.ldir.x !== 0 || this.ldir.y !== 0 };
     if (!best) return { mx: 0, my: 0, touching: false };
     return { mx: best.x, my: best.y, touching: true };
   }
@@ -576,7 +679,11 @@ export class Bot implements Controller {
     let pl = this.plan;
     let replan = false;
     if (pl) {
-      for (const ev of w.events) if (ev.e === 'snip') this.loops.snipped++;
+      for (const ev of w.events)
+        if (ev.e === 'snip') {
+          this.loops.snipped++;
+          if (pl.circling) this.rjv('snipCircling:' + ev.by);
+        }
       let end: keyof LoopStats | null = null;
       if (h.cuts > pl.cuts0) {
         this.loops.cut += h.cuts - pl.cuts0;
@@ -589,6 +696,7 @@ export class Bot implements Controller {
       else if (this.stuckT > 0.3) end = 'aborted';
       if (end) {
         this.loops[end]++;
+        this.rjv('end:' + end + (pl.circling ? 'Circling' : 'Approach'));
         this.plan = pl = null;
         this.planCd = 0;
       } else if (++this.planCd >= LOOP_REPLAN_EVERY) replan = true;
@@ -599,18 +707,31 @@ export class Bot implements Controller {
       if (np && np !== pl) {
         this.loops.planned++;
         // même orbite (à peu de chose près) : on garde l'état de rotation
-        if (pl && np.dir === pl.dir && Math.hypot(np.cx - pl.cx, np.cy - pl.cy) < 16 && Math.abs(np.r - pl.r) < 12) {
-          np.circling = pl.circling;
-          np.sw = pl.sw;
-          np.lastAng = pl.lastAng;
-          np.counted = pl.counted;
-          np.since = pl.since;
+        if (pl && sameOrbit(pl, np.cx, np.cy, np.dir, np.members)) {
+          // même orbite (mêmes cibles) : on garde le cercle en cours, on met juste à jour les cibles
+          pl.members = np.members;
+          pl.value = np.value;
+        } else {
+          if (pl) this.rjv(pl.circling ? "end:replacedCircling" : "end:replacedApproach");
+          this.plan = pl = np;
         }
-        this.plan = pl = np;
       }
       // aucune orbite jouable : on garde l'orbite en cours (ses cibles vivent encore)
     }
-    if (pl) this.trackCenter(w, pl);
+    if (pl) {
+      this.trackCenter(w, pl);
+      // près du boss : on quitte l'orbite dès qu'un motif dangereux s'annonce
+      if ((this.tick & 3) === 1 && w.enemies.some((e) => e.boss)) {
+        this.loopOdds(w, pl.cx, pl.cy, pl.r, pl.members, now, now + pl.lap);
+        if (this.bossRisk) {
+          this.rjv('end:boss');
+          this.loops.aborted++;
+          this.plan = null;
+          this.planCd = LOOP_PLAN_EVERY;
+          return null;
+        }
+      }
+    }
     return pl;
   }
 
@@ -630,7 +751,7 @@ export class Bot implements Controller {
     const ty = my / n + pl.oy - pl.cy;
     const d = Math.hypot(tx, ty);
     if (d < 1e-6) return;
-    const k = pl.circling ? Math.min(1, 2 / d) : 1;
+    const k = pl.circling ? Math.min(1, LOOP_TRACK / d) : 1;
     pl.cx += tx * k;
     pl.cy += ty * k;
     // en orbite, une cible qui dérive vers le fil élargit le cercle (jusqu'au rayon maximal)
@@ -656,8 +777,33 @@ export class Bot implements Controller {
     const d = { x: 0, y: 0 };
     out[0] = x;
     out[1] = y;
+    // le centre suit les cibles : vitesse moyenne observée (bornée à 30 pt/s en orbite, comme trackCenter)
+    let cvx = 0;
+    let cvy = 0;
+    let n = 0;
+    for (const m of pl.members) {
+      const o = this.vel.get(m.id);
+      if (!o || m.hp <= 0) continue;
+      cvx += o.vx;
+      cvy += o.vy;
+      n++;
+    }
+    if (n) {
+      cvx /= n;
+      cvy /= n;
+      const cs = Math.hypot(cvx, cvy);
+      const cap = pl.circling ? LOOP_TRACK * 15 : 200;
+      if (cs > cap) {
+        cvx *= cap / cs;
+        cvy *= cap / cs;
+      }
+    }
+    const cx0 = pl.cx;
+    const cy0 = pl.cy;
     let i = 1;
     for (let k = 1; k <= SIM_STEPS; k++) {
+      pl.cx = cx0 + cvx * SIM_STEP * (k - 1);
+      pl.cy = cy0 + cvy * SIM_STEP * (k - 1);
       loopStep(pl, st, x, y, d);
       x += d.x * speed * SIM_STEP;
       y += d.y * speed * SIM_STEP;
@@ -667,6 +813,8 @@ export class Bot implements Controller {
         i++;
       }
     }
+    pl.cx = cx0;
+    pl.cy = cy0;
   }
 
   /**
@@ -678,19 +826,20 @@ export class Bot implements Controller {
     const n = Math.max(12, Math.ceil((TAU * r) / 22));
     let bx = 0;
     let by = 0;
-    let hit = false;
+    let hit = 0;
     for (let k = 0; k < n; k++) {
       const ux = Math.cos((k * TAU) / n);
       const uy = Math.sin((k * TAU) / n);
       const x = cx + ux * r;
       const y = cy + uy * r;
-      if (x < m || y < m || x > ARENA_W - m || y > ARENA_H - m || clearance(w, x, y, m) < m) {
+      if (x < m || y < m || x > ARENA_W - m || y > ARENA_H - m || clearAt(w, x, y) < m) {
         bx += ux;
         by += uy;
-        hit = true;
+        hit++;
       }
     }
-    return hit ? { x: bx, y: by } : null;
+    // un ou deux points bloqués : l'héroïne glisse le long de l'obstacle, la boucle reste fermable
+    return hit > LOOP_RING_SLACK ? { x: bx, y: by } : null;
   }
 
   /**
@@ -708,8 +857,11 @@ export class Bot implements Controller {
     // un tour + le croisement doivent tenir dans la durée de vie du fil (rayon moyen + ondulation)
     const rmax = Math.min(150, ((life - 0.3) * v) / (TAU + LOOP_EXTRA)) - LOOP_WOBBLE;
     if (rmax < LOOP_MIN_R) return null;
-    const seeds = w.enemies.filter((e) => e.hp > 0 && e.state !== 'spawn' && e.type !== 'moth');
-    if (!seeds.length) return null;
+    const all = w.enemies.filter((e) => e.hp > 0 && e.state !== 'spawn' && !LOOP_SKIP.has(e.type));
+    if (!all.length) return null;
+    // les plus proches seulement (coût) : une orbite lointaine perd de toute façon sa valeur à l'approche
+    const dist2 = (e: Enemy) => (e.pos.x - hp.x) ** 2 + (e.pos.y - hp.y) ** 2;
+    const seeds = all.length > LOOP_SEEDS ? all.sort((a, b) => dist2(a) - dist2(b)).slice(0, LOOP_SEEDS) : all;
     const s = h.stats;
     const cutUnit = THREAD.cutBase * (s.damage / HERO.damage) * s.cutMult * (1 + s.critChance);
     let best: LoopPlan | null = null;
@@ -720,8 +872,10 @@ export class Bot implements Controller {
     const need = (m: Enemy, cx: number, cy: number): number => {
       // le fil ne doit pas toucher l'ennemi, ni l'héroïne (sur le cercle) entrer à son contact ; marge de déplacement
       // fil : rayon + 4 ; contact de l'héroïne : rayon + 12 ; plus le déplacement de la cible pendant un tour
-      const margin = m.boss ? HERO.radius + 14 : (m.contact > 0 ? HERO.radius - 2 : 4) + m.speed * (CHASERS.has(m.type) ? 0.2 : 0.12);
-      return Math.hypot(m.pos.x - cx, m.pos.y - cy) + m.radius + margin;
+      const margin = m.boss ? HERO.radius + 14 : (m.contact > 0 ? HERO.radius - 2 : 4) + m.speed * (CHASERS.has(m.type) ? 0.3 : 0.12);
+      const d = Math.hypot(m.pos.x - cx, m.pos.y - cy);
+      // tireurs visés : assez loin pour que le tir à bout portant passe derrière l'héroïne (elle tourne)
+      return Math.max(d + m.radius + margin + 3, d + (LOOP_TYPE_R[m.type] ?? 0));
     };
     const consider = (group: Enemy[]): void => {
       let cx = 0;
@@ -752,11 +906,28 @@ export class Bot implements Controller {
       for (const e of w.enemies) {
         const d = Math.hypot(e.pos.x - cx, e.pos.y - cy);
         if (d >= r + LOOP_WOBBLE) continue;
-        if (e.state === 'spawn' || e.type === 'moth') return this.rjv('spawnOrMothInside');
+        if (e.state === 'spawn' || LOOP_SKIP.has(e.type)) return this.rjv('spawnOrMothInside');
         if (d + e.radius + 2 > r - LOOP_WOBBLE) return this.rjv('memberTouch'); // il toucherait le fil
         members.push(e);
       }
       if (!members.length) return this.rjv('noMember');
+      // tireurs qui reculent devant l'héroïne : là où ils seront à l'arrivée, le cercle tient-il encore ?
+      const dh = Math.hypot(hp.x - cx, hp.y - cy);
+      if (dh > r + LOOP_CATCH) {
+        let fx = 0;
+        let fy = 0;
+        let nf = 0;
+        for (const m of members) {
+          if (m.type !== 'goblin' && m.type !== 'skeleton' && m.type !== 'mage') continue;
+          const ux = (m.pos.x - hp.x) / (Math.hypot(m.pos.x - hp.x, m.pos.y - hp.y) || 1);
+          const uy = (m.pos.y - hp.y) / (Math.hypot(m.pos.x - hp.x, m.pos.y - hp.y) || 1);
+          const run = m.speed * (Math.min(dh - r, 60) / v);
+          fx += clampN(m.pos.x + ux * run, m.radius, ARENA_W - m.radius) - m.pos.x;
+          fy += clampN(m.pos.y + uy * run, m.radius, ARENA_H - m.radius) - m.pos.y;
+          nf++;
+        }
+        if (nf && this.ringBlock(w, cx + fx / nf, cy + fy / nf, r + LOOP_WOBBLE)) return this.rjv('fleeWall');
+      }
       // valeur : dégâts utiles par seconde (borne haute avant l'approche, pour élaguer)
       const unit = cutUnit * (1 + THREAD.comboPerExtra * (members.length - 1));
       let gain = 0;
@@ -770,6 +941,7 @@ export class Bot implements Controller {
       const L = Math.abs(d0 - r);
       if (gain / (loopT + L / v + 0.37) <= bestV) return this.rjv('lowValue');
       if (L > LOOP_MAX_APPROACH) return this.rjv('approachFar');
+      const shooters = members.some((m) => m.type === 'goblin');
       // point d'entrée : tangent au cercle dans le sens de rotation (on s'enroule sans foncer sur les cibles)
       const pcs = new Map<number, number>();
       for (const dir of [1, -1] as const) {
@@ -791,17 +963,25 @@ export class Bot implements Controller {
         }
         const tk = Math.round(La / 20);
         let pc = pcs.get(tk);
-        if (pc === undefined) pcs.set(tk, (pc = this.loopOdds(w, cx, cy, r, members, tStart, tEnd)));
+        if (pc === undefined) {
+          pcs.set(tk, (pc = this.loopOdds(w, cx, cy, r, members, tStart, tEnd)));
+          // près du boss, on ne tourne que pendant ses fenêtres (anneaux et spirales n'ont pas d'interstice)
+          if (this.bossRisk) pcs.set(tk, (pc = 0));
+        }
+        if (pc === 0) continue;
         // l'orbite en cours garde son sens (pas de demi-tour)
-        const same = cur && cur.dir === dir && Math.hypot(cur.cx - cx, cur.cy - cy) < 16 && Math.abs(cur.r - r) < 12;
-        // orbite en cours : une coupure ne fait que retarder la découpe (on continue de tourner)
-        const pv = val * (same ? keep * Math.max(pc, LOOP_KEEP_ODDS) : pc);
+        const same = cur !== null && sameOrbit(cur, cx, cy, dir, members);
+        // une coupure ne fait que retarder la découpe (on continue de tourner) : les chances classent les orbites
+        // sans en interdire aucune ; l'orbite en cours a un plancher plus haut (elle est déjà engagée)
+        // tireurs visés dans la boucle : pas de plancher (on ne s'y risque que pendant une vraie fenêtre de tir)
+        const floor = shooters ? 0 : same ? LOOP_KEEP_ODDS : LOOP_ODDS_FLOOR;
+        const pv = val * (same ? keep : 1) * Math.max(pc, floor);
         if (pv <= bestV) {
           this.rjv('odds');
           continue;
         }
         const pp = this.loopProjOdds(w, cx, cy, r, dir, a0, tStart, tEnd, v);
-        const pv2 = pv * (same ? Math.max(pp, LOOP_KEEP_ODDS) : pp);
+        const pv2 = pv * Math.max(pp, floor);
         if (pv2 <= bestV) continue;
         bestV = pv2;
         let mx = 0;
@@ -827,7 +1007,7 @@ export class Bot implements Controller {
         .filter((o) => o !== seed && Math.hypot(o.pos.x - seed.pos.x, o.pos.y - seed.pos.y) < 2 * rmax)
         .sort((a, b) => Math.hypot(a.pos.x - seed.pos.x, a.pos.y - seed.pos.y) - Math.hypot(b.pos.x - seed.pos.x, b.pos.y - seed.pos.y));
       const group = [seed];
-      for (const o of others.slice(0, 4)) {
+      for (const o of others.slice(0, 3)) {
         group.push(o);
         let cx = 0;
         let cy = 0;
@@ -907,6 +1087,7 @@ export class Bot implements Controller {
       return false;
     };
     let odds = 1;
+    this.bossRisk = false;
     const risk = (k: string, keep: number): void => {
       odds *= keep;
       this.rjv(k);
@@ -916,7 +1097,9 @@ export class Bot implements Controller {
       const member = members.includes(e);
       const spawnDelay = e.state === 'spawn' ? e.t : 0;
       if (e.boss) {
-        odds *= this.bossLoopOdds(e, d, r, member, T1, T2, salvo);
+        const bo = this.bossLoopOdds(e, d, r, member, T1, T2, salvo);
+        if (bo < 1 && (member || d < r + 140)) this.bossRisk = true;
+        odds *= bo;
         continue;
       }
       // tirs à venir
@@ -1038,6 +1221,45 @@ export function bestChoice(offer: PowerId[], ctx: ChoiceContext): PowerId {
   return best;
 }
 
+/** Grille des distances aux obstacles de marche et aux bords (pas de 4 pt), par gabarit de salle. */
+const CLEAR_STEP = 4;
+const CLEAR_W = Math.ceil(ARENA_W / CLEAR_STEP) + 1;
+const CLEAR_H = Math.ceil(ARENA_H / CLEAR_STEP) + 1;
+const clearGrids = new WeakMap<object, Float32Array>();
+
+function clearGrid(w: World): Float32Array {
+  const key = w.arena.template;
+  let g = clearGrids.get(key);
+  if (g) return g;
+  g = new Float32Array(CLEAR_W * CLEAR_H);
+  const blocked: number[] = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (w.arena.blocksWalk(c, r)) blocked.push(c, r);
+  for (let j = 0; j < CLEAR_H; j++) {
+    for (let i = 0; i < CLEAR_W; i++) {
+      const x = i * CLEAR_STEP;
+      const y = j * CLEAR_STEP;
+      let best = Math.min(x, y, ARENA_W - x, ARENA_H - y);
+      for (let k = 0; k < blocked.length; k += 2) {
+        const dx = Math.max(blocked[k] * CELL - x, 0, x - (blocked[k] + 1) * CELL);
+        const dy = Math.max(blocked[k + 1] * CELL - y, 0, y - (blocked[k + 1] + 1) * CELL);
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < best) best = d;
+      }
+      g[j * CLEAR_W + i] = best;
+    }
+  }
+  clearGrids.set(key, g);
+  return g;
+}
+
+/** Dégagement (pt) au point (x, y), prudent (case la plus proche moins sa demi-diagonale). */
+function clearAt(w: World, x: number, y: number): number {
+  const i = Math.round(x / CLEAR_STEP);
+  const j = Math.round(y / CLEAR_STEP);
+  if (i < 0 || j < 0 || i >= CLEAR_W || j >= CLEAR_H) return 0;
+  return clearGrid(w)[j * CLEAR_W + i] - CLEAR_STEP * 0.71;
+}
+
 /** Distance du point (x,y) au plus proche obstacle de marche ou bord (bornée à `max`). */
 function clearance(w: World, x: number, y: number, max: number): number {
   let best = Math.min(max, x, y, ARENA_W - x, ARENA_H - y);
@@ -1080,6 +1302,10 @@ function shotLife(w: World, p: Projectile): number {
     if (w.arena.isShotBlockedAt(p.pos.x + p.vel.x * t, p.pos.y + p.vel.y * t)) return t;
   }
   return HORIZON;
+}
+
+function clampN(v: number, a: number, b: number): number {
+  return v < a ? a : v > b ? b : v;
 }
 
 function segDist2(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {

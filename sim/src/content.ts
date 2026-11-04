@@ -16,28 +16,32 @@ export interface EnemyDef {
   cost: number;
   /** Période d'attaque (s). */
   period: number;
+  /** Tireurs : distance gardée [recul en deçà, approche au-delà] (pt). */
+  range?: [number, number];
 }
 
 export const ENEMIES: Record<MinionType, EnemyDef> = {
-  goblin: { type: 'goblin', name: 'Gobelin frondeur', hp: 220, contact: 60, speed: 70, radius: 15, flying: false, shotDmg: 80, cost: 2, period: 3.0 },
+  goblin: { type: 'goblin', name: 'Gobelin frondeur', hp: 220, contact: 60, speed: 70, radius: 15, flying: false, shotDmg: 80, cost: 2, period: 3.0, range: [0, 250] },
   mushroom: { type: 'mushroom', name: 'Champignon-spore', hp: 300, contact: 50, speed: 0, radius: 16, flying: false, shotDmg: 60, cost: 3, period: 3 },
   wolf: { type: 'wolf', name: "Loup d'ombre", hp: 260, contact: 120, speed: 90, radius: 16, flying: false, shotDmg: 0, cost: 3, period: 3.2 },
-  skeleton: { type: 'skeleton', name: 'Archer squelette', hp: 200, contact: 40, speed: 60, radius: 14, flying: false, shotDmg: 70, cost: 3, period: 2.4 },
+  skeleton: { type: 'skeleton', name: 'Archer squelette', hp: 200, contact: 40, speed: 60, radius: 14, flying: false, shotDmg: 70, cost: 3, period: 3.2, range: [120, 300] },
   jelly: { type: 'jelly', name: 'Gelée', hp: 380, contact: 70, speed: 55, radius: 18, flying: false, shotDmg: 0, cost: 3, period: 0 },
   jellySmall: { type: 'jellySmall', name: 'Petite gelée', hp: 120, contact: 70, speed: 70, radius: 11, flying: false, shotDmg: 0, cost: 0, period: 0 },
   totem: { type: 'totem', name: 'Totem runique', hp: 500, contact: 0, speed: 0, radius: 18, flying: false, shotDmg: 60, cost: 4, period: 2 },
   bat: { type: 'bat', name: 'Chauve-souris', hp: 120, contact: 70, speed: 140, radius: 12, flying: true, shotDmg: 0, cost: 2, period: 2 },
-  mage: { type: 'mage', name: 'Mage de braise', hp: 340, contact: 50, speed: 50, radius: 15, flying: false, shotDmg: 60, cost: 5, period: 3.4 },
+  mage: { type: 'mage', name: 'Mage de braise', hp: 340, contact: 50, speed: 50, radius: 15, flying: false, shotDmg: 60, cost: 5, period: 3.4, range: [110, 280] },
   // Ciseaux de lune : ennemis qui s'en prennent au fil de découpe
-  moth: { type: 'moth', name: 'Mite de papier', hp: 140, contact: 40, speed: 105, radius: 12, flying: true, shotDmg: 0, cost: 2, period: 0.6 },
+  moth: { type: 'moth', name: 'Mite de papier', hp: 100, contact: 40, speed: 105, radius: 12, flying: true, shotDmg: 0, cost: 2, period: 0.6 },
   snipper: { type: 'snipper', name: 'Crabe-ciseaux', hp: 320, contact: 90, speed: 62, radius: 16, flying: false, shotDmg: 0, cost: 3, period: 3 },
 };
 
 /**
  * Ordre d'apparition : un nouveau type à chaque chapitre (DECISIONS #29), introduit seul dans la
- * salle tutoriel du niveau p = 1. La mite (chapitre 2) apprend à protéger son fil.
+ * salle tutoriel du niveau p = 1. Gobelin (1 : boucler entre deux tirs), chauve-souris (2 : volante, elle ne
+ * coupe pas le fil — la cible idéale d'une boucle), gelée (3 : ne pas laisser un poursuivant toucher le fil), mite
+ * (4 : elle mange le fil, on l'abat aux aiguilles) ; DECISIONS #30.
  */
-export const UNLOCK_ORDER: EnemyType[] = ['goblin', 'moth', 'jelly', 'bat', 'snipper', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage'];
+export const UNLOCK_ORDER: EnemyType[] = ['goblin', 'bat', 'jelly', 'moth', 'snipper', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage'];
 
 export function unlockedEnemies(chapter: number): EnemyType[] {
   return UNLOCK_ORDER.slice(0, Math.min(UNLOCK_ORDER.length, chapter));
@@ -50,16 +54,16 @@ export function newEnemyAt(chapter: number): EnemyType | null {
 
 /** Poids de tirage dans le remplissage du budget. */
 export const SPAWN_WEIGHT: Record<EnemyType, number> = {
-  moth: 0.7,
+  moth: 0.35,
   snipper: 0.6,
-  goblin: 1.2,
+  goblin: 0.9,
   mushroom: 0.8,
   wolf: 0.7,
-  skeleton: 1,
-  // ennemis au contact : peu menaçants avec le tir auto permanent (on les tient à distance), surtout de la durée
-  jelly: 0.6,
+  skeleton: 0.7,
+  // ennemis au contact : la cible naturelle des boucles (ils poursuivent l'héroïne à l'intérieur du cercle)
+  jelly: 1.0,
   totem: 0.6,
-  bat: 0.6,
+  bat: 0.8,
   mage: 0.6,
 };
 

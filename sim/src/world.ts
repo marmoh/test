@@ -18,6 +18,7 @@ import {
   POWER_TUNING,
   THREAD,
   SHOT_DMG_MULT,
+  WAVE_NEXT_ALIVE,
   AUTO_FIRE_DEFAULT,
   ARENA_W,
   ARENA_H,
@@ -366,7 +367,7 @@ export class World {
     if (!this.cleared) {
       const alive = this.enemies.length;
       if (this.waveIndex < this.waves.length) {
-        if (alive <= 2) this.spawnWave();
+        if (alive <= WAVE_NEXT_ALIVE) this.spawnWave();
       } else if (alive === 0) {
         this.cleared = true;
         this.events.push({ e: 'cleared' });
@@ -614,7 +615,7 @@ export class World {
       case 'goblin':
       case 'skeleton':
       case 'mage': {
-        const [near, far] = e.type === 'goblin' ? [150, 250] : e.type === 'skeleton' ? [190, 300] : [170, 280];
+        const [near, far] = ENEMIES[e.type].range ?? [150, 250];
         if (e.state === 'move') {
           this.keepRange(e, near, far, dist, e.speed * slow, dt);
           e.cd -= dt;
