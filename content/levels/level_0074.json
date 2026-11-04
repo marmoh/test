@@ -1,0 +1,246 @@
+{
+ "n": 74,
+ "chapter": 4,
+ "position": 14,
+ "kingdom": 2,
+ "kind": "hard",
+ "D": 3.973,
+ "mult": 1.35,
+ "budgetScale": 1.2,
+ "seed": 1,
+ "powerSeed": 3403711651,
+ "rooms": [
+  {
+   "template": "room_17",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 6
+     },
+     {
+      "type": "jelly",
+      "c": 3,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 2
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 6,
+      "elite": true
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 7
+     },
+     {
+      "type": "jelly",
+      "c": 8,
+      "r": 2
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 1
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3583930887,
+   "budget": 28
+  },
+  {
+   "template": "room_07",
+   "waves": [
+    [
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 7
+     },
+     {
+      "type": "jelly",
+      "c": 1,
+      "r": 2
+     },
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 3
+     },
+     {
+      "type": "jelly",
+      "c": 3,
+      "r": 3
+     },
+     {
+      "type": "jelly",
+      "c": 6,
+      "r": 7
+     }
+    ],
+    [
+     {
+      "type": "jelly",
+      "c": 1,
+      "r": 1
+     },
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 3,
+      "elite": true
+     },
+     {
+      "type": "jelly",
+      "c": 0,
+      "r": 7
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3405481657,
+   "budget": 32
+  },
+  {
+   "template": "room_06",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 7
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 2
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 7
+     },
+     {
+      "type": "jelly",
+      "c": 7,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 9,
+      "elite": true
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 1,
+      "elite": true
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 0
+     },
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 7
+     },
+     {
+      "type": "jelly",
+      "c": 5,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 159059951,
+   "budget": 36
+  }
+ ],
+ "stars": {
+  "two": 0.5,
+  "three": 0.8
+ },
+ "validation": {
+  "games": 200,
+  "moyen": 0.315,
+  "expert": 1,
+  "band": "Difficile",
+  "ok": true,
+  "avgSeconds": 118
+ }
+}

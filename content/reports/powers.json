@@ -1,0 +1,143 @@
+{
+ "games": 30,
+ "panel": [
+  5,
+  7,
+  20,
+  65,
+  67,
+  80,
+  125,
+  127,
+  140,
+  185,
+  187,
+  200,
+  245,
+  247,
+  260
+ ],
+ "median": 0.4878,
+ "powers": [
+  {
+   "id": "multishot",
+   "name": "Multitir",
+   "rate": 0.5356
+  },
+  {
+   "id": "rearShot",
+   "name": "Tir arrière",
+   "rate": 0.3511
+  },
+  {
+   "id": "diagonals",
+   "name": "Diagonales",
+   "rate": 0.5489
+  },
+  {
+   "id": "sideShots",
+   "name": "Tirs latéraux",
+   "rate": 0.44
+  },
+  {
+   "id": "ricochet",
+   "name": "Ricochet",
+   "rate": 0.54
+  },
+  {
+   "id": "pierce",
+   "name": "Perforation",
+   "rate": 0.5733
+  },
+  {
+   "id": "wallBounce",
+   "name": "Rebond mural",
+   "rate": 0.4378
+  },
+  {
+   "id": "attackSpeed",
+   "name": "Cadence +25 %",
+   "rate": 0.5844
+  },
+  {
+   "id": "damage",
+   "name": "Dégâts +20 %",
+   "rate": 0.5533
+  },
+  {
+   "id": "crit",
+   "name": "Critique",
+   "rate": 0.4889
+  },
+  {
+   "id": "eliteSlayer",
+   "name": "Tueur d'élites",
+   "rate": 0.4578
+  },
+  {
+   "id": "flame",
+   "name": "Flamme",
+   "rate": 0.52
+  },
+  {
+   "id": "frost",
+   "name": "Givre",
+   "rate": 0.3889
+  },
+  {
+   "id": "chain",
+   "name": "Foudre en chaîne",
+   "rate": 0.5756
+  },
+  {
+   "id": "poison",
+   "name": "Poison",
+   "rate": 0.5267
+  },
+  {
+   "id": "blast",
+   "name": "Déflagration",
+   "rate": 0.4867
+  },
+  {
+   "id": "orb",
+   "name": "Orbe gardien",
+   "rate": 0.4022
+  },
+  {
+   "id": "shield",
+   "name": "Bouclier",
+   "rate": 0.5711
+  },
+  {
+   "id": "lifesteal",
+   "name": "Vol de vie",
+   "rate": 0.5111
+  },
+  {
+   "id": "maxHp",
+   "name": "PV max +20 %",
+   "rate": 0.4778
+  },
+  {
+   "id": "speed",
+   "name": "Vitesse +20 %",
+   "rate": 0.4133
+  },
+  {
+   "id": "dodge",
+   "name": "Esquive",
+   "rate": 0.4333
+  },
+  {
+   "id": "flashStep",
+   "name": "Pas éclair",
+   "rate": 0.4356
+  },
+  {
+   "id": "magnet",
+   "name": "Aimant à soins",
+   "rate": 0.3733
+  }
+ ]
+}

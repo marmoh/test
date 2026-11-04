@@ -1,0 +1,306 @@
+{
+ "n": 250,
+ "chapter": 13,
+ "position": 10,
+ "kingdom": 5,
+ "kind": "normal",
+ "D": 10.307,
+ "mult": 1,
+ "budgetScale": 1,
+ "seed": 1,
+ "powerSeed": 3806199795,
+ "rooms": [
+  {
+   "template": "room_16",
+   "waves": [
+    [
+     {
+      "type": "skeleton",
+      "c": 0,
+      "r": 7
+     },
+     {
+      "type": "mushroom",
+      "c": 4,
+      "r": 1
+     },
+     {
+      "type": "skeleton",
+      "c": 5,
+      "r": 7
+     },
+     {
+      "type": "wolf",
+      "c": 1,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 4
+     },
+     {
+      "type": "wolf",
+      "c": 0,
+      "r": 2
+     },
+     {
+      "type": "totem",
+      "c": 4,
+      "r": 2
+     },
+     {
+      "type": "skeleton",
+      "c": 2,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 2974022512,
+   "budget": 26
+  },
+  {
+   "template": "room_02",
+   "waves": [
+    [
+     {
+      "type": "wolf",
+      "c": 4,
+      "r": 3
+     },
+     {
+      "type": "wolf",
+      "c": 3,
+      "r": 6
+     },
+     {
+      "type": "mushroom",
+      "c": 2,
+      "r": 5
+     },
+     {
+      "type": "skeleton",
+      "c": 7,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 9
+     },
+     {
+      "type": "bat",
+      "c": 5,
+      "r": 0
+     },
+     {
+      "type": "skeleton",
+      "c": 5,
+      "r": 5
+     },
+     {
+      "type": "mushroom",
+      "c": 1,
+      "r": 4
+     },
+     {
+      "type": "mushroom",
+      "c": 2,
+      "r": 3
+     },
+     {
+      "type": "mushroom",
+      "c": 1,
+      "r": 6
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 4148606072,
+   "budget": 30
+  },
+  {
+   "template": "room_03",
+   "waves": [
+    [
+     {
+      "type": "jelly",
+      "c": 7,
+      "r": 7
+     },
+     {
+      "type": "wolf",
+      "c": 3,
+      "r": 9
+     },
+     {
+      "type": "mushroom",
+      "c": 1,
+      "r": 2
+     },
+     {
+      "type": "mushroom",
+      "c": 5,
+      "r": 6
+     },
+     {
+      "type": "bat",
+      "c": 5,
+      "r": 0
+     },
+     {
+      "type": "skeleton",
+      "c": 7,
+      "r": 8
+     },
+     {
+      "type": "skeleton",
+      "c": 4,
+      "r": 5
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 0
+     },
+     {
+      "type": "skeleton",
+      "c": 1,
+      "r": 3
+     },
+     {
+      "type": "mushroom",
+      "c": 5,
+      "r": 3
+     },
+     {
+      "type": "wolf",
+      "c": 4,
+      "r": 8
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 2477499250,
+   "budget": 35
+  },
+  {
+   "template": "room_09",
+   "waves": [
+    [
+     {
+      "type": "mushroom",
+      "c": 0,
+      "r": 5,
+      "elite": true
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 0
+     },
+     {
+      "type": "mushroom",
+      "c": 8,
+      "r": 1
+     },
+     {
+      "type": "wolf",
+      "c": 2,
+      "r": 8
+     },
+     {
+      "type": "skeleton",
+      "c": 2,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 3
+     },
+     {
+      "type": "bat",
+      "c": 1,
+      "r": 2
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 6
+     },
+     {
+      "type": "bat",
+      "c": 2,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 2
+     },
+     {
+      "type": "bat",
+      "c": 3,
+      "r": 3
+     },
+     {
+      "type": "skeleton",
+      "c": 7,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 1
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 1928048891,
+   "budget": 39
+  }
+ ],
+ "stars": {
+  "two": 0.5,
+  "three": 0.8
+ },
+ "validation": {
+  "games": 200,
+  "moyen": 0.7,
+  "expert": 1,
+  "band": "Normal",
+  "ok": true,
+  "avgSeconds": 86
+ }
+}

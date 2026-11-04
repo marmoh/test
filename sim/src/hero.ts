@@ -1,5 +1,5 @@
 /** §4 Héros : statistiques effectives (base × talents × pouvoirs). */
-import { HERO, TALENTS } from './constants.js';
+import { HERO, TALENTS, POWER_TUNING } from './constants.js';
 import type { PowerId } from './content.js';
 
 export interface Talents {
@@ -45,18 +45,18 @@ export interface HeroStats {
 export function computeStats(talents: Talents, powers: Partial<Record<PowerId, number>>): HeroStats {
   const n = (id: PowerId) => powers[id] ?? 0;
   const hpMult = (1 + TALENTS.hpPerRank * talents.vigor) * (1 + 0.2 * n('maxHp'));
-  const dmgMult = (1 + TALENTS.damagePerRank * talents.strength) * (1 + 0.2 * n('damage')) * Math.pow(0.9, n('multishot'));
+  const dmgMult = (1 + TALENTS.damagePerRank * talents.strength) * (1 + 0.2 * n('damage')) * Math.pow(POWER_TUNING.multishotDmg, n('multishot'));
   const rateMult = (1 + TALENTS.fireRatePerRank * talents.agility) * (1 + 0.25 * n('attackSpeed'));
   return {
     maxHp: Math.round(HERO.hp * hpMult),
     damage: HERO.damage * dmgMult,
     fireRate: HERO.fireRate * rateMult,
-    speed: HERO.speed * (1 + 0.15 * n('speed')),
+    speed: HERO.speed * (1 + POWER_TUNING.speedPerStack * n('speed')),
     multishot: n('multishot'),
     rearShot: n('rearShot') > 0,
     diagonals: n('diagonals') > 0,
     sideShots: n('sideShots') > 0,
-    ricochet: n('ricochet') > 0 ? 2 : 0,
+    ricochet: n('ricochet') > 0 ? POWER_TUNING.ricochetBounces : 0,
     pierce: n('pierce') > 0,
     wallBounce: n('wallBounce') > 0 ? 2 : 0,
     critChance: Math.min(0.6, 0.15 * n('crit')),

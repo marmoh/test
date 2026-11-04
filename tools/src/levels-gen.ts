@@ -5,6 +5,7 @@
  * Évaluation rapide (24 parties) puis confirmation (--games, 200 par défaut). Jusqu'à 200 graines ;
  * à chaque série infructueuse, le budget est ajusté de ±10 % selon le sens de l'écart.
  * Échec persistant → code de sortie 1 (tâche rouge). Écrit content/levels/level_NNNN.json et index.json.
+ * --revalidate : rejoue d'abord la graine existante et ne cherche une nouvelle graine que si elle sort de la bande.
  */
 import { fork } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -28,6 +29,7 @@ const MAX_SEEDS = 200;
 const SEEDS_PER_SCALE = 6;
 const ONLY = opt('only', '') ? opt('only', '').split(',').map(Number) : null;
 const SKIP_VALID = args.includes('--resume');
+const REVALIDATE = args.includes('--revalidate');
 
 const rooms = loadRooms();
 const map = roomMap(rooms);
@@ -53,6 +55,17 @@ function startScale(n: number): number {
 
 function solve(n: number): { level: LevelDef | null; tried: number; log: string } {
   const band = bandFor(n);
+  // --revalidate : on garde la graine existante si elle reste dans la bande après un changement de règles
+  const existing = REVALIDATE ? loadLevel(n) : null;
+  if (existing) {
+    const level = generateLevel(n, existing.seed, rooms, existing.budgetScale);
+    const M = rate(level, 'moyen', GAMES, 3);
+    const E = rate(level, 'expert', GAMES, 4);
+    if (inBand(band, M.r, E.r)) {
+      level.validation = { games: GAMES, moyen: round(M.r), expert: round(E.r), band: band.name, ok: true, avgSeconds: Math.round((M.secs + E.secs) / 2) };
+      return { level, tried: 1, log: `conservé scale=${existing.budgetScale} seed=${existing.seed}` };
+    }
+  }
   let scale = startScale(n);
   let tried = 0;
   let best: { level: LevelDef; dist: number } | null = null;
@@ -119,7 +132,7 @@ if (args.includes('--worker')) {
       .map(
         (p) =>
           new Promise<void>((resolve) => {
-            const child = fork(self, ['--worker', '--levels', p.join(','), '--games', String(GAMES)], { execArgv: ['--import', 'tsx'] });
+            const child = fork(self, ['--worker', '--levels', p.join(','), '--games', String(GAMES), ...(REVALIDATE ? ['--revalidate'] : [])], { execArgv: ['--import', 'tsx'] });
             child.on('message', (m: { n: number; ok: boolean; tried: number; log: string; ms: number; v?: { moyen: number; expert: number } }) => {
               done++;
               if (!m.ok) failed.push(m.n);

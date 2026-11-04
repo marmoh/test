@@ -1,0 +1,175 @@
+{
+ "n": 280,
+ "chapter": 14,
+ "position": 20,
+ "kingdom": 5,
+ "kind": "boss",
+ "D": 11.346,
+ "mult": 1.55,
+ "budgetScale": 0.909,
+ "seed": 8,
+ "powerSeed": 3885884827,
+ "rooms": [
+  {
+   "template": "room_01",
+   "waves": [
+    [
+     {
+      "type": "wolf",
+      "c": 7,
+      "r": 4
+     },
+     {
+      "type": "skeleton",
+      "c": 2,
+      "r": 9
+     },
+     {
+      "type": "mushroom",
+      "c": 5,
+      "r": 7,
+      "elite": true
+     },
+     {
+      "type": "skeleton",
+      "c": 7,
+      "r": 9
+     },
+     {
+      "type": "mushroom",
+      "c": 3,
+      "r": 7
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3561985106,
+   "budget": 21
+  },
+  {
+   "template": "room_23",
+   "waves": [
+    [
+     {
+      "type": "totem",
+      "c": 4,
+      "r": 2,
+      "elite": true
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 9
+     },
+     {
+      "type": "mushroom",
+      "c": 8,
+      "r": 6,
+      "elite": true
+     },
+     {
+      "type": "skeleton",
+      "c": 1,
+      "r": 0
+     },
+     {
+      "type": "bat",
+      "c": 2,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 2
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 2268518723,
+   "budget": 25
+  },
+  {
+   "template": "room_24",
+   "waves": [
+    [
+     {
+      "type": "mushroom",
+      "c": 3,
+      "r": 6
+     },
+     {
+      "type": "totem",
+      "c": 5,
+      "r": 3
+     },
+     {
+      "type": "jelly",
+      "c": 6,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 7
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 2
+     },
+     {
+      "type": "bat",
+      "c": 5,
+      "r": 1
+     },
+     {
+      "type": "bat",
+      "c": 1,
+      "r": 2
+     },
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 5
+     },
+     {
+      "type": "jelly",
+      "c": 0,
+      "r": 4
+     },
+     {
+      "type": "mushroom",
+      "c": 3,
+      "r": 3
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 2459993293,
+   "budget": 28
+  },
+  {
+   "template": "room_11",
+   "waves": [],
+   "boss": {
+    "archetype": "ashlord",
+    "variant": 1,
+    "hpMult": 0.909
+   },
+   "seed": 3693778975,
+   "budget": 0
+  }
+ ],
+ "stars": {
+  "two": 0.5,
+  "three": 0.8
+ },
+ "validation": {
+  "games": 200,
+  "moyen": 0.39,
+  "expert": 0.97,
+  "band": "Boss",
+  "ok": true,
+  "avgSeconds": 79
+ }
+}

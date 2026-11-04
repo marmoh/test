@@ -105,3 +105,21 @@ export const RARITY_WEIGHTS = { common: 0.6, rare: 0.3, epic: 0.1 } as const;
 
 // Orbes de soin (lâchés par les ennemis)
 export const HEAL_ORB = { dropChance: 0.08, healFrac: 0.04, magnetRange: 260, magnetHealMult: 1.5, pickupRadius: 26 } as const;
+
+/**
+ * §6 Réglage des pouvoirs par le test d'équilibrage (pnpm bots:balance) : aucun pouvoir à plus de
+ * +12 pts de la médiane. Valeurs SPEC entre parenthèses ; voir DECISIONS #27.
+ */
+export const POWER_TUNING = {
+  multishotDmg: 0.6, // (0,9) dégâts par flèche et par prise de Multitir
+  ricochetBounces: 1, // (2)
+  ricochetDmg: 0.25, // dégâts conservés à chaque rebond
+  chainTargets: 2, // (3)
+  chainFrac: 0.2, // (0,4)
+  shieldCooldown: 20, // (8 s)
+  pierceDmg: 0.85, // dégâts des flèches perforantes
+  frostSlow: 0.4, // (30 %)
+  frostDuration: 2, // (1,5 s)
+  orbDamage: 120, // (80)
+  speedPerStack: 0.2, // (15 %)
+} as const;

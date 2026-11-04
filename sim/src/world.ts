@@ -15,6 +15,7 @@ import {
   MAX_PROJECTILES,
   MAX_ENEMIES,
   HEAL_ORB,
+  POWER_TUNING,
   AUTO_FIRE_DEFAULT,
   ARENA_W,
   ARENA_H,
@@ -406,7 +407,7 @@ export class World {
       for (const e of this.enemies) {
         if (e.state === 'spawn' || e.orbHitCd > 0) continue;
         if (Math.hypot(e.pos.x - ox, e.pos.y - oy) < e.radius + 10) {
-          this.damageEnemy(e, 80 * (s.damage / HERO.damage), false, false);
+          this.damageEnemy(e, POWER_TUNING.orbDamage * (s.damage / HERO.damage), false, false);
           e.orbHitCd = 0.5;
         }
       }
@@ -476,7 +477,7 @@ export class World {
           pos: { x: h.pos.x - cy * off + cx * 10, y: h.pos.y + cx * off + cy * 10 },
           vel: { x: cx * HERO.projectileSpeed, y: cy * HERO.projectileSpeed },
           radius: HERO.projectileRadius,
-          dmg: s.damage,
+          dmg: s.damage * (s.pierce ? POWER_TUNING.pierceDmg : 1),
           fromHero: true,
           born: this.t,
           pierce: s.pierce,
@@ -528,7 +529,7 @@ export class World {
     }
     if (h.shieldReady) {
       h.shieldReady = false;
-      h.shieldCd = 8;
+      h.shieldCd = POWER_TUNING.shieldCooldown;
       h.invuln = HERO.invulnAfterHit;
       this.events.push({ e: 'shield' });
       return;
@@ -557,7 +558,7 @@ export class World {
     this.shooter = e.boss ? 'boss' : e.type;
     this.shooterId = e.id;
     if (e.boss) return this.updateBoss(e, dt);
-    const slow = e.slowT > 0 ? 0.7 : 1;
+    const slow = e.slowT > 0 ? 1 - POWER_TUNING.frostSlow : 1;
     const h = this.hero.pos;
     const dx = h.x - e.pos.x;
     const dy = h.y - e.pos.y;
@@ -793,7 +794,7 @@ export class World {
       b.phase = phase;
       b.patternIdx = 0;
     }
-    const slow = e.slowT > 0 ? 0.7 : 1;
+    const slow = e.slowT > 0 ? 1 - POWER_TUNING.frostSlow : 1;
     const v = b.variant;
     if (b.breath > 0) {
       // ouverture : le boss reprend son souffle et se replace lentement
@@ -1027,8 +1028,8 @@ export class World {
         .filter((o) => o !== e && o.hp > 0 && o.state !== 'spawn' && Math.hypot(o.pos.x - e.pos.x, o.pos.y - e.pos.y) < 160)
         .sort((a, b) => Math.hypot(a.pos.x - e.pos.x, a.pos.y - e.pos.y) - Math.hypot(b.pos.x - e.pos.x, b.pos.y - e.pos.y));
       for (const o of sorted) {
-        if (n++ >= 3) break;
-        this.damageEnemy(o, dmg * 0.4, false, false);
+        if (n++ >= POWER_TUNING.chainTargets) break;
+        this.damageEnemy(o, dmg * POWER_TUNING.chainFrac, false, false);
       }
     }
     if (p.ricochet > 0) {
@@ -1044,6 +1045,7 @@ export class World {
       }
       if (best) {
         p.ricochet--;
+        p.dmg *= POWER_TUNING.ricochetDmg;
         const dir = norm(best.pos.x - p.pos.x, best.pos.y - p.pos.y);
         p.vel.x = dir.x * HERO.projectileSpeed;
         p.vel.y = dir.y * HERO.projectileSpeed;
@@ -1064,7 +1066,7 @@ export class World {
       e.burnT = 2;
       e.burnDps = Math.max(e.burnDps, dmg * 0.2);
     }
-    if (s.frost) e.slowT = 1.5;
+    if (s.frost) e.slowT = POWER_TUNING.frostDuration;
     if (s.poison) {
       e.poisonStacks = Math.min(5, e.poisonStacks + 1);
       e.poisonT = 4;

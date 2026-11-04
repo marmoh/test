@@ -1,0 +1,129 @@
+{
+ "n": 100,
+ "chapter": 5,
+ "position": 20,
+ "kingdom": 2,
+ "kind": "boss",
+ "D": 4.947,
+ "mult": 1.55,
+ "budgetScale": 1,
+ "seed": 3,
+ "powerSeed": 240679453,
+ "rooms": [
+  {
+   "template": "room_01",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 7,
+      "elite": true
+     },
+     {
+      "type": "bat",
+      "c": 6,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 8,
+      "elite": true
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3023958739,
+   "budget": 16
+  },
+  {
+   "template": "room_06",
+   "waves": [
+    [
+     {
+      "type": "jelly",
+      "c": 6,
+      "r": 4
+     },
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 9
+     },
+     {
+      "type": "bat",
+      "c": 7,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 6
+     },
+     {
+      "type": "bat",
+      "c": 2,
+      "r": 6
+     },
+     {
+      "type": "jelly",
+      "c": 3,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 2687775999,
+   "budget": 19
+  },
+  {
+   "template": "room_03",
+   "waves": [],
+   "boss": {
+    "archetype": "queen",
+    "variant": 1,
+    "hpMult": 1
+   },
+   "seed": 1093427073,
+   "budget": 0
+  }
+ ],
+ "stars": {
+  "two": 0.5,
+  "three": 0.8
+ },
+ "validation": {
+  "games": 200,
+  "moyen": 0.275,
+  "expert": 0.985,
+  "band": "Boss",
+  "ok": true,
+  "avgSeconds": 85
+ }
+}
