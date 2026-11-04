@@ -1,0 +1,193 @@
+{
+ "n": 29,
+ "chapter": 2,
+ "position": 9,
+ "kingdom": 1,
+ "kind": "normal",
+ "D": 2.22,
+ "mult": 1,
+ "budgetScale": 0.95,
+ "seed": 1,
+ "powerSeed": 704447038,
+ "rooms": [
+  {
+   "template": "room_16",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 2
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 7
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 1459871337,
+   "budget": 17
+  },
+  {
+   "template": "room_21",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 0
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 2979325760,
+   "budget": 19
+  },
+  {
+   "template": "room_09",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 2
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 2
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 5
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 5
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 1029239097,
+   "budget": 20
+  }
+ ],
+ "stars": {
+  "two": 0.5,
+  "three": 0.8
+ },
+ "validation": {
+  "games": 200,
+  "moyen": 0.885,
+  "expert": 1,
+  "band": "Chapitres 1–2",
+  "ok": true,
+  "avgSeconds": 59
+ }
+}

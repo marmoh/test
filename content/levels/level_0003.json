@@ -1,0 +1,150 @@
+{
+ "n": 3,
+ "chapter": 1,
+ "position": 3,
+ "kingdom": 1,
+ "kind": "breather",
+ "D": 1.105,
+ "mult": 0.85,
+ "budgetScale": 0.95,
+ "seed": 2,
+ "powerSeed": 3036159102,
+ "rooms": [
+  {
+   "template": "room_13",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 7
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 7
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 7
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3993135490,
+   "budget": 20
+  },
+  {
+   "template": "room_08",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 7
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 2
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 9
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 2
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 7
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 498364928,
+   "budget": 21
+  }
+ ],
+ "stars": {
+  "two": 0.5,
+  "three": 0.8
+ },
+ "validation": {
+  "games": 200,
+  "moyen": 0.97,
+  "expert": 1,
+  "band": "Chapitres 1–2",
+  "ok": true,
+  "avgSeconds": 41
+ }
+}

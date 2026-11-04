@@ -1,0 +1,165 @@
+{
+ "n": 16,
+ "chapter": 1,
+ "position": 16,
+ "kingdom": 1,
+ "kind": "normal",
+ "D": 1.683,
+ "mult": 1,
+ "budgetScale": 0.95,
+ "seed": 1,
+ "powerSeed": 3374348139,
+ "rooms": [
+  {
+   "template": "room_02",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 7
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 2
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 477946350,
+   "budget": 22
+  },
+  {
+   "template": "room_07",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 2
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 7
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 2608824292,
+   "budget": 24
+  }
+ ],
+ "stars": {
+  "two": 0.5,
+  "three": 0.8
+ },
+ "validation": {
+  "games": 200,
+  "moyen": 0.925,
+  "expert": 1,
+  "band": "Chapitres 1–2",
+  "ok": true,
+  "avgSeconds": 41
+ }
+}
