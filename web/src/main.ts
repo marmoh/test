@@ -10,6 +10,7 @@ import { UI_ICONS, iconURL } from '../../art/src/icons.js';
 import { Combat } from './combat.js';
 import { buildMap, topBar } from './map.js';
 import { mountSheet } from './sheet.js';
+import { mountAtlas } from './atlas.js';
 import { titleScreen, preLevel, choosePower, victory, defeat, pauseMenu, toast, el } from './ui.js';
 import { save, lives, recordAttempt, persist, tournamentState } from './state.js';
 import { setSound } from './audio.js';
@@ -210,7 +211,8 @@ async function demoUi(kind: string): Promise<void> {
     setTimeout(() => void defeat(0), 300);
   }
 }
-if (params.has('ui')) void demoUi(params.get('ui')!);
+if (params.has('atlas')) mountAtlas();
+else if (params.has('ui')) void demoUi(params.get('ui')!);
 else if (params.has('sheet')) mountSheet(root);
 else if (params.has('level')) {
   const n = Number(params.get('level'));

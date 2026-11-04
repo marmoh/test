@@ -15,7 +15,8 @@
     "web:dev": "vite --config web/vite.config.ts",
     "web:build": "vite build --config web/vite.config.ts",
     "web:shots": "node tools/web-shots.mjs",
-    "web:artifact": "pnpm web:build && node tools/web-artifact.mjs"
+    "web:artifact": "pnpm web:build && node tools/web-artifact.mjs",
+    "art:atlas": "node tools/art-atlas.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
