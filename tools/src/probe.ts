@@ -17,7 +17,7 @@ for (const n of ns) {
     let wins = 0, secs = 0, hits = 0, to = 0;
     const t0 = performance.now();
     for (let g = 0; g < games; g++) {
-      const r = runLevel(lvl, map, new Bot(BOTS[b], seedOf(g, 7)), { talents: talentsForLevel(n), attemptSeed: g });
+      const r = runLevel(lvl, map, new Bot(BOTS[b], seedOf(g, 7)), { talents: talentsForLevel(n), attemptSeed: g, autoFire: true });
       if (r.won) wins++;
       if (r.timeout) to++;
       secs += r.seconds; hits += r.hitsTaken;

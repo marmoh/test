@@ -52,11 +52,12 @@ export function newEnemyAt(chapter: number): EnemyType | null {
 export const SPAWN_WEIGHT: Record<EnemyType, number> = {
   goblin: 1.2,
   mushroom: 0.8,
-  wolf: 0.9,
+  wolf: 0.7,
   skeleton: 1,
-  jelly: 0.9,
+  // ennemis au contact : peu menaçants avec le tir auto permanent (on les tient à distance), surtout de la durée
+  jelly: 0.6,
   totem: 0.6,
-  bat: 0.9,
+  bat: 0.6,
   mage: 0.6,
 };
 

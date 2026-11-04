@@ -42,6 +42,11 @@ const DIRS = Array.from({ length: 16 }, (_, i) => ({ x: Math.cos((i * Math.PI) /
 /** Instants (s) des points de la trajectoire prévue ; le bot regarde ~0,9 s devant lui. */
 const PLAN_T = [0, 0.1, 0.2, 0.35, 0.5, 0.7, 0.9];
 const HORIZON = PLAN_T[PLAN_T.length - 1];
+/** Les contacts se prévoient moins loin : on a le temps de s'écarter d'un poursuivant plus tard. */
+const CONTACT_HORIZON = 0.5;
+/** Prime à l'immobilité : tir manuel (on ne tire qu'à l'arrêt) / tir auto permanent (simple anti-agitation). */
+const STAY_BONUS_MANUAL = 1.2;
+const STAY_BONUS_AUTOFIRE = 0.2;
 /** Indice de PLAN_T où s'arrête un « pas de côté » (on bouge 0,2 s puis on se fige pour tirer). */
 const STEP_END = 2;
 
@@ -59,6 +64,8 @@ const NP = PLAN_T.length;
 export class Bot implements Controller {
   private rng: Rng;
   private seen = new WeakMap<object, boolean>();
+  /** décision d'esquive par attaque : clé (tireur, instant) */
+  private attacks = new Map<string, boolean>();
   private held: HeroInput = { mx: 0, my: 0, touching: false };
   private tick = 0;
   private noLosTime = 0;
@@ -72,6 +79,8 @@ export class Bot implements Controller {
   private th: number[] = [];
   private ch: number[] = [];
   private zs: Hazard[] = [];
+  private chasers: Enemy[] = [];
+  private readonly probe: Pt = { x: 0, y: 0 };
   /** position / vitesse pour lesquelles `paths` est à jour (le héros est souvent immobile) */
   private pathKey = { x: NaN, y: NaN, s: NaN, arena: null as unknown };
 
@@ -81,6 +90,7 @@ export class Bot implements Controller {
 
   beginRoom(): void {
     this.seen = new WeakMap();
+    this.attacks.clear();
     this.held = { mx: 0, my: 0, touching: false };
     this.noLosTime = 0;
     this.stuckT = 0;
@@ -92,18 +102,24 @@ export class Bot implements Controller {
     if (now - obj.born < this.profile.reaction) return false;
     let v = this.seen.get(obj);
     if (v === undefined) {
-      v = this.rng.chance(this.profile.dodge);
+      // un tirage par attaque télégraphiée (éventail, anneau, pluie…), pas par projectile
+      const key = obj.ownerId !== undefined ? ('activeAt' in obj ? 'z' : 'p') + obj.ownerId + ':' + obj.born : null;
+      const g = key !== null ? this.attacks.get(key) : undefined;
+      v = g ?? this.rng.chance(this.profile.dodge);
+      if (key !== null && g === undefined) this.attacks.set(key, v);
       this.seen.set(obj, v);
     }
     return v;
   }
 
   input(w: World): HeroInput {
-    // un déplacement redonne sa chance à la nouvelle position
-    if (w.hero.moving) this.missedShots = 0;
+    // sans tir auto, un déplacement redonne sa chance à la nouvelle position
+    if (w.hero.moving && !w.hero.autoFire) this.missedShots = 0;
     for (const ev of w.events) {
       if (ev.e === 'shoot') this.missedShots++;
       else if (ev.e === 'hit') this.missedShots = 0;
+      // brûlé par une zone qu'il n'avait pas vue : il la voit maintenant (on sort d'une flaque)
+      else if (ev.e === 'heroHit' && ev.ref && (ev.src ?? '').startsWith('zone')) this.seen.set(ev.ref, true);
     }
     this.tick++;
     if (this.tick % 2 === 0) return this.held;
@@ -207,6 +223,7 @@ export class Bot implements Controller {
       let first = true;
       for (let i = 1; i < NP; i++) {
         const t = PLAN_T[i];
+        if (t > CONTACT_HORIZON) break;
         if (t < delay) continue;
         const j = (i < stop ? i : stop) * 2;
         const dx = pts[j] - ex;
@@ -238,7 +255,8 @@ export class Bot implements Controller {
     const mdx = hp.x - this.lastPos.x;
     const mdy = hp.y - this.lastPos.y;
     this.stuckT = this.held.touching && mdx * mdx + mdy * mdy < (speed * 0.02) ** 2 ? this.stuckT + 2 / 30 : 0;
-    this.lastPos = { x: hp.x, y: hp.y };
+    this.lastPos.x = hp.x;
+    this.lastPos.y = hp.y;
 
     // menaces perçues (élaguées : hors de portée de toute trajectoire possible)
     const reach = speed * HORIZON;
@@ -246,10 +264,11 @@ export class Bot implements Controller {
     th.length = 0;
     for (const p of w.projectiles) {
       if (p.fromHero || !this.aware(p, now)) continue;
-      const life = shotLife(w, p);
       const rr = HERO.radius + p.radius + 3;
       const lim = reach + rr + 10;
-      if (segDist2(hp.x, hp.y, p.pos.x, p.pos.y, p.pos.x + p.vel.x * life, p.pos.y + p.vel.y * life) > lim * lim) continue;
+      // élagage grossier sur tout l'horizon, puis durée de vie réelle (obstacles) pour les survivants
+      if (segDist2(hp.x, hp.y, p.pos.x, p.pos.y, p.pos.x + p.vel.x * HORIZON, p.pos.y + p.vel.y * HORIZON) > lim * lim) continue;
+      const life = shotLife(w, p);
       th.push(p.pos.x, p.pos.y, p.vel.x, p.vel.y, rr, life, p.dmg);
     }
     const zs = this.zs;
@@ -261,20 +280,23 @@ export class Bot implements Controller {
     }
     const ch = this.ch;
     ch.length = 0;
-    const chasers: Enemy[] = [];
+    const chasers = this.chasers;
+    chasers.length = 0;
     for (const e of w.enemies) {
       if (e.contact <= 0) continue;
       chasers.push(e);
-      const sp = e.state === 'charge' ? 0 : e.speed * (e.slowT > 0 ? 0.7 : 1);
+      let sp = e.state === 'charge' ? 0 : e.speed * (e.slowT > 0 ? 0.7 : 1);
+      // la chauve-souris ralentit près du héros (×0,4) : sa menace réelle est le piqué (télégraphié)
+      if (e.type === 'bat' && e.state !== 'spawn') sp *= 0.4;
       const rr = e.radius + HERO.radius + 6;
-      const lim = reach + rr + sp * HORIZON;
+      const lim = reach + rr + sp * CONTACT_HORIZON;
       if ((e.pos.x - hp.x) ** 2 + (e.pos.y - hp.y) ** 2 > lim * lim) continue;
       ch.push(e.pos.x, e.pos.y, sp, rr, e.state === 'spawn' ? e.t : 0, e.contact);
     }
 
     // ligne de vue vers une cible
     const tgt = w.target;
-    const losOk = tgt ? w.arena.lineOfSight(hp, tgt.pos, tgt.flying) : true;
+    const losOk = tgt ? w.arena.lineOfSight(hp, tgt.pos) : true;
     this.noLosTime = tgt && !losOk ? this.noLosTime + 2 / 30 : 0;
     const noProgress = losOk && this.missedShots >= 4;
     const wantLos = this.noLosTime > 0.4 || noProgress;
@@ -302,7 +324,11 @@ export class Bot implements Controller {
         const d2 = dx * dx + dy * dy;
         if (d2 < keep * keep) c += ((keep - Math.sqrt(d2)) / keep) * 3;
       }
-      if (wantLos && tgt && (noProgress || !w.arena.lineOfSight({ x, y }, tgt.pos, tgt.flying))) c += 1.5;
+      if (wantLos && tgt) {
+        this.probe.x = x;
+        this.probe.y = y;
+        if (noProgress || !w.arena.lineOfSight(this.probe, tgt.pos)) c += 1.5;
+      }
       if (goalDir && dir) c -= (dir.x * goalDir.x + dir.y * goalDir.y) * 1.2;
       return c;
     };
@@ -322,8 +348,8 @@ export class Bot implements Controller {
     const stayD = this.danger(stay, 0, now);
     const stayC = placeCost(hp.x, hp.y, null);
     if (stayD === 0 && stayC < 0.5 && !wantLos) return { mx: 0, my: 0, touching: false };
-    // à l'arrêt on tire : petite prime à l'immobilité
-    let bestScore = stayD * 10 + stayC - 1.2;
+    // sans tir auto, on ne tire qu'à l'arrêt : forte prime à l'immobilité ; avec, une simple préférence (anti-agitation)
+    let bestScore = stayD * 10 + stayC - (h.autoFire ? STAY_BONUS_AUTOFIRE : STAY_BONUS_MANUAL);
     if (this.stuckT > 0.3) bestScore += 2;
 
     let best: Pt | null = null;
@@ -339,7 +365,7 @@ export class Bot implements Controller {
       if (prev && prev.mx === dir.x && prev.my === dir.y) blocked -= 0.4;
       // pas de côté : 0,2 s de marche puis arrêt (préféré : on recommence vite à tirer).
       // Le danger est ≥ 0 : inutile de l'évaluer si le confort seul ne peut pas battre le meilleur score.
-      const cStep = placeCost(pts[2 * STEP_END], pts[2 * STEP_END + 1], dir) - 0.3 + blocked;
+      const cStep = placeCost(pts[2 * STEP_END], pts[2 * STEP_END + 1], dir) - (h.autoFire ? 0 : 0.3) + blocked;
       if (cStep < bestScore - 1e-9) {
         const sc = this.danger(pts, STEP_END, now) * 10 + cStep;
         if (sc < bestScore - 1e-9) {

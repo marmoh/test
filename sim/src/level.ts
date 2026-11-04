@@ -1,6 +1,6 @@
 /** §7 Génération d'un niveau à partir d'une graine, et déroulé complet d'un niveau. */
 import { Arena, type RoomTemplate } from './arena.js';
-import { COLS, ROWS, ELITE, HEAL_BETWEEN_ROOMS, RARITY_WEIGHTS, SIM_DT, BUDGET, expectedTalentRank } from './constants.js';
+import { COLS, ROWS, ELITE, HEAL_BETWEEN_ROOMS, RARITY_WEIGHTS, SIM_DT, BUDGET, BOSS_LEVEL_PRE_ROOMS, AUTO_FIRE_DEFAULT, expectedTalentRank } from './constants.js';
 import {
   ENEMIES,
   SPAWN_WEIGHT,
@@ -15,7 +15,7 @@ import {
   type PowerId,
   type HeroId,
 } from './content.js';
-import { levelInfo, roomBudget, stars, type LevelKind } from './formulas.js';
+import { levelInfo, roomBudget, waveCap, stars, type LevelKind } from './formulas.js';
 import { talentsAtRank, NO_TALENTS, type Talents } from './hero.js';
 import { Rng, seedOf } from './rng.js';
 import { World, newHero, grantPower, type HeroInput, type HeroState, type SpawnSpec } from './world.js';
@@ -91,7 +91,7 @@ export function generateLevel(n: number, seed: number, templates: RoomTemplate[]
     const tpl = rng.pick(pool.length ? pool : templates);
     used.add(tpl.id);
     const arena = new Arena(tpl);
-    const budget = isBossRoom ? 0 : roomBudget(D, mult, i, budgetScale, roomCount);
+    const budget = isBossRoom ? 0 : roomBudget(D, mult, i, budgetScale * (kind === 'boss' ? BOSS_LEVEL_PRE_ROOMS : 1), roomCount);
     const types: EnemyType[] = tutorialType && i === 1 ? [tutorialType] : unlocked;
 
     // remplissage pondéré du budget
@@ -124,8 +124,8 @@ export function generateLevel(n: number, seed: number, templates: RoomTemplate[]
     }
     rng.shuffle(picks);
 
-    // vagues : ≤ BUDGET.waveCap points de budget simultanés
-    const waveCount = Math.max(1, Math.ceil(budget / BUDGET.waveCap));
+    // vagues : ≤ waveCap(D) points de budget simultanés
+    const waveCount = Math.max(1, Math.ceil(budget / waveCap(D, mult)));
     const waves: SpawnSpec[][] = Array.from({ length: waveCount }, () => []);
     picks.forEach((p, k) => waves[k % waveCount].push({ type: p.type, c: 0, r: 0, elite: p.elite || undefined }));
 
@@ -216,6 +216,7 @@ export interface RunOptions {
   /** Force le premier pouvoir choisi (test d'équilibrage). */
   forceFirstPower?: PowerId;
   timeLimit?: number;
+  /** Tir auto permanent ; défaut AUTO_FIRE_DEFAULT (true). */
   autoFire?: boolean;
   onStep?: (w: World) => void;
 }
@@ -239,7 +240,7 @@ export function talentsForLevel(n: number): Talents {
 
 export function runLevel(level: LevelDef, templates: Map<string, RoomTemplate>, ctl: Controller, opt: RunOptions = {}): RunResult {
   const talents = opt.talents ?? NO_TALENTS;
-  const hero = newHero(talents, {}, opt.autoFire);
+  const hero = newHero(talents, {}, opt.autoFire ?? AUTO_FIRE_DEFAULT);
   const heroDef = HEROES[opt.heroId ?? 'scout'];
   if (heroDef.startPower) grantPower(hero, heroDef.startPower);
   if (opt.scroll) grantPower(hero, opt.scroll);

@@ -80,6 +80,14 @@ export function roomBudget(D: number, mult: number, roomIndex1: number, budgetSc
   return Math.round(((k * (BUDGET.base + BUDGET.perD * D * mult * (0.8 + 0.2 * roomIndex1))) / expectedPower(D)) * budgetScale);
 }
 
+/**
+ * Points de budget présents simultanément au plus (taille d'une vague). Les dents de scie s'y appliquent aussi :
+ * un niveau difficile est plus dense, pas seulement plus long.
+ */
+export function waveCap(D: number, mult = 1): number {
+  return (BUDGET.waveCap + BUDGET.waveCapPerD * (D - 1)) * Math.sqrt(mult);
+}
+
 export function stars(won: boolean, hpFrac: number): 0 | 1 | 2 | 3 {
   if (!won) return 0;
   if (hpFrac >= STAR_THRESHOLDS.three) return 3;

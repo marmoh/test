@@ -11,9 +11,11 @@ import {
   SCALE,
   BOSS_BASE_HP,
   BOSS_BREATH,
+  BOSS_SLAM_MARGIN,
   MAX_PROJECTILES,
   MAX_ENEMIES,
   HEAL_ORB,
+  AUTO_FIRE_DEFAULT,
   ARENA_W,
   ARENA_H,
 } from './constants.js';
@@ -52,7 +54,7 @@ export interface HeroState {
   hitsTaken: number;
 }
 
-export function newHero(talents: Talents, powers: Partial<Record<PowerId, number>> = {}, autoFire = false): HeroState {
+export function newHero(talents: Talents, powers: Partial<Record<PowerId, number>> = {}, autoFire = AUTO_FIRE_DEFAULT): HeroState {
   const stats = computeStats(talents, powers);
   return {
     pos: { x: 0, y: 0 },
@@ -146,6 +148,8 @@ export interface Projectile {
   dead: boolean;
   /** Origine (type d'ennemi, « elite », « boss ») — diagnostic et rendu. */
   src?: string;
+  /** Ennemi tireur : les projectiles d'une même attaque partagent (ownerId, born). */
+  ownerId?: number;
 }
 
 export type HazardKind = 'circle' | 'line';
@@ -223,6 +227,9 @@ export class World {
   target: Enemy | null = null;
   /** Type de l'ennemi en cours de mise à jour (origine des tirs). */
   private shooter = '';
+  private readonly tgtIdx: number[] = [];
+  private readonly tgtD: number[] = [];
+  private shooterId = 0;
 
   constructor(setup: RoomSetup, hero: HeroState) {
     this.arena = setup.arena;
@@ -364,17 +371,21 @@ export class World {
     }
     const vx = mx * s.speed;
     const vy = my * s.speed;
-    const before = { x: h.pos.x, y: h.pos.y };
+    const bx = h.pos.x;
+    const by = h.pos.y;
     this.arena.moveCircle(h.pos, vx * dt, vy * dt, HERO.radius);
-    h.vel.x = (h.pos.x - before.x) / dt;
-    h.vel.y = (h.pos.y - before.y) / dt;
+    h.vel.x = (h.pos.x - bx) / dt;
+    h.vel.y = (h.pos.y - by) / dt;
     const speed = Math.hypot(h.vel.x, h.vel.y);
     const wasMoving = h.moving;
     h.moving = speed >= CONTROL.stillSpeed;
     if (h.moving) {
       h.stillTime = 0;
-      h.aimTime = 0;
-      h.facing = Math.atan2(h.vel.y, h.vel.x);
+      // tir auto permanent : le héros garde sa visée en marchant (il ne se retourne que si la cible change)
+      if (!h.autoFire) {
+        h.aimTime = 0;
+        h.facing = Math.atan2(h.vel.y, h.vel.x);
+      }
     } else {
       h.stillTime += dt;
       if (wasMoving && s.flashStep) h.flashT = 0.3;
@@ -403,11 +414,13 @@ export class World {
 
     // tir automatique
     const canFire = h.autoFire || !input.touching || h.stillTime >= CONTROL.stillTime;
+    const prevTarget = this.target;
     this.target = this.pickTarget();
     if (!this.target || !canFire) {
       h.aimTime = 0;
       return;
     }
+    if (this.target !== prevTarget) h.aimTime = 0; // se tourner vers la nouvelle cible (0,08 s)
     const tgt = this.target;
     const ang = Math.atan2(tgt.pos.y - h.pos.y, tgt.pos.x - h.pos.x);
     h.facing = ang;
@@ -418,24 +431,32 @@ export class World {
   }
 
   pickTarget(): Enemy | null {
+    // le plus proche en ligne de tir, à défaut le plus proche ; on teste la vue par distance croissante
+    // (même résultat qu'un balayage complet, beaucoup moins de lancers de rayon)
     const h = this.hero.pos;
-    let best: Enemy | null = null;
-    let bestD = Infinity;
-    let bestLos: Enemy | null = null;
-    let bestLosD = Infinity;
-    for (const e of this.enemies) {
+    const idx = this.tgtIdx;
+    const dist = this.tgtD;
+    let n = 0;
+    for (let i = 0; i < this.enemies.length; i++) {
+      const e = this.enemies[i];
       if (e.state === 'spawn' || e.hp <= 0) continue;
       const d = (e.pos.x - h.x) ** 2 + (e.pos.y - h.y) ** 2;
-      if (d < bestD) {
-        bestD = d;
-        best = e;
+      let j = n++;
+      while (j > 0 && dist[j - 1] > d) {
+        dist[j] = dist[j - 1];
+        idx[j] = idx[j - 1];
+        j--;
       }
-      if (d < bestLosD && this.arena.lineOfSight(h, e.pos, e.flying)) {
-        bestLosD = d;
-        bestLos = e;
-      }
+      dist[j] = d;
+      idx[j] = i;
     }
-    return bestLos ?? best;
+    if (n === 0) return null;
+    for (let k = 0; k < n; k++) {
+      const e = this.enemies[idx[k]];
+      // ligne de tir : les haies arrêtent les flèches du héros, même vers un volant (cf. DECISIONS)
+      if (this.arena.lineOfSight(h, e.pos)) return e;
+    }
+    return this.enemies[idx[0]];
   }
 
   private fireVolley(ang: number): void {
@@ -493,6 +514,7 @@ export class World {
       lastHit: -1,
       dead: false,
       src: this.shooter,
+      ownerId: this.shooterId,
     });
   }
 
@@ -533,6 +555,7 @@ export class World {
       return;
     }
     this.shooter = e.boss ? 'boss' : e.type;
+    this.shooterId = e.id;
     if (e.boss) return this.updateBoss(e, dt);
     const slow = e.slowT > 0 ? 0.7 : 1;
     const h = this.hero.pos;
@@ -900,20 +923,22 @@ export class World {
 
   private bossSlamTelegraph(e: Enemy, p: Pattern): void {
     const r = (p.radius ?? 120) * (1 + 0.05 * (e.boss?.variant ?? 0));
+    // télégraphe assez long pour sortir de la zone depuis le centre à vitesse de base (+ marge de réaction)
+    const warn = Math.max(0.8, (r + HERO.radius * 0.5) / HERO.speed + BOSS_SLAM_MARGIN);
     this.hazards.push({
       kind: 'circle',
       pos: { ...e.pos },
       radius: r,
       born: this.t,
-      activeAt: this.t + 0.8,
-      endAt: this.t + 0.95,
+      activeAt: this.t + warn,
+      endAt: this.t + warn + 0.15,
       dmg: e.shotDmg * 1.5,
       tick: 1,
-      nextTick: this.t + 0.8,
+      nextTick: this.t + warn,
       ownerId: e.id,
       src: this.shooter,
     });
-    e.t = 0.95;
+    e.t = warn + 0.15;
   }
 
   private bossZones(e: Enemy, p: Pattern, v: number): void {
@@ -986,7 +1011,7 @@ export class World {
         }
       }
     }
-    this.projectiles = this.projectiles.filter((p) => !p.dead);
+    compact(this.projectiles, (p) => !p.dead);
   }
 
   private heroHit(p: Projectile, e: Enemy): void {
@@ -1101,7 +1126,8 @@ export class World {
       z.nextTick += z.tick;
       if (Math.hypot(h.x - z.pos.x, h.y - z.pos.y) < z.radius + HERO.radius * 0.5) this.damageHero(z.dmg, 'zone:' + (z.src ?? '?'), z);
     }
-    this.hazards = this.hazards.filter((z) => this.t <= z.endAt);
+    const now = this.t;
+    compact(this.hazards, (z) => now <= z.endAt);
   }
 
   private updateOrbs(dt: number): void {
@@ -1162,4 +1188,11 @@ export class World {
     this.projectiles = this.projectiles.filter((p) => p.fromHero);
     this.hazards.length = 0;
   }
+}
+
+/** Filtre en place (évite une allocation par pas de simulation). */
+function compact<T>(arr: T[], keep: (x: T) => boolean): void {
+  let j = 0;
+  for (let i = 0; i < arr.length; i++) if (keep(arr[i])) arr[j++] = arr[i];
+  arr.length = j;
 }
