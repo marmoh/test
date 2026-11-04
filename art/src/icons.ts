@@ -12,6 +12,13 @@ const arrow = (x1: number, y1: number, x2: number, y2: number, c = '#f4ecd8') =>
 };
 
 export const POWER_ICONS: Record<string, string> = {
+  // famille Fil (Ciseaux de lune)
+  longThread: S(`<rect x="20" y="8" width="24" height="10" rx="3" fill="#a86a44" ${st}/><rect x="20" y="46" width="24" height="10" rx="3" fill="#a86a44" ${st}/><rect x="24" y="18" width="16" height="28" fill="#f4ecd8" ${st}/><path d="M24 24 H40 M24 30 H40 M24 36 H40 M24 42 H40" stroke="${ink}" stroke-width="2"/><path d="M40 40 C52 44 58 52 56 60" fill="none" stroke="${ink}" stroke-width="3" stroke-dasharray="5 3" stroke-linecap="round"/>`),
+  sharpScissors: S(`<circle cx="16" cy="48" r="9" fill="none" ${st}/><circle cx="16" cy="48" r="9" fill="none" stroke="${ink}" stroke-width="5"/><circle cx="46" cy="50" r="9" fill="none" stroke="${ink}" stroke-width="5"/><path d="M22 41 L54 6 L30 44 Z" fill="#dfe8f0" ${st}/><path d="M40 43 L12 8 L34 46 Z" fill="#dfe8f0" ${st}/><circle cx="32" cy="36" r="3" fill="${ink}"/>`),
+  steelThread: S(`<path d="M6 40 C18 20 30 52 42 30 C48 20 54 22 58 26" fill="none" stroke="${ink}" stroke-width="7" stroke-linecap="round"/><path d="M6 40 C18 20 30 52 42 30 C48 20 54 22 58 26" fill="none" stroke="#dfe8f0" stroke-width="3" stroke-linecap="round"/><path d="M30 6 L40 12 V24 C40 30 35 34 30 36 C25 34 20 30 20 24 V12 Z" fill="#5f8aff" ${st}/>`),
+  barbedThread: S(`<path d="M4 34 C16 22 28 46 40 30 C48 20 54 24 60 28" fill="none" stroke="${ink}" stroke-width="4" stroke-linecap="round"/><path d="M14 26 L10 18 M14 26 L22 20 M30 40 L26 48 M30 40 L38 46 M46 24 L44 14 M46 24 L54 18" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`),
+  confetti: S(`<path d="M10 14 L22 10 L20 22 Z" fill="#f4ecd8" ${st}/><path d="M40 8 L52 14 L42 22 Z" fill="${ink}" ${st}/><path d="M26 30 L38 28 L36 40 L24 42 Z" fill="#f4ecd8" ${st}/><path d="M8 44 L18 40 L20 52 Z" fill="${ink}" ${st}/><path d="M46 38 L56 44 L48 56 L40 48 Z" fill="#f4ecd8" ${st}/>`),
+  echoCut: S(`<path d="M32 10 C46 10 54 20 54 32 C54 44 44 54 32 54 C20 54 10 44 10 32" fill="none" stroke="${ink}" stroke-width="4" stroke-dasharray="6 4" stroke-linecap="round"/><path d="M32 20 C40 20 44 26 44 32 C44 40 38 44 32 44 C26 44 20 40 20 32" fill="none" stroke="${ink}" stroke-width="4" stroke-linecap="round"/><path d="M10 32 L4 24 M10 32 L18 26" stroke="${ink}" stroke-width="4" stroke-linecap="round"/>`),
   multishot: S(arrow(10, 44, 50, 14) + arrow(14, 54, 54, 24) + arrow(6, 34, 46, 4, '#ffe9a8')),
   rearShot: S(arrow(32, 32, 56, 32) + arrow(32, 32, 8, 32, '#ffe9a8') + `<circle cx="32" cy="32" r="6" fill="#3fc4b0" ${st}/>`),
   diagonals: S(arrow(32, 40, 54, 12) + arrow(32, 40, 10, 12) + arrow(32, 40, 32, 6, '#ffe9a8')),

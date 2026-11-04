@@ -348,6 +348,27 @@ export class Combat {
         case 'wave':
           if (ev.index > 0) this.banner = { text: `Vague ${ev.index + 1}`, sub: '', t: 0.25 };
           break;
+        case 'cut': {
+          this.cuts.push({ poly: ev.poly, t0: this.time, hits: ev.hits, echo: ev.echo });
+          const c = centroid(ev.poly);
+          if (ev.hits > 0) {
+            fx.text(c.x, c.y - 8, ev.echo ? 'Écho' : ev.hits > 1 ? `Découpe ×${ev.hits}` : 'Découpe', ev.hits > 1 ? DANGER : INK, ev.hits > 1 ? 22 : 18);
+            fx.shake(Math.min(0.6, 0.15 + 0.12 * ev.hits));
+            fx.hitStop(Math.min(0.12, 0.03 * ev.hits));
+          }
+          fx.scraps(c.x, c.y, 6 + ev.hits * 4, 1);
+          if (this.opt.haptics !== false) navigator.vibrate?.(ev.hits > 1 ? [12, 30, 18] : 12);
+          sfx(ev.echo ? 'snip' : 'cut');
+          break;
+        }
+        case 'snip':
+          fx.burst(ev.x, ev.y, INK, 5, 90, 'spark', 1.8, 0.3);
+          if (this.time - this.lastSnipText > 1.2) {
+            fx.text(ev.x, ev.y - 12, ev.by === 'moth' ? 'Fil grignoté' : 'Fil coupé', INK2, 12);
+            this.lastSnipText = this.time;
+          }
+          sfx('snip');
+          break;
         case 'cleared':
           fx.text(AW / 2, AH * 0.42, 'Salle nettoyée', INK, 22);
           fx.scraps(AW / 2, 14, 14, 1);
@@ -450,8 +471,10 @@ export class Combat {
       heartShape(ctx, o.pos.x, o.pos.y + bob, 7, UI.heal);
     }
 
-    // halo sous le héros quand le doigt est posé (§2)
     const hp = this.lerp(w.hero, a);
+    this.drawCuts(ctx, t);
+    this.drawThread(ctx, hp, t);
+    // halo sous le héros quand le doigt est posé (§2)
     if (this.anchor.touching) {
       ctx.save();
       ctx.globalAlpha = 0.5;
@@ -527,6 +550,139 @@ export class Combat {
     ctx.globalAlpha = 1;
   }
 
+  private cuts: { poly: { x: number; y: number }[]; t0: number; hits: number; echo: boolean }[] = [];
+  private lastSnipText = -9;
+
+  /** Le fil de découpe : une entaille dans le papier, plus pâle à mesure que l'encre sèche. */
+  private drawThread(ctx: Ctx, hp: { x: number; y: number }, t: number): void {
+    const w = this.world;
+    const th = w.hero.thread;
+    const life = 2.6 * w.hero.stats.threadLife;
+    // aide au départ : tant que la joueuse n'a jamais découpé, on lui montre où tracer
+    if (this.opt.level.n <= 3 && w.hero.cuts === 0 && !w.cleared && w.enemies.length) {
+      const e = w.enemies.reduce((a, b) => (Math.hypot(a.pos.x - hp.x, a.pos.y - hp.y) < Math.hypot(b.pos.x - hp.x, b.pos.y - hp.y) ? a : b));
+      ctx.save();
+      ctx.translate(e.pos.x, e.pos.y);
+      ctx.rotate(t * 0.8);
+      ctx.strokeStyle = alpha(JADE, 0.8);
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 8]);
+      ctx.beginPath();
+      ctx.arc(0, 0, 56, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = JADE;
+      ctx.beginPath();
+      ctx.moveTo(56, -7);
+      ctx.lineTo(63, 3);
+      ctx.lineTo(49, 3);
+      ctx.fill();
+      ctx.restore();
+      ctx.font = 'italic 700 13px "Alegreya Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = INK;
+      ctx.fillText('Encercle-le pour le découper', e.pos.x, e.pos.y + 76);
+    }
+    if (th.length < 1) return;
+    const pts = [...th.map((p) => ({ x: p.x, y: p.y, a: Math.max(0, 1 - (w.t - p.t) / life) })), { x: hp.x, y: hp.y, a: 1 }];
+    ctx.save();
+    ctx.lineCap = 'round';
+    // lumière qui passe par l'entaille, puis le trait d'encre en pointillés de ciseaux
+    for (let i = 1; i < pts.length; i++) {
+      const p0 = pts[i - 1];
+      const p1 = pts[i];
+      const k = (p0.a + p1.a) / 2;
+      ctx.strokeStyle = alpha(CUT, 0.75 * k);
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y);
+      ctx.lineTo(p1.x, p1.y);
+      ctx.stroke();
+    }
+    ctx.setLineDash([6, 4]);
+    ctx.lineDashOffset = -t * 30;
+    for (let i = 1; i < pts.length; i++) {
+      const p0 = pts[i - 1];
+      const p1 = pts[i];
+      const k = (p0.a + p1.a) / 2;
+      ctx.strokeStyle = alpha(INK, 0.25 + 0.75 * k);
+      ctx.lineWidth = 1.8 + 1.2 * k;
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y);
+      ctx.lineTo(p1.x, p1.y);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    // boucle presque fermée : on éclaire la zone qui va être découpée
+    if (th.length > 8) {
+      for (let i = 0; i < th.length - 6; i++) {
+        if (Math.hypot(th[i].x - hp.x, th[i].y - hp.y) > 26) continue;
+        const poly = [...th.slice(i).map((p) => ({ x: p.x, y: p.y })), hp];
+        let area = 0;
+        for (let k = 0, j = poly.length - 1; k < poly.length; j = k++) area += (poly[j].x - poly[k].x) * (poly[j].y + poly[k].y);
+        if (Math.abs(area / 2) < 1400) break;
+        ctx.fillStyle = alpha(CUT, 0.35 + 0.15 * Math.sin(t * 20));
+        ctx.beginPath();
+        poly.forEach((p, k) => (k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+        ctx.closePath();
+        ctx.fill();
+        circle(ctx, th[i].x, th[i].y, 5, JADE, INK, 1.5);
+        break;
+      }
+    }
+    ctx.restore();
+  }
+
+  /** Découpes : éclair de lumière, trou dans l'écran, puis le morceau de papier tombe en tournoyant. */
+  private drawCuts(ctx: Ctx, t: number): void {
+    const th = this.theme;
+    this.cuts = this.cuts.filter((c) => t - c.t0 < 1.1);
+    for (const c of this.cuts) {
+      const k = t - c.t0;
+      const cen = centroid(c.poly);
+      const path = (dx: number, dy: number, rot: number, sc: number) => {
+        ctx.beginPath();
+        c.poly.forEach((p, i) => {
+          const x = (p.x - cen.x) * sc;
+          const y = (p.y - cen.y) * sc;
+          const rx = x * Math.cos(rot) - y * Math.sin(rot) + cen.x + dx;
+          const ry = x * Math.sin(rot) + y * Math.cos(rot) + cen.y + dy;
+          if (i) ctx.lineTo(rx, ry);
+          else ctx.moveTo(rx, ry);
+        });
+        ctx.closePath();
+      };
+      ctx.save();
+      // le trou : on voit les coulisses, puis le papier se referme
+      const hole = Math.max(0, 1 - k / 0.9);
+      if (hole > 0 && !c.echo) {
+        path(0, 0, 0, 1);
+        ctx.fillStyle = alpha(INK, 0.55 * hole);
+        ctx.fill();
+      }
+      if (k < 0.12) {
+        path(0, 0, 0, 1);
+        ctx.fillStyle = alpha(CUT, 0.9 * (1 - k / 0.12));
+        ctx.fill();
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      } else if (!c.echo) {
+        const f = k - 0.12;
+        const a = Math.max(0, 1 - f / 0.95);
+        path(f * 30, 260 * f * f + 20 * f, f * 1.6 * (cen.x > AW / 2 ? 1 : -1), 1 - f * 0.35);
+        ctx.globalAlpha = a;
+        ctx.fillStyle = th.paper;
+        ctx.fill();
+        ctx.strokeStyle = INK;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
   private drawHero(ctx: Ctx, p: { x: number; y: number }, t: number): void {
     const h = this.world.hero;
     ctx.save();
@@ -547,7 +703,9 @@ export class Combat {
     if (h.flashT > 0) circle(ctx, 0, 0, 24, alpha(CUT, 0.6));
     const aiming = !h.moving && !!this.world.target;
     const state: AnimState = h.moving ? 'move' : 'idle';
-    PAINTERS[this.opt.heroId ?? 'scout'](ctx, { t, facing: h.facing, state, windup: 0, flash: 0, elite: false, seed: 0, aiming, blink: h.invuln > 0 });
+    const pose = { t, facing: h.facing, state, windup: 0, flash: 0, elite: false, seed: 0, aiming: !!this.world.target, blink: h.invuln > 0, cutting: h.cutT, hurt: this.fx.heroFlash };
+    void aiming;
+    (PAINTERS[this.opt.heroId ?? 'scout'] ?? PAINTERS.scout)(ctx, pose as Parameters<(typeof PAINTERS)['scout']>[1]);
     ctx.restore();
   }
 
@@ -565,7 +723,7 @@ export class Combat {
     if (flash > 0) this.flashes.set(e.id, Math.max(0, flash - dt * 6));
     const hd = Math.atan2(this.world.hero.pos.y - e.pos.y, this.world.hero.pos.x - e.pos.x);
     const facing = e.state === 'charge' ? Math.atan2(e.aim.y, e.aim.x) : hd;
-    const painter = e.boss ? PAINTERS[e.boss.archetype] : PAINTERS[e.type];
+    const painter = (e.boss ? PAINTERS[e.boss.archetype] : PAINTERS[e.type]) ?? PAINTERS.goblin;
     ctx.save();
     ctx.translate(p.x, p.y);
     if (e.state === 'spawn') {
@@ -746,30 +904,24 @@ export class Combat {
         ctx.fillStyle = alpha(INK, 0.5);
         ctx.fillRect(-16, -1, 10, 2);
       } else {
-        // flèche : trait de lumière qui traverse l'écran, empennage d'encre
-        ctx.strokeStyle = alpha(INK, 0.35);
-        ctx.lineWidth = 2;
+        // aiguille d'argent : fine, avec son chas, et un reflet de lumière
+        ctx.strokeStyle = alpha(INK, 0.3);
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(-26, 0);
-        ctx.lineTo(-8, 0);
-        ctx.stroke();
-        ctx.strokeStyle = INK;
-        ctx.lineWidth = 2.4;
-        ctx.beginPath();
-        ctx.moveTo(-10, 0);
-        ctx.lineTo(5, 0);
+        ctx.moveTo(-24, 0);
+        ctx.lineTo(-9, 0);
         ctx.stroke();
         ctx.fillStyle = INK;
         ctx.beginPath();
-        ctx.moveTo(9, 0);
-        ctx.lineTo(3, -4);
-        ctx.lineTo(3, 4);
+        ctx.moveTo(10, 0);
+        ctx.lineTo(-9, -2.2);
+        ctx.lineTo(-11, 0);
+        ctx.lineTo(-9, 2.2);
+        ctx.closePath();
         ctx.fill();
+        ctx.fillStyle = CUT;
         ctx.beginPath();
-        ctx.moveTo(-10, 0);
-        ctx.lineTo(-14, -4);
-        ctx.lineTo(-12, 0);
-        ctx.lineTo(-14, 4);
+        ctx.ellipse(-6.5, 0, 1.8, 0.8, 0, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
@@ -944,3 +1096,13 @@ function wait(ms: number): Promise<void> {
 
 void ellipse;
 void HERO;
+
+function centroid(poly: { x: number; y: number }[]): { x: number; y: number } {
+  let x = 0;
+  let y = 0;
+  for (const p of poly) {
+    x += p.x;
+    y += p.y;
+  }
+  return { x: x / poly.length, y: y / poly.length };
+}

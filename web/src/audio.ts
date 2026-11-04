@@ -96,6 +96,14 @@ export function sfx(name: string): void {
     case 'flip':
       noise(0.08, 0.06, 3000);
       break;
+    case 'cut':
+      noise(0.09, 0.12, 4200);
+      tone(1320, 0.12, 'triangle', 0.05, 0.5, 0.02);
+      tone(660, 0.18, 'sine', 0.05, 1.5, 0.06);
+      break;
+    case 'snip':
+      noise(0.04, 0.06, 5200);
+      break;
     case 'tap':
       tone(660, 0.05, 'triangle', 0.04, 1.2);
       break;
