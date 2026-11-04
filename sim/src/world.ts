@@ -16,6 +16,8 @@ import {
   MAX_ENEMIES,
   HEAL_ORB,
   POWER_TUNING,
+  THREAD,
+  SHOT_DMG_MULT,
   AUTO_FIRE_DEFAULT,
   ARENA_W,
   ARENA_H,
@@ -53,6 +55,17 @@ export interface HeroState {
   autoFire: boolean;
   damageTaken: number;
   hitsTaken: number;
+  /** Ciseaux de lune : fil de découpe (du plus ancien au plus récent point) */
+  thread: ThreadPoint[];
+  /** 1 → 0 juste après une découpe (animation) */
+  cutT: number;
+  cuts: number;
+}
+
+export interface ThreadPoint {
+  x: number;
+  y: number;
+  t: number;
 }
 
 export function newHero(talents: Talents, powers: Partial<Record<PowerId, number>> = {}, autoFire = AUTO_FIRE_DEFAULT): HeroState {
@@ -77,6 +90,9 @@ export function newHero(talents: Talents, powers: Partial<Record<PowerId, number
     autoFire,
     damageTaken: 0,
     hitsTaken: 0,
+    thread: [],
+    cutT: 0,
+    cuts: 0,
   };
 }
 
@@ -186,7 +202,9 @@ export type WorldEvent =
   | { e: 'dodge' }
   | { e: 'shield' }
   | { e: 'wave'; index: number }
-  | { e: 'cleared' };
+  | { e: 'cleared' }
+  | { e: 'cut'; poly: Vec[]; hits: number; echo: boolean }
+  | { e: 'snip'; x: number; y: number; by: string };
 
 export interface SpawnSpec {
   type: MinionType;
@@ -240,6 +258,8 @@ export class World {
     this.rng = new Rng(setup.seed);
     this.hero = hero;
     hero.pos = { ...this.arena.spawn };
+    hero.thread = [];
+    hero.cutT = 0;
     hero.vel = { x: 0, y: 0 };
     hero.invuln = 0;
     hero.stillTime = 1;
@@ -325,9 +345,13 @@ export class World {
     this.events.length = 0;
     this.t += dt;
     this.updateHero(input, dt);
+    this.updateThread();
     for (const e of this.enemies) this.updateEnemy(e, dt);
     this.separateEnemies();
+    this.threadContacts(dt);
     this.updateProjectiles(dt);
+    this.projectileSnips(dt);
+    this.updatePendingCuts();
     this.updateHazards();
     this.updateOrbs(dt);
     this.contactDamage();
@@ -477,7 +501,7 @@ export class World {
           pos: { x: h.pos.x - cy * off + cx * 10, y: h.pos.y + cx * off + cy * 10 },
           vel: { x: cx * HERO.projectileSpeed, y: cy * HERO.projectileSpeed },
           radius: HERO.projectileRadius,
-          dmg: s.damage * (s.pierce ? POWER_TUNING.pierceDmg : 1),
+          dmg: s.damage * SHOT_DMG_MULT * (s.pierce ? POWER_TUNING.pierceDmg : 1),
           fromHero: true,
           born: this.t,
           pierce: s.pierce,
@@ -646,14 +670,21 @@ export class World {
         }
         break;
       }
-      case 'wolf': {
+      case 'wolf':
+      case 'snipper': {
+        // le crabe-ciseaux vise le milieu du fil s'il est assez long, sinon l'héroïne
+        const th = this.hero.thread;
+        const aimAt = e.type === 'snipper' && th.length >= 10 ? th[th.length >> 1] : h;
+        const adx = aimAt.x - e.pos.x;
+        const ady = aimAt.y - e.pos.y;
+        const chargeSpeed = e.type === 'snipper' ? 360 : 420;
         if (e.state === 'move') {
           this.chase(e, e.speed * slow, dt);
           e.cd -= dt;
-          if (e.cd <= 0 && dist < 320 && this.arena.lineOfWalk(e.pos, h)) {
+          if (e.cd <= 0 && Math.hypot(adx, ady) < 320 && this.arena.lineOfWalk(e.pos, aimAt)) {
             e.state = 'windup';
             e.t = 0.6;
-            const dir = norm(dx, dy);
+            const dir = norm(adx, ady);
             e.aim = dir;
             const len = this.rayLength(e.pos, dir, 340, e.radius);
             e.chargeLeft = len;
@@ -664,7 +695,7 @@ export class World {
               radius: e.radius,
               born: this.t,
               activeAt: this.t + 0.6,
-              endAt: this.t + 0.6 + len / 420,
+              endAt: this.t + 0.6 + len / chargeSpeed,
               dmg: 0,
               tick: 0,
               nextTick: Infinity,
@@ -676,7 +707,7 @@ export class World {
           e.t -= dt;
           if (e.t <= 0) e.state = 'charge';
         } else if (e.state === 'charge') {
-          const step = Math.min(e.chargeLeft, 420 * dt);
+          const step = Math.min(e.chargeLeft, chargeSpeed * dt);
           this.arena.moveCircle(e.pos, e.aim.x * step, e.aim.y * step, e.radius);
           e.chargeLeft -= step;
           if (e.chargeLeft <= 0) {
@@ -687,7 +718,7 @@ export class World {
           e.t -= dt;
           if (e.t <= 0) {
             e.state = 'move';
-            e.cd = ENEMIES.wolf.period;
+            e.cd = ENEMIES[e.type].period;
           }
         }
         break;
@@ -696,6 +727,41 @@ export class World {
       case 'jellySmall':
         this.chase(e, e.speed * slow, dt);
         break;
+      case 'moth': {
+        // la mite file vers le fil et le grignote ; sans fil, elle volette autour de l'héroïne
+        if (e.state === 'windup') {
+          e.t -= dt;
+          if (e.t <= 0) e.state = 'move';
+          break;
+        }
+        const th = this.hero.thread;
+        let tx = h.x;
+        let ty = h.y;
+        let ti = -1;
+        if (th.length >= 4) {
+          let bd = Infinity;
+          for (let i = 0; i < th.length; i++) {
+            const d = (th[i].x - e.pos.x) ** 2 + (th[i].y - e.pos.y) ** 2;
+            if (d < bd) {
+              bd = d;
+              ti = i;
+            }
+          }
+          tx = th[ti].x;
+          ty = th[ti].y;
+        }
+        const dir = norm(tx - e.pos.x, ty - e.pos.y);
+        const w = Math.sin(this.t * 6 + e.id) * 0.7;
+        const n2 = norm(dir.x - dir.y * w, dir.y + dir.x * w);
+        const sp = e.speed * slow * (ti < 0 && dist < 80 ? 0.5 : 1);
+        this.arena.moveCircle(e.pos, n2.x * sp * dt, n2.y * sp * dt, e.radius, true);
+        if (ti >= 0 && Math.hypot(tx - e.pos.x, ty - e.pos.y) < e.radius + 4) {
+          this.snipThread(ti, 'moth');
+          e.state = 'windup';
+          e.t = 0.6;
+        }
+        break;
+      }
       case 'bat': {
         if (e.state === 'move') {
           // vol en zigzag vers le héros
@@ -1182,6 +1248,128 @@ export class World {
     }
   }
 
+  // ───────────────────────────── Ciseaux de lune ─────────────────────────────
+
+  private pendingCuts: { poly: Vec[]; at: number; mult: number }[] = [];
+
+  /** Déroule le fil derrière l'héroïne, fait sécher les vieux points et détecte les boucles fermées. */
+  private updateThread(): void {
+    const h = this.hero;
+    h.cutT = Math.max(0, h.cutT - SIM_DT * 2.5);
+    const th = h.thread;
+    const life = THREAD.life * h.stats.threadLife;
+    let drop = 0;
+    while (drop < th.length && this.t - th[drop].t > life) drop++;
+    if (drop) th.splice(0, drop);
+    if (this.cleared) {
+      th.length = 0;
+      return;
+    }
+    const last = th[th.length - 1];
+    const p = h.pos;
+    if (last && Math.hypot(p.x - last.x, p.y - last.y) < THREAD.spacing) return;
+    if (!h.moving) return;
+    if (last && th.length >= 4) {
+      // le nouveau segment (dernier point → héroïne) recoupe-t-il un segment plus ancien ?
+      for (let i = th.length - 3; i >= 0; i--) {
+        const x = segX(th[i], th[i + 1], last, p);
+        if (!x) continue;
+        const poly: Vec[] = [x];
+        for (let k = i + 1; k < th.length; k++) poly.push({ x: th[k].x, y: th[k].y });
+        poly.push({ x: p.x, y: p.y });
+        if (Math.abs(polyArea(poly)) >= THREAD.minArea) {
+          this.performCut(poly, 1, false);
+          th.length = 0;
+          th.push({ x: p.x, y: p.y, t: this.t });
+          return;
+        }
+        break;
+      }
+    }
+    th.push({ x: p.x, y: p.y, t: this.t });
+    if (th.length > THREAD.maxPoints) th.splice(0, th.length - THREAD.maxPoints);
+  }
+
+  /** Découpe tout ce que la boucle entoure : ennemis (dégâts), projectiles ennemis (effacés). */
+  performCut(poly: Vec[], mult: number, echo: boolean): void {
+    const h = this.hero;
+    const s = h.stats;
+    const inside = this.enemies.filter((e) => e.hp > 0 && e.state !== 'spawn' && pointInPoly(e.pos, poly));
+    const base = THREAD.cutBase * (s.damage / HERO.damage) * s.cutMult * mult * (1 + THREAD.comboPerExtra * Math.max(0, inside.length - 1));
+    for (const e of inside) {
+      const crit = s.critChance > 0 && this.rng.chance(s.critChance);
+      let dmg = base * (crit ? 2 : 1);
+      if (e.elite || e.boss) dmg *= s.eliteMult;
+      this.damageEnemy(e, dmg, true, crit);
+    }
+    if (s.confetti) {
+      for (const e of inside) {
+        if (e.hp > 0) continue;
+        for (const o of this.enemies) {
+          if (o.hp > 0 && o !== e && Math.hypot(o.pos.x - e.pos.x, o.pos.y - e.pos.y) < THREAD.confettiRadius + o.radius) this.damageEnemy(o, base * THREAD.confettiFrac, false, false);
+        }
+      }
+    }
+    for (const p of this.projectiles) if (!p.fromHero && pointInPoly(p.pos, poly)) p.dead = true;
+    this.projectiles = this.projectiles.filter((p) => !p.dead);
+    if (!echo) {
+      h.cutT = 1;
+      h.cuts++;
+      if (s.echoCut) this.pendingCuts.push({ poly, at: this.t + THREAD.echoDelay, mult: THREAD.echoMult });
+    }
+    this.events.push({ e: 'cut', poly, hits: inside.length, echo });
+  }
+
+  private updatePendingCuts(): void {
+    if (!this.pendingCuts.length) return;
+    const due = this.pendingCuts.filter((c) => c.at <= this.t);
+    this.pendingCuts = this.pendingCuts.filter((c) => c.at > this.t);
+    for (const c of due) this.performCut(c.poly, c.mult, true);
+  }
+
+  /** Coupe le fil au segment i : la partie la plus ancienne est perdue. */
+  snipThread(i: number, by: string): void {
+    const th = this.hero.thread;
+    if (i < 0 || i >= th.length) return;
+    this.events.push({ e: 'snip', x: th[i].x, y: th[i].y, by });
+    th.splice(0, i + 1);
+  }
+
+  /** Les ennemis au sol (et les mites) qui marchent sur le fil le coupent — ou se blessent s'il est barbelé. */
+  private threadContacts(dt: number): void {
+    const th = this.hero.thread;
+    if (th.length < 2) return;
+    const s = this.hero.stats;
+    for (const e of this.enemies) {
+      if (e.state === 'spawn' || e.hp <= 0) continue;
+      if (e.flying && e.type !== 'moth') continue;
+      // on ignore les tout derniers segments, collés à l'héroïne
+      for (let i = th.length - 4; i >= 0; i--) {
+        if (segDist2(e.pos, th[i], th[i + 1]) > e.radius * e.radius) continue;
+        if (s.barbedThread) this.damageEnemy(e, THREAD.barbedDps * (s.damage / HERO.damage) * dt, false, false);
+        else this.snipThread(i, e.type);
+        break;
+      }
+    }
+  }
+
+  /** Les projectiles ennemis qui traversent le fil le coupent (sauf fil d'acier). */
+  private projectileSnips(dt: number): void {
+    const th = this.hero.thread;
+    if (th.length < 2 || this.hero.stats.steelThread) return;
+    for (const p of this.projectiles) {
+      if (p.fromHero) continue;
+      const a = { x: p.pos.x - p.vel.x * dt, y: p.pos.y - p.vel.y * dt };
+      for (let i = th.length - 3; i >= 0; i--) {
+        if (segX(th[i], th[i + 1], a, p.pos)) {
+          this.snipThread(i, 'shot');
+          break;
+        }
+      }
+      if (th.length < 2) return;
+    }
+  }
+
   /** Continuer (§11) : rend 50 % des PV et efface les projectiles. */
   revive(): void {
     this.hero.hp = Math.round(this.hero.stats.maxHp * 0.5);
@@ -1197,4 +1385,47 @@ function compact<T>(arr: T[], keep: (x: T) => boolean): void {
   let j = 0;
   for (let i = 0; i < arr.length; i++) if (keep(arr[i])) arr[j++] = arr[i];
   arr.length = j;
+}
+
+// ───────────────────────────── géométrie du fil ─────────────────────────────
+
+/** Point d'intersection des segments [a,b] et [c,d], ou null. */
+export function segX(a: Vec, b: Vec, c: Vec, d: Vec): Vec | null {
+  const r1x = b.x - a.x;
+  const r1y = b.y - a.y;
+  const r2x = d.x - c.x;
+  const r2y = d.y - c.y;
+  const den = r1x * r2y - r1y * r2x;
+  if (Math.abs(den) < 1e-9) return null;
+  const t = ((c.x - a.x) * r2y - (c.y - a.y) * r2x) / den;
+  const u = ((c.x - a.x) * r1y - (c.y - a.y) * r1x) / den;
+  if (t < 0 || t > 1 || u < 0 || u > 1) return null;
+  return { x: a.x + r1x * t, y: a.y + r1y * t };
+}
+
+export function polyArea(poly: Vec[]): number {
+  let s = 0;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) s += (poly[j].x - poly[i].x) * (poly[j].y + poly[i].y);
+  return s / 2;
+}
+
+export function pointInPoly(p: Vec, poly: Vec[]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i];
+    const b = poly[j];
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+  }
+  return inside;
+}
+
+function segDist2(p: Vec, a: Vec, b: Vec): number {
+  const vx = b.x - a.x;
+  const vy = b.y - a.y;
+  const l2 = vx * vx + vy * vy;
+  let t = l2 > 0 ? ((p.x - a.x) * vx + (p.y - a.y) * vy) / l2 : 0;
+  t = t < 0 ? 0 : t > 1 ? 1 : t;
+  const dx = a.x + vx * t - p.x;
+  const dy = a.y + vy * t - p.y;
+  return dx * dx + dy * dy;
 }

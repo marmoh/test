@@ -123,3 +123,30 @@ export const POWER_TUNING = {
   orbDamage: 120, // (80)
   speedPerStack: 0.2, // (15 %)
 } as const;
+
+/**
+ * Ciseaux de lune (DECISIONS #28) : en se déplaçant, l'héroïne déroule un fil de découpe.
+ * Refermer une boucle découpe du papier tout ce qu'elle entoure.
+ */
+export const THREAD = {
+  /** distance entre deux points du fil (pt) */
+  spacing: 9,
+  /** durée de vie d'un point avant que l'encre ne sèche (s) */
+  life: 2.6,
+  maxPoints: 110,
+  /** aire minimale d'une boucle (pt²) : évite les découpes accidentelles en zigzag */
+  minArea: 1400,
+  /** dégâts de base d'une découpe, × dégâts du héros / 100 */
+  cutBase: 300,
+  /** bonus par ennemi supplémentaire pris dans la même boucle */
+  comboPerExtra: 0.2,
+  /** dégâts du fil barbelé (par seconde de contact, × dégâts du héros / 100) */
+  barbedDps: 40,
+  echoDelay: 0.5,
+  echoMult: 0.5,
+  confettiFrac: 0.4,
+  confettiRadius: 72,
+} as const;
+
+/** Le tir automatique d'aiguilles devient l'attaque secondaire. */
+export const SHOT_DMG_MULT = 0.5;

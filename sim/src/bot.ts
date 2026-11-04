@@ -26,9 +26,9 @@ export const BOTS: Record<BotName, BotProfile> = {
 
 /** « Dégâts d'abord » : ordre de préférence du bot moyen. */
 const DAMAGE_FIRST: PowerId[] = [
-  'damage', 'attackSpeed', 'multishot', 'crit', 'ricochet', 'chain', 'pierce', 'diagonals', 'flame', 'poison',
-  'eliteSlayer', 'sideShots', 'rearShot', 'blast', 'orb', 'frost', 'wallBounce', 'maxHp', 'lifesteal', 'shield',
-  'speed', 'dodge', 'flashStep', 'magnet',
+  'damage', 'sharpScissors', 'echoCut', 'attackSpeed', 'multishot', 'crit', 'confetti', 'ricochet', 'chain', 'pierce',
+  'diagonals', 'flame', 'poison', 'eliteSlayer', 'barbedThread', 'longThread', 'steelThread', 'orb', 'frost', 'maxHp',
+  'lifesteal', 'shield', 'speed', 'dodge', 'sideShots', 'rearShot', 'blast', 'wallBounce', 'flashStep', 'magnet',
 ];
 
 /** Valeur estimée (bot expert) ; ajustée au contexte dans `bestChoice`. */
@@ -36,6 +36,7 @@ const VALUE: Record<PowerId, number> = {
   multishot: 9, ricochet: 8.5, attackSpeed: 8, damage: 7.5, chain: 7.5, crit: 6.5, diagonals: 6.5, pierce: 6,
   maxHp: 6, shield: 6, orb: 5.5, flame: 5.5, poison: 5.5, eliteSlayer: 4, sideShots: 5, frost: 5, blast: 4.5,
   dodge: 5, rearShot: 4, lifesteal: 4, wallBounce: 3.5, flashStep: 3.5, speed: 3, magnet: 2,
+  sharpScissors: 7.5, echoCut: 8, longThread: 6, steelThread: 6, barbedThread: 5.5, confetti: 6,
 };
 
 const DIRS = Array.from({ length: 16 }, (_, i) => ({ x: Math.cos((i * Math.PI) / 8), y: Math.sin((i * Math.PI) / 8) }));

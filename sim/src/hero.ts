@@ -40,6 +40,13 @@ export interface HeroStats {
   dodge: number;
   flashStep: boolean;
   magnet: boolean;
+  /** Ciseaux de lune */
+  threadLife: number;
+  steelThread: boolean;
+  barbedThread: boolean;
+  cutMult: number;
+  echoCut: boolean;
+  confetti: boolean;
 }
 
 export function computeStats(talents: Talents, powers: Partial<Record<PowerId, number>>): HeroStats {
@@ -72,5 +79,11 @@ export function computeStats(talents: Talents, powers: Partial<Record<PowerId, n
     dodge: n('dodge') > 0 ? 0.1 : 0,
     flashStep: n('flashStep') > 0,
     magnet: n('magnet') > 0,
+    threadLife: 1 + 0.5 * n('longThread'),
+    steelThread: n('steelThread') > 0,
+    barbedThread: n('barbedThread') > 0,
+    cutMult: 1 + 0.3 * n('sharpScissors'),
+    echoCut: n('echoCut') > 0,
+    confetti: n('confetti') > 0,
   };
 }

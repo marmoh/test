@@ -1,6 +1,6 @@
 /** §5 et §6 : définitions des ennemis, boss et pouvoirs. */
 
-export type EnemyType = 'goblin' | 'mushroom' | 'wolf' | 'skeleton' | 'jelly' | 'totem' | 'bat' | 'mage';
+export type EnemyType = 'goblin' | 'mushroom' | 'wolf' | 'skeleton' | 'jelly' | 'totem' | 'bat' | 'mage' | 'moth' | 'snipper';
 export type MinionType = EnemyType | 'jellySmall';
 
 export interface EnemyDef {
@@ -28,28 +28,30 @@ export const ENEMIES: Record<MinionType, EnemyDef> = {
   totem: { type: 'totem', name: 'Totem runique', hp: 500, contact: 0, speed: 0, radius: 18, flying: false, shotDmg: 60, cost: 4, period: 2 },
   bat: { type: 'bat', name: 'Chauve-souris', hp: 120, contact: 70, speed: 140, radius: 12, flying: true, shotDmg: 0, cost: 2, period: 2 },
   mage: { type: 'mage', name: 'Mage de braise', hp: 340, contact: 50, speed: 50, radius: 15, flying: false, shotDmg: 60, cost: 5, period: 3.4 },
+  // Ciseaux de lune : ennemis qui s'en prennent au fil de découpe
+  moth: { type: 'moth', name: 'Mite de papier', hp: 140, contact: 40, speed: 105, radius: 12, flying: true, shotDmg: 0, cost: 2, period: 0.6 },
+  snipper: { type: 'snipper', name: 'Crabe-ciseaux', hp: 320, contact: 90, speed: 62, radius: 16, flying: false, shotDmg: 0, cost: 3, period: 3 },
 };
 
 /**
- * Ordre d'apparition : 1 nouveau type tous les 2 chapitres (ch. 1, 3, 5 … 15).
- * Le chapitre 1 démarre avec le gobelin seul.
+ * Ordre d'apparition : un nouveau type à chaque chapitre (DECISIONS #29), introduit seul dans la
+ * salle tutoriel du niveau p = 1. La mite (chapitre 2) apprend à protéger son fil.
  */
-export const UNLOCK_ORDER: EnemyType[] = ['goblin', 'jelly', 'bat', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage'];
+export const UNLOCK_ORDER: EnemyType[] = ['goblin', 'moth', 'jelly', 'bat', 'snipper', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage'];
 
 export function unlockedEnemies(chapter: number): EnemyType[] {
-  const count = Math.min(UNLOCK_ORDER.length, Math.floor((chapter - 1) / 2) + 1);
-  return UNLOCK_ORDER.slice(0, count);
+  return UNLOCK_ORDER.slice(0, Math.min(UNLOCK_ORDER.length, chapter));
 }
 
 /** Type introduit au début de ce chapitre (salle tutoriel), ou null. */
 export function newEnemyAt(chapter: number): EnemyType | null {
-  if (chapter % 2 === 0) return null;
-  const idx = (chapter - 1) / 2;
-  return idx < UNLOCK_ORDER.length ? UNLOCK_ORDER[idx] : null;
+  return chapter - 1 < UNLOCK_ORDER.length ? UNLOCK_ORDER[chapter - 1] : null;
 }
 
 /** Poids de tirage dans le remplissage du budget. */
 export const SPAWN_WEIGHT: Record<EnemyType, number> = {
+  moth: 0.7,
+  snipper: 0.6,
   goblin: 1.2,
   mushroom: 0.8,
   wolf: 0.7,
@@ -168,7 +170,7 @@ export const BOSSES: Record<BossArchetype, BossDef> = {
 // ──────────────────────────── Pouvoirs ────────────────────────────
 
 export type Rarity = 'common' | 'rare' | 'epic';
-export type PowerFamily = 'shot' | 'power' | 'element' | 'defense' | 'mobility';
+export type PowerFamily = 'thread' | 'shot' | 'power' | 'element' | 'defense' | 'mobility';
 
 export type PowerId =
   | 'multishot'
@@ -194,7 +196,14 @@ export type PowerId =
   | 'speed'
   | 'dodge'
   | 'flashStep'
-  | 'magnet';
+  | 'magnet'
+  // famille Fil (Ciseaux de lune)
+  | 'longThread'
+  | 'steelThread'
+  | 'barbedThread'
+  | 'sharpScissors'
+  | 'echoCut'
+  | 'confetti';
 
 export interface PowerDef {
   id: PowerId;
@@ -206,31 +215,35 @@ export interface PowerDef {
   desc: string;
 }
 
+/**
+ * 24 pouvoirs (DECISIONS #28) : la famille Fil remplace les tirs « à la Archero » (tir arrière, tirs latéraux,
+ * rebond mural) ; Déflagration, Aimant à soins et Pas éclair sont retirés. 12 communs, 8 rares, 4 épiques.
+ */
 export const POWERS: PowerDef[] = [
-  { id: 'multishot', name: 'Multitir', family: 'shot', rarity: 'epic', maxStacks: 2, desc: '+1 flèche, −40 % de dégâts' },
-  { id: 'rearShot', name: 'Tir arrière', family: 'shot', rarity: 'common', maxStacks: 1, desc: 'Une flèche part aussi vers l’arrière' },
-  { id: 'diagonals', name: 'Diagonales', family: 'shot', rarity: 'rare', maxStacks: 1, desc: 'Deux flèches en diagonale' },
-  { id: 'sideShots', name: 'Tirs latéraux', family: 'shot', rarity: 'common', maxStacks: 1, desc: 'Deux flèches sur les côtés' },
+  { id: 'longThread', name: 'Fil long', family: 'thread', rarity: 'common', maxStacks: 2, desc: 'Le fil sèche 50 % moins vite' },
+  { id: 'sharpScissors', name: 'Ciseaux affûtés', family: 'thread', rarity: 'common', maxStacks: 3, desc: '+30 % de dégâts de découpe' },
+  { id: 'steelThread', name: "Fil d'acier", family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Les projectiles ne coupent plus le fil' },
+  { id: 'barbedThread', name: 'Fil barbelé', family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Le fil blesse qui le touche au lieu de céder' },
+  { id: 'confetti', name: 'Confettis', family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Les découpés éclatent sur leurs voisins (40 %)' },
+  { id: 'echoCut', name: 'Écho', family: 'thread', rarity: 'epic', maxStacks: 1, desc: 'Chaque découpe se répète 0,5 s après (50 %)' },
+  { id: 'multishot', name: 'Multitir', family: 'shot', rarity: 'epic', maxStacks: 2, desc: '+1 aiguille, −40 % de dégâts' },
   { id: 'ricochet', name: 'Ricochet', family: 'shot', rarity: 'epic', maxStacks: 1, desc: 'Rebondit sur un 2e ennemi (25 %)' },
   { id: 'pierce', name: 'Perforation', family: 'shot', rarity: 'rare', maxStacks: 1, desc: 'Traverse les ennemis (−15 % dégâts)' },
-  { id: 'wallBounce', name: 'Rebond mural', family: 'shot', rarity: 'common', maxStacks: 1, desc: 'La flèche rebondit sur les murs' },
+  { id: 'diagonals', name: 'Diagonales', family: 'shot', rarity: 'rare', maxStacks: 1, desc: 'Deux aiguilles en diagonale' },
   { id: 'attackSpeed', name: 'Cadence +25 %', family: 'power', rarity: 'common', maxStacks: 3, desc: 'Tire 25 % plus vite' },
-  { id: 'damage', name: 'Dégâts +20 %', family: 'power', rarity: 'common', maxStacks: 3, desc: '+20 % de dégâts' },
+  { id: 'damage', name: 'Dégâts +20 %', family: 'power', rarity: 'common', maxStacks: 3, desc: '+20 % de dégâts (aiguilles et découpes)' },
   { id: 'crit', name: 'Critique', family: 'power', rarity: 'rare', maxStacks: 2, desc: '15 % de chances de doubler les dégâts' },
-  { id: 'eliteSlayer', name: "Tueur d'élites", family: 'power', rarity: 'rare', maxStacks: 1, desc: '+50 % contre élites et boss' },
+  { id: 'eliteSlayer', name: "Tueur d'élites", family: 'power', rarity: 'common', maxStacks: 1, desc: '+50 % contre élites et boss' },
   { id: 'flame', name: 'Flamme', family: 'element', rarity: 'common', maxStacks: 1, desc: 'Brûle : 20 %/s pendant 2 s' },
   { id: 'frost', name: 'Givre', family: 'element', rarity: 'common', maxStacks: 1, desc: 'Ralentit de 40 % pendant 2 s' },
   { id: 'chain', name: 'Foudre en chaîne', family: 'element', rarity: 'epic', maxStacks: 1, desc: 'Arc sur 2 cibles (20 %)' },
   { id: 'poison', name: 'Poison', family: 'element', rarity: 'common', maxStacks: 1, desc: 'Poison cumulable (8 %/s par dose)' },
-  { id: 'blast', name: 'Déflagration', family: 'element', rarity: 'rare', maxStacks: 1, desc: 'Les ennemis tués explosent (50 %)' },
-  { id: 'orb', name: 'Orbe gardien', family: 'defense', rarity: 'epic', maxStacks: 1, desc: 'Un orbe tourne et inflige 120 dégâts' },
+  { id: 'orb', name: 'Orbe gardien', family: 'defense', rarity: 'rare', maxStacks: 1, desc: 'Un orbe tourne et inflige 120 dégâts' },
   { id: 'shield', name: 'Bouclier', family: 'defense', rarity: 'common', maxStacks: 1, desc: 'Absorbe 1 coup toutes les 20 s' },
-  { id: 'lifesteal', name: 'Vol de vie', family: 'defense', rarity: 'rare', maxStacks: 1, desc: 'Soigne de 2 % des dégâts infligés' },
+  { id: 'lifesteal', name: 'Vol de vie', family: 'defense', rarity: 'common', maxStacks: 1, desc: 'Soigne de 2 % des dégâts infligés' },
   { id: 'maxHp', name: 'PV max +20 %', family: 'defense', rarity: 'common', maxStacks: 3, desc: '+20 % PV max et soigne d’autant' },
   { id: 'speed', name: 'Vitesse +20 %', family: 'mobility', rarity: 'common', maxStacks: 2, desc: 'Déplacement 20 % plus rapide' },
   { id: 'dodge', name: 'Esquive', family: 'mobility', rarity: 'rare', maxStacks: 1, desc: '10 % de chances d’éviter un coup' },
-  { id: 'flashStep', name: 'Pas éclair', family: 'mobility', rarity: 'rare', maxStacks: 1, desc: 'Invulnérable 0,3 s après un arrêt' },
-  { id: 'magnet', name: 'Aimant à soins', family: 'mobility', rarity: 'common', maxStacks: 1, desc: 'Attire les orbes de soin (+50 %)' },
 ];
 
 export const POWER_BY_ID: Record<PowerId, PowerDef> = Object.fromEntries(POWERS.map((p) => [p.id, p])) as Record<PowerId, PowerDef>;
