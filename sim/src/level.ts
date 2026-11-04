@@ -232,6 +232,9 @@ export interface RunResult {
   powers: PowerId[];
   hitsTaken: number;
   timeout: boolean;
+  /** Instrumentation : découpes réussies et dégâts effectifs par source. */
+  cuts: number;
+  dmgBy: { cut: number; shot: number; other: number };
 }
 
 export function talentsForLevel(n: number): Talents {
@@ -287,5 +290,5 @@ export function runLevel(level: LevelDef, templates: Map<string, RoomTemplate>, 
 function result(won: boolean, hero: HeroState, seconds: number, kills: number, rooms: number, powers: PowerId[], timeout: boolean): RunResult {
   const hpLeft = Math.max(0, hero.hp);
   const hpFrac = hpLeft / hero.stats.maxHp;
-  return { won, hpFrac, hpLeft, seconds, kills, stars: stars(won, hpFrac), roomsCleared: rooms, powers, hitsTaken: hero.hitsTaken, timeout };
+  return { won, hpFrac, hpLeft, seconds, kills, stars: stars(won, hpFrac), roomsCleared: rooms, powers, hitsTaken: hero.hitsTaken, timeout, cuts: hero.cuts, dmgBy: { ...hero.dmgBy } };
 }

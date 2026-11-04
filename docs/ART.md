@@ -27,11 +27,27 @@ L'eau et la lave sont des « gels » colorés vus à travers une découpe.
 - L'héroïne est la seule figure teintée : on la retrouve d'un coup d'œil.
 - Pas de halos ni de dégradés lumineux sur les personnages : la lumière, c'est le papier.
 
-## Marionnettes (`art/src/characters.ts`)
-Les couleurs de dessin sont projetées sur deux encres (`puppet()`), les yeux sont des trous de lumière avec une pupille.
-Poses : `idle`, `move`, `windup` (anneau vermillon qui se resserre), `charge`, `recover`, `spawn`, `breath`
-(boss essoufflé : étoiles découpées qui tournent = ouverture). Élites : couronne et pointillés d'or à la feuille.
-Les mêmes dessins produisent les atlas iOS (`pnpm art:atlas`).
+## Marionnettes articulées (`art/src/rig.ts`, `heroes.ts`, `monsters.ts`, `bosses.ts`)
+Chaque personnage est fait de pièces d'encre épinglées (rivets de lumière aux articulations) et percées de dentelle,
+comme une vraie marionnette d'ombre. Couleurs projetées sur deux encres ; yeux = trous de lumière.
+Poses : `idle`, `move`, `windup` (0→1, signal propre à chaque ennemi), `charge`, `recover`, `spawn` (descend au bout d'un fil),
+`breath` (boss affaissé = ouverture), et champs optionnels `release` (1→0 en 0,25 s : coup porté), `hurt` (1→0 : recul),
+`dying` (0→1 en 0,5 s : les épingles sautent, les pièces tombent), `cutting` (héros, 1→0 : coup de ciseaux après une boucle).
+
+- **L'Éclaireuse** : aiguille-arc d'argent (le fil passe par le chas), bobine dans le dos qui tourne en marchant,
+  seule marionnette teintée (cape, capuche et jupe jade).
+- **Mite de papier** : ailes à ocelles découpées, antennes plumeuses, mandibules vermillon quand elle grignote le fil.
+- **Crabe-ciseaux** : pinces en lames de ciseaux, ouvertes et bordées de vermillon avant la charge.
+Les mêmes dessins produisent les atlas iOS (`pnpm art:atlas`, y compris les poses `death` et `cut`).
+
+## Décor
+Par royaume : silhouettes lointaines (fougères, roseaux, cactus et ruines, aiguilles de glace, arbres calcinés),
+rochers et haies propres à chaque royaume, eau et lave en bandes de papier ondulées, cadre de scène à appliques.
+`paintDecorAnim` anime une couche légère : herbes qui ondulent, petits décors suspendus à des fils, flammes des appliques.
+
+## Ciseaux de lune (rendu du fil)
+Le fil est une entaille lumineuse doublée de pointillés d'encre, qui pâlit en séchant. Boucle presque fermée : la zone
+s'éclaire. Découpe : éclair de lumière, trou sombre (on voit les coulisses) puis le morceau de papier tombe en tournoyant.
 
 ## Motion design
 - Entrée de salle : ouverture en iris, puis une étiquette de papier descend au bout de deux fils.

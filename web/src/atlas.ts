@@ -12,6 +12,8 @@ export interface FrameSpec {
   variant?: number;
   aiming?: boolean;
   elite?: boolean;
+  dyingFrames?: boolean;
+  cuttingFrames?: boolean;
 }
 
 function renderFrame(f: FrameSpec, i: number, scale: number): string {
@@ -20,7 +22,8 @@ function renderFrame(f: FrameSpec, i: number, scale: number): string {
   const ctx = c.getContext('2d')!;
   ctx.setTransform(scale, 0, 0, scale, (f.size * scale) / 2, (f.size * scale) / 2 + 4 * scale);
   const windup = f.state === 'windup' ? i / Math.max(1, f.frames - 1) : 0;
-  PAINTERS[f.name](ctx, { t: (i / f.frames) * f.loop, facing: 0, state: f.state, windup, flash: 0, elite: !!f.elite, seed: 0, variant: f.variant, aiming: f.aiming });
+  const k = i / Math.max(1, f.frames - 1);
+  PAINTERS[f.name](ctx, { t: (i / f.frames) * f.loop, facing: 0, state: f.state, windup, flash: 0, elite: !!f.elite, seed: 0, variant: f.variant, aiming: f.aiming, dying: f.dyingFrames ? k : undefined, cutting: f.cuttingFrames ? 1 - k : undefined });
   return c.toDataURL('image/png');
 }
 

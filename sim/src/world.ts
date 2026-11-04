@@ -60,6 +60,8 @@ export interface HeroState {
   /** 1 → 0 juste après une découpe (animation) */
   cutT: number;
   cuts: number;
+  /** Instrumentation : dégâts effectifs infligés (plafonnés aux PV restants) par source. */
+  dmgBy: { cut: number; shot: number; other: number };
 }
 
 export interface ThreadPoint {
@@ -93,6 +95,7 @@ export function newHero(talents: Talents, powers: Partial<Record<PowerId, number
     thread: [],
     cutT: 0,
     cuts: 0,
+    dmgBy: { cut: 0, shot: 0, other: 0 },
   };
 }
 
@@ -249,6 +252,8 @@ export class World {
   private readonly tgtIdx: number[] = [];
   private readonly tgtD: number[] = [];
   private shooterId = 0;
+  /** Source des dégâts en cours d'application (instrumentation). */
+  private dmgSrc: 'cut' | 'shot' | 'other' = 'other';
 
   constructor(setup: RoomSetup, hero: HeroState) {
     this.arena = setup.arena;
@@ -1082,6 +1087,12 @@ export class World {
   }
 
   private heroHit(p: Projectile, e: Enemy): void {
+    this.dmgSrc = 'shot';
+    this.heroHitInner(p, e);
+    this.dmgSrc = 'other';
+  }
+
+  private heroHitInner(p: Projectile, e: Enemy): void {
     const s = this.hero.stats;
     const crit = s.critChance > 0 && this.rng.chance(s.critChance);
     let dmg = p.dmg * (crit ? 2 : 1);
@@ -1124,6 +1135,7 @@ export class World {
   damageEnemy(e: Enemy, dmg: number, onHit: boolean, crit: boolean): void {
     if (e.hp <= 0) return;
     const s = this.hero.stats;
+    this.hero.dmgBy[this.dmgSrc] += Math.min(dmg, e.hp);
     e.hp -= dmg;
     if (s.lifesteal > 0) this.healHero(dmg * s.lifesteal);
     this.events.push({ e: 'hit', x: e.pos.x, y: e.pos.y, crit });
@@ -1145,11 +1157,13 @@ export class World {
       if (e.slowT > 0) e.slowT -= dt;
       if (e.burnT > 0) {
         e.burnT -= dt;
+        if (e.hp > 0) this.hero.dmgBy.other += Math.min(e.hp, e.burnDps * dt);
         e.hp -= e.burnDps * dt;
         if (e.burnT <= 0) e.burnDps = 0;
       }
       if (e.poisonT > 0) {
         e.poisonT -= dt;
+        if (e.hp > 0) this.hero.dmgBy.other += Math.min(e.hp, e.poisonDps * dt);
         e.hp -= e.poisonDps * dt;
         if (e.poisonT <= 0) {
           e.poisonStacks = 0;
@@ -1292,6 +1306,12 @@ export class World {
 
   /** Découpe tout ce que la boucle entoure : ennemis (dégâts), projectiles ennemis (effacés). */
   performCut(poly: Vec[], mult: number, echo: boolean): void {
+    this.dmgSrc = 'cut';
+    this.performCutInner(poly, mult, echo);
+    this.dmgSrc = 'other';
+  }
+
+  private performCutInner(poly: Vec[], mult: number, echo: boolean): void {
     const h = this.hero;
     const s = h.stats;
     const inside = this.enemies.filter((e) => e.hp > 0 && e.state !== 'spawn' && pointInPoly(e.pos, poly));

@@ -8,7 +8,7 @@ import { stars as starsOf } from '../../sim/src/formulas.js';
 import { Rng, seedOf } from '../../sim/src/rng.js';
 import { World, newHero, grantPower, type Enemy, type HeroState, type Hazard, type Projectile } from '../../sim/src/world.js';
 import { PAINTERS, type AnimState } from '../../art/src/characters.js';
-import { paintArenaStatic, paintLiquids, paintPortal, paintFrame, AW, AH, WALL } from '../../art/src/arena-art.js';
+import { paintArenaStatic, paintLiquids, paintDecorAnim, paintPortal, paintFrame, AW, AH, WALL } from '../../art/src/arena-art.js';
 import { KINGDOMS, UI, INK2, CUT, DANGER, JADE, GOLD_LEAF, type KingdomTheme } from '../../art/src/palette.js';
 import { alpha, circle, ellipse, glow, mix, INK, easeOutBack, type Ctx } from '../../art/src/draw.js';
 import { Fx, Ambience } from './fx.js';
@@ -147,6 +147,8 @@ export class Combat {
     this.world = new World({ arena: new Arena(tpl), D: this.opt.level.D, waves: room.waves, boss: room.boss, seed: seedOf(room.seed, Date.now() & 0xffff) }, this.hero);
     this.opt.demoBot?.beginRoom?.(this.world);
     this.windups.clear();
+    this.corpses = [];
+    this.releases.clear();
     this.flashes.clear();
     this.lastHp.clear();
     this.portalOpen = 0;
@@ -285,7 +287,11 @@ export class Combat {
     for (const p of w.projectiles) snap(p);
     const beforeProj = w.projectiles.slice();
     const hpBefore = new Map(w.enemies.map((e) => [e.id, e.hp]));
+    const before = w.enemies.slice();
     w.step(this.input());
+    // les marionnettes vaincues restent ~0,5 s pour se démonter à l'écran
+    const alive = new Set(w.enemies);
+    for (const e of before) if (!alive.has(e)) this.corpses.push({ e, t0: this.time });
     this.seconds += SIM_DT;
     this.react(beforeProj, hpBefore);
     if (w.dead) {
@@ -461,6 +467,7 @@ export class Combat {
     ctx.scale(this.scale, this.scale);
     ctx.drawImage(this.bg, -WALL, -WALL, AW + WALL * 2, AH + WALL * 2);
     paintLiquids(ctx, w.arena.template.grid, th, t);
+    if (!this.opt.reduceMotion) paintDecorAnim(ctx, w.arena.template.grid, th, t);
     if (w.cleared) this.portalOpen = Math.min(1, this.portalOpen + dt * 2);
     paintPortal(ctx, th, t, easeOutBack(this.portalOpen));
     if (w.cleared && !w.exited) this.drawPortalGuide(ctx, t);
@@ -492,6 +499,21 @@ export class Combat {
     for (const e of w.enemies) {
       const p = this.lerp(e, a);
       ents.push({ y: p.y, draw: () => this.drawEnemy(ctx, e, p, t, dt) });
+    }
+    this.corpses = this.corpses.filter((c) => this.time - c.t0 < 0.55);
+    for (const c of this.corpses) {
+      const e = c.e;
+      const painter = (e.boss ? PAINTERS[e.boss.archetype] : PAINTERS[e.type]) ?? PAINTERS.goblin;
+      ents.push({
+        y: e.pos.y,
+        draw: () => {
+          ctx.save();
+          ctx.translate(e.pos.x, e.pos.y);
+          const facing = Math.atan2(this.world.hero.pos.y - e.pos.y, this.world.hero.pos.x - e.pos.x);
+          painter(ctx, { t, facing, state: 'idle', windup: 0, flash: 0, elite: e.elite, seed: e.id, variant: e.type === 'jellySmall' ? 1 : e.boss?.variant, dying: Math.min(1, (this.time - c.t0) / 0.5) });
+          ctx.restore();
+        },
+      });
     }
     ents.sort((u, v) => u.y - v.y);
     for (const e of ents) e.draw();
@@ -551,6 +573,8 @@ export class Combat {
   }
 
   private cuts: { poly: { x: number; y: number }[]; t0: number; hits: number; echo: boolean }[] = [];
+  private corpses: { e: Enemy; t0: number }[] = [];
+  private releases = new Map<number, number>();
   private lastSnipText = -9;
 
   /** Le fil de découpe : une entaille dans le papier, plus pâle à mesure que l'encre sèche. */
@@ -717,7 +741,12 @@ export class Combat {
       if (!this.windups.has(e.id)) this.windups.set(e.id, Math.max(0.3, left + SIM_DT));
       windup = 1 - left / this.windups.get(e.id)!;
       state = 'windup';
-    } else this.windups.delete(e.id);
+    } else if (this.windups.has(e.id)) {
+      this.windups.delete(e.id);
+      this.releases.set(e.id, this.time);
+    }
+    const rel = this.releases.get(e.id);
+    const release = rel === undefined ? 0 : Math.max(0, 1 - (this.time - rel) / 0.25);
     if (e.boss && e.boss.breath > 0) state = 'breath';
     const flash = this.flashes.get(e.id) ?? 0;
     if (flash > 0) this.flashes.set(e.id, Math.max(0, flash - dt * 6));
@@ -757,7 +786,7 @@ export class Combat {
       ctx.arc(0, 0, e.radius * 1.3, 0, Math.PI * 2);
       ctx.stroke();
     }
-    painter(ctx, { t, facing, state, windup, flash, elite: e.elite, seed: e.id, variant: e.type === 'jellySmall' ? 1 : e.boss?.variant, hpFrac: e.hp / e.maxHp });
+    painter(ctx, { t, facing, state, windup, flash, elite: e.elite, seed: e.id, variant: e.type === 'jellySmall' ? 1 : e.boss?.variant, hpFrac: e.hp / e.maxHp, release, hurt: flash });
     if (e.burnT > 0) for (let i = 0; i < 3; i++) flameCut(ctx, -8 + i * 8, -e.radius - 2 + Math.sin(t * 9 + i) * 1.5, 4 + Math.sin(t * 14 + i * 2) * 1.2);
     if (e.poisonStacks > 0) for (let i = 0; i < e.poisonStacks; i++) circle(ctx, -8 + i * 4, -e.radius - 6 + Math.sin(t * 5 + i) * 2, 2, '#5f8a63', INK, 1);
     ctx.restore();

@@ -3,8 +3,8 @@
  * de choix des pouvoirs. Un bot ne « voit » une menace qu'après son temps de
  * réaction ; à la première vue, il tire au sort s'il l'esquivera (précision).
  */
-import { HERO, CELL, ARENA_W, ARENA_H, COLS, ROWS } from './constants.js';
-import { type PowerId } from './content.js';
+import { HERO, CELL, ARENA_W, ARENA_H, COLS, ROWS, THREAD } from './constants.js';
+import { BOSSES, ENEMIES, type MinionType, type PowerId } from './content.js';
 import type { ChoiceContext, Controller } from './level.js';
 import { Rng } from './rng.js';
 import type { HeroInput, World, Hazard, Projectile, Enemy } from './world.js';
@@ -54,6 +54,129 @@ const STEP_END = 2;
 type Pt = { x: number; y: number };
 const NP = PLAN_T.length;
 
+// ───────────────────────── Ciseaux de lune : boucles ─────────────────────────
+const TAU = Math.PI * 2;
+/**
+ * Orbite : rayon r + A sin(ω σ) (σ = angle balayé). Avec ω demi-entier, deux tours successifs sont symétriques
+ * et se croisent tous les π/ω rad : la boucle se ferme au plus ~0,9 rad après un tour complet, quel que soit
+ * l'endroit où le fil a été coupé (on continue simplement de tourner).
+ */
+const LOOP_WOBBLE = 6;
+const LOOP_FREQ = 3.5;
+const LOOP_EXTRA = Math.PI / LOOP_FREQ;
+/** Rayon minimal d'une boucle (aire ≫ THREAD.minArea) et approche maximale (pt). */
+const LOOP_MIN_R = 36;
+const LOOP_MAX_APPROACH = 700;
+/** Préférence pour la boucle face aux autres trajectoires (en unités de score : danger × 10 + confort). */
+const LOOP_BONUS = 2.5;
+/** Valeur minimale d'une boucle (dégâts utiles par seconde de boucle). */
+const LOOP_MIN_VALUE = 5;
+/** Planification toutes les N décisions (N × 1/15 s) sans orbite ; re-planification (avec hystérésis) en orbite. */
+const LOOP_PLAN_EVERY = 3;
+const LOOP_REPLAN_EVERY = 24;
+/** Une autre orbite ne remplace l'orbite en cours que si elle vaut nettement plus. */
+const LOOP_KEEP = 1.5;
+/** Chances plancher de l'orbite en cours (une coupure ne fait que retarder la découpe). */
+const LOOP_KEEP_ODDS = 0.4;
+/** Distance au cercle à partir de laquelle on passe de l'approche à l'orbite (la poursuite rattrape l'écart). */
+const LOOP_CATCH = 24;
+const SIM_STEP = 0.05;
+const SIM_STEPS = Math.round(PLAN_T[PLAN_T.length - 1] / SIM_STEP);
+const SHOOTER_SPEED: Partial<Record<string, number>> = { goblin: 300, skeleton: 340, mushroom: 150, totem: 170 };
+const CHASERS = new Set(['jelly', 'jellySmall', 'wolf', 'snipper', 'bat', 'moth']);
+
+interface LoopState {
+  circling: boolean;
+  /** angle balayé depuis le début du cercle (rad, dans le sens de rotation) */
+  sw: number;
+  lastAng: number;
+}
+
+/** Orbite planifiée : un cercle (centre, rayon moyen, sens) autour d'un groupe d'ennemis. */
+interface LoopPlan extends LoopState {
+  cx: number;
+  cy: number;
+  r: number;
+  dir: 1 | -1;
+  members: Enemy[];
+  /** angle du point d'entrée */
+  a0: number;
+  cuts0: number;
+  /** dernière découpe (ou début de l'orbite) */
+  since: number;
+  /** durée d'un tour + croisement (s) */
+  lap: number;
+  value: number;
+  counted: boolean;
+  /** décalage du centre par rapport au barycentre des cibles (loin des murs), suivi en continu */
+  ox: number;
+  oy: number;
+}
+
+/** Instrumentation des boucles d'un bot (une partie). */
+export interface LoopStats {
+  planned: number;
+  started: number;
+  cut: number;
+  snipped: number;
+  aborted: number;
+  missed: number;
+}
+
+function loopRadius(pl: LoopPlan, s: number): number {
+  return pl.r + LOOP_WOBBLE * Math.sin(LOOP_FREQ * s);
+}
+
+/**
+ * Angle du point d'entrée sur le cercle : point de tangence (depuis l'extérieur) d'où l'on repart dans le sens
+ * `dir` ; depuis l'intérieur, un point un peu en avant dans ce sens.
+ */
+function entryAngle(cx: number, cy: number, r: number, dir: 1 | -1, x: number, y: number): number {
+  const dx = x - cx;
+  const dy = y - cy;
+  const d = Math.hypot(dx, dy);
+  const ah = d > 1 ? Math.atan2(dy, dx) : -Math.PI / 2;
+  if (d <= r + 8) return ah + dir * 0.5;
+  // tangente : l'angle au centre entre le héros et le point de tangence vaut acos(r / d)
+  return ah + dir * Math.acos(r / d);
+}
+
+/** Direction de suivi (poursuite d'un point du cercle un peu en avant) ; fait avancer l'état `st`. */
+function loopStep(pl: LoopPlan, st: LoopState, x: number, y: number, out: Pt): void {
+  const dx = x - pl.cx;
+  const dy = y - pl.cy;
+  const d = Math.hypot(dx, dy);
+  const ang = Math.atan2(dy, dx);
+  if (!st.circling) {
+    if (d > pl.r + LOOP_CATCH || d < pl.r - LOOP_CATCH) {
+      // approche vers le point d'entrée tangent (recalculé : le centre suit les cibles)
+      const a0 = entryAngle(pl.cx, pl.cy, pl.r, pl.dir, x, y);
+      const ex = pl.cx + Math.cos(a0) * pl.r - x;
+      const ey = pl.cy + Math.sin(a0) * pl.r - y;
+      const n = Math.hypot(ex, ey) || 1;
+      out.x = ex / n;
+      out.y = ey / n;
+      return;
+    }
+    st.circling = true;
+    st.sw = 0;
+    st.lastAng = ang;
+  }
+  let da = ang - st.lastAng;
+  if (da > Math.PI) da -= TAU;
+  else if (da < -Math.PI) da += TAU;
+  st.sw += pl.dir * da;
+  st.lastAng = ang;
+  const delta = Math.min(0.6, Math.max(0.2, 26 / pl.r));
+  const ta = ang + pl.dir * delta;
+  const rr = loopRadius(pl, st.sw + delta);
+  const tx = pl.cx + Math.cos(ta) * rr - x;
+  const ty = pl.cy + Math.sin(ta) * rr - y;
+  const n = Math.hypot(tx, ty) || 1;
+  out.x = tx / n;
+  out.y = ty / n;
+}
+
 /**
  * Bot « joueur compétent » : perçoit les menaces après son temps de réaction et
  * n'esquive que celles que sa précision lui accorde (tirage unique par menace).
@@ -84,12 +207,30 @@ export class Bot implements Controller {
   private readonly probe: Pt = { x: 0, y: 0 };
   /** position / vitesse pour lesquelles `paths` est à jour (le héros est souvent immobile) */
   private pathKey = { x: NaN, y: NaN, s: NaN, arena: null as unknown };
+  /** Ciseaux de lune */
+  private plan: LoopPlan | null = null;
+  private planCd = 0;
+  private readonly loopPath = new Float64Array(NP * 2);
+  private readonly simSt: LoopState = { circling: false, sw: 0, lastAng: 0 };
+  private readonly ldir: Pt = { x: 0, y: 0 };
+  /** diagnostic : raisons de rejet des cercles candidats */
+  readonly rej: Record<string, number> = {};
+  private rj(k: string): false {
+    this.rej[k] = (this.rej[k] ?? 0) + 1;
+    return false;
+  }
+  private rjv(k: string): void {
+    this.rej[k] = (this.rej[k] ?? 0) + 1;
+  }
+  readonly loops: LoopStats = { planned: 0, started: 0, cut: 0, snipped: 0, aborted: 0, missed: 0 };
 
   constructor(readonly profile: BotProfile, seed: number) {
     this.rng = new Rng(seed);
   }
 
   beginRoom(): void {
+    this.plan = null;
+    this.planCd = 0;
     this.seen = new WeakMap();
     this.attacks.clear();
     this.held = { mx: 0, my: 0, touching: false };
@@ -160,7 +301,8 @@ export class Bot implements Controller {
   }
 
   /** Danger d'une trajectoire (immobile à partir de l'indice `stop`). */
-  private danger(pts: Float64Array, stop: number, now: number): number {
+  private danger(pts: Float64Array, stop: number, now: number, loop = false): number {
+    const skip = loop;
     let d = 0;
     const th = this.th;
     for (let k = 0; k < th.length; k += 7) {
@@ -219,17 +361,27 @@ export class Bot implements Controller {
       }
     }
     const ch = this.ch;
-    for (let k = 0; k < ch.length; k += 6) {
+    for (let k = 0; k < ch.length; k += 7) {
       const ex = ch[k], ey = ch[k + 1], sp = ch[k + 2], rr = ch[k + 3], delay = ch[k + 4], contact = ch[k + 5];
       let first = true;
+      // boucle : le poursuivant marche vers la position actuelle de l'héroïne (elle tourne, il ne peut pas couper
+      // n'importe où) ; sinon, modèle prudent « tout point à portée »
+      let ux = 0;
+      let uy = 0;
+      if (skip) {
+        const dn = Math.hypot(pts[0] - ex, pts[1] - ey) || 1;
+        ux = ((pts[0] - ex) / dn) * sp * ch[k + 6];
+        uy = ((pts[1] - ey) / dn) * sp * ch[k + 6];
+      }
       for (let i = 1; i < NP; i++) {
         const t = PLAN_T[i];
         if (t > CONTACT_HORIZON) break;
         if (t < delay) continue;
         const j = (i < stop ? i : stop) * 2;
-        const dx = pts[j] - ex;
-        const dy = pts[j + 1] - ey;
-        const lim = rr + sp * (t - delay);
+        const te = t - delay;
+        const dx = pts[j] - ex - ux * te;
+        const dy = pts[j + 1] - ey - uy * te;
+        const lim = skip ? rr - 4 : rr + sp * te;
         if (dx * dx + dy * dy < lim * lim) {
           // premier contact prévu : plein poids ; rester au contact ensuite : poids réduit
           d += (first ? contact : contact * 0.3) / (t + 0.15);
@@ -292,7 +444,28 @@ export class Bot implements Controller {
       const rr = e.radius + HERO.radius + 6;
       const lim = reach + rr + sp * CONTACT_HORIZON;
       if ((e.pos.x - hp.x) ** 2 + (e.pos.y - hp.y) ** 2 > lim * lim) continue;
-      ch.push(e.pos.x, e.pos.y, sp, rr, e.state === 'spawn' ? e.t : 0, e.contact);
+      // sens du déplacement prévu en boucle : les tireurs reculent quand l'héroïne s'approche, les autres foncent
+      const flee = e.type === 'goblin' || e.type === 'skeleton' || e.type === 'mage' ? -1 : 1;
+      ch.push(e.pos.x, e.pos.y, sp, rr, e.state === 'spawn' ? e.t : 0, e.contact, flee);
+    }
+
+    // Ciseaux de lune : suivre la boucle en cours (ou en planifier une) tant que le danger le permet
+    let loopScore = Infinity;
+    const lp = this.loopTick(w);
+    if (lp) {
+      loopStep(lp, lp, hp.x, hp.y, this.ldir);
+      if (lp.circling && !lp.counted) {
+        lp.counted = true;
+        this.loops.started++;
+      }
+      this.fillLoopPath(lp, hp.x, hp.y, speed);
+      // en boucle, les poursuivants marchent vers l'héroïne qui tourne (modèle orienté, pas « tout point à portée »)
+      const ld = this.danger(this.loopPath, NP - 1, now, true);
+      (this as unknown as { dbg: string }).dbg = `ld=${ld.toFixed(1)}`;
+      if (ld === 0 || process.env.BLIND) return { mx: this.ldir.x, my: this.ldir.y, touching: true };
+      loopScore = ld * 10 - LOOP_BONUS;
+      // menace sur l'orbite (un poursuivant non entouré s'en approche, un tir…) : on re-planifie vite
+      if (lp.circling && this.planCd < LOOP_REPLAN_EVERY - 6) this.planCd = LOOP_REPLAN_EVERY - 1;
     }
 
     // ligne de vue vers une cible
@@ -348,7 +521,7 @@ export class Bot implements Controller {
     const stay = this.paths[0];
     const stayD = this.danger(stay, 0, now);
     const stayC = placeCost(hp.x, hp.y, null);
-    if (stayD === 0 && stayC < 0.5 && !wantLos) return { mx: 0, my: 0, touching: false };
+    if (stayD === 0 && stayC < 0.5 && !wantLos && !lp) return { mx: 0, my: 0, touching: false };
     // sans tir auto, on ne tire qu'à l'arrêt : forte prime à l'immobilité ; avec, une simple préférence (anti-agitation)
     let bestScore = stayD * 10 + stayC - (h.autoFire ? STAY_BONUS_AUTOFIRE : STAY_BONUS_MANUAL);
     if (this.stuckT > 0.3) bestScore += 2;
@@ -383,8 +556,448 @@ export class Bot implements Controller {
         }
       }
     }
+    if (lp && loopScore <= bestScore) return { mx: this.ldir.x, my: this.ldir.y, touching: true };
     if (!best) return { mx: 0, my: 0, touching: false };
     return { mx: best.x, my: best.y, touching: true };
+  }
+
+  // ───────────────────────── Ciseaux de lune ─────────────────────────
+
+  /** Tient à jour l'orbite en cours (découpes, cibles mortes, blocage) et (re)planifie au besoin. */
+  private loopTick(w: World): LoopPlan | null {
+    const h = w.hero;
+    const now = w.t;
+    let pl = this.plan;
+    let replan = false;
+    if (pl) {
+      for (const ev of w.events) if (ev.e === 'snip') this.loops.snipped++;
+      let end: keyof LoopStats | null = null;
+      if (h.cuts > pl.cuts0) {
+        this.loops.cut += h.cuts - pl.cuts0;
+        pl.cuts0 = h.cuts;
+        pl.since = now;
+        replan = true;
+      }
+      if (pl.members.every((m) => m.hp <= 0)) end = 'aborted';
+      else if (now - pl.since > 2 * pl.lap + 1) end = 'missed';
+      else if (this.stuckT > 0.3) end = 'aborted';
+      if (end) {
+        this.loops[end]++;
+        this.plan = pl = null;
+        this.planCd = 0;
+      } else if (++this.planCd >= LOOP_REPLAN_EVERY) replan = true;
+    }
+    if ((!pl && --this.planCd <= 0) || replan) {
+      this.planCd = pl ? 0 : LOOP_PLAN_EVERY;
+      const np = this.planLoop(w, pl);
+      if (np && np !== pl) {
+        this.loops.planned++;
+        // même orbite (à peu de chose près) : on garde l'état de rotation
+        if (pl && np.dir === pl.dir && Math.hypot(np.cx - pl.cx, np.cy - pl.cy) < 16 && Math.abs(np.r - pl.r) < 12) {
+          np.circling = pl.circling;
+          np.sw = pl.sw;
+          np.lastAng = pl.lastAng;
+          np.counted = pl.counted;
+          np.since = pl.since;
+        }
+        this.plan = pl = np;
+      }
+      // aucune orbite jouable : on garde l'orbite en cours (ses cibles vivent encore)
+    }
+    if (pl) this.trackCenter(w, pl);
+    return pl;
+  }
+
+  /** Le centre suit les cibles (elles bougent) : entièrement pendant l'approche, en douceur (≤ 30 pt/s) en orbite. */
+  private trackCenter(w: World, pl: LoopPlan): void {
+    let mx = 0;
+    let my = 0;
+    let n = 0;
+    for (const m of pl.members) {
+      if (m.hp <= 0) continue;
+      mx += m.pos.x;
+      my += m.pos.y;
+      n++;
+    }
+    if (!n) return;
+    const tx = mx / n + pl.ox - pl.cx;
+    const ty = my / n + pl.oy - pl.cy;
+    const d = Math.hypot(tx, ty);
+    if (d < 1e-6) return;
+    const k = pl.circling ? Math.min(1, 2 / d) : 1;
+    pl.cx += tx * k;
+    pl.cy += ty * k;
+    // en orbite, une cible qui dérive vers le fil élargit le cercle (jusqu'au rayon maximal)
+    if (pl.circling) {
+      let need = 0;
+      for (const m of pl.members) {
+        if (m.hp <= 0) continue;
+        need = Math.max(need, Math.hypot(m.pos.x - pl.cx, m.pos.y - pl.cy) + m.radius + (m.contact > 0 ? HERO.radius - 2 : 4) + LOOP_WOBBLE);
+      }
+      const rmax = ((THREAD.life * w.hero.stats.threadLife - 0.3) * w.hero.stats.speed) / (TAU + LOOP_EXTRA) - LOOP_WOBBLE;
+      if (need > pl.r) pl.r = Math.min(rmax, pl.r + Math.min(3, need - pl.r));
+    }
+    if (!pl.circling) pl.a0 = entryAngle(pl.cx, pl.cy, pl.r, pl.dir, w.hero.pos.x, w.hero.pos.y);
+  }
+
+  /** Trajectoire prévue en suivant la boucle (aux instants PLAN_T), pour le modèle de danger. */
+  private fillLoopPath(pl: LoopPlan, x: number, y: number, speed: number): void {
+    const st = this.simSt;
+    st.circling = pl.circling;
+    st.sw = pl.sw;
+    st.lastAng = pl.lastAng;
+    const out = this.loopPath;
+    const d = { x: 0, y: 0 };
+    out[0] = x;
+    out[1] = y;
+    let i = 1;
+    for (let k = 1; k <= SIM_STEPS; k++) {
+      loopStep(pl, st, x, y, d);
+      x += d.x * speed * SIM_STEP;
+      y += d.y * speed * SIM_STEP;
+      if (Math.abs(k * SIM_STEP - PLAN_T[i]) < 1e-6) {
+        out[2 * i] = x;
+        out[2 * i + 1] = y;
+        i++;
+      }
+    }
+  }
+
+  /**
+   * Obstacles et bords sur le cercle (cx, cy, r) : null si praticable, sinon direction moyenne (depuis le centre)
+   * des points bloqués — on décale alors le centre à l'opposé.
+   */
+  private ringBlock(w: World, cx: number, cy: number, r: number): Pt | null {
+    const m = HERO.radius + 2;
+    const n = Math.max(12, Math.ceil((TAU * r) / 22));
+    let bx = 0;
+    let by = 0;
+    let hit = false;
+    for (let k = 0; k < n; k++) {
+      const ux = Math.cos((k * TAU) / n);
+      const uy = Math.sin((k * TAU) / n);
+      const x = cx + ux * r;
+      const y = cy + uy * r;
+      if (x < m || y < m || x > ARENA_W - m || y > ARENA_H - m || clearance(w, x, y, m) < m) {
+        bx += ux;
+        by += uy;
+        hit = true;
+      }
+    }
+    return hit ? { x: bx, y: by } : null;
+  }
+
+  /**
+   * Cherche la meilleure boucle jouable maintenant : pour chaque ennemi (seul, puis avec ses voisins), le plus
+   * petit cercle qui l'entoure avec une marge (décalé loin des murs et des rochers), fermé avant que le fil ne
+   * sèche ; on écarte les cercles qu'un projectile, un tir à venir, une charge, une mite ou un ennemi au sol
+   * couperait. Valeur : dégâts utiles (plafonnés aux PV) par seconde, approche comprise.
+   */
+  private planLoop(w: World, cur: LoopPlan | null): LoopPlan | null {
+    const h = w.hero;
+    const hp = h.pos;
+    const v = h.stats.speed;
+    const now = w.t;
+    const life = THREAD.life * h.stats.threadLife;
+    // un tour + le croisement doivent tenir dans la durée de vie du fil (rayon moyen + ondulation)
+    const rmax = Math.min(150, ((life - 0.3) * v) / (TAU + LOOP_EXTRA)) - LOOP_WOBBLE;
+    if (rmax < LOOP_MIN_R) return null;
+    const seeds = w.enemies.filter((e) => e.hp > 0 && e.state !== 'spawn' && e.type !== 'moth');
+    if (!seeds.length) return null;
+    const s = h.stats;
+    const cutUnit = THREAD.cutBase * (s.damage / HERO.damage) * s.cutMult * (1 + s.critChance);
+    let best: LoopPlan | null = null;
+    let bestV = LOOP_MIN_VALUE;
+    // orbite en cours : on la réévalue d'abord ; une autre ne la remplace que si elle vaut LOOP_KEEP fois plus
+    let keep = 1;
+    const tried: number[] = [];
+    const need = (m: Enemy, cx: number, cy: number): number => {
+      // le fil ne doit pas toucher l'ennemi, ni l'héroïne (sur le cercle) entrer à son contact ; marge de déplacement
+      // fil : rayon + 4 ; contact de l'héroïne : rayon + 12 ; plus le déplacement de la cible pendant un tour
+      const margin = m.boss ? HERO.radius + 14 : (m.contact > 0 ? HERO.radius - 2 : 4) + m.speed * (CHASERS.has(m.type) ? 0.2 : 0.12);
+      return Math.hypot(m.pos.x - cx, m.pos.y - cy) + m.radius + margin;
+    };
+    const consider = (group: Enemy[]): void => {
+      let cx = 0;
+      let cy = 0;
+      for (const g of group) {
+        cx += g.pos.x;
+        cy += g.pos.y;
+      }
+      cx /= group.length;
+      cy /= group.length;
+      let r = 0;
+      for (let it = 0; ; it++) {
+        r = LOOP_MIN_R;
+        for (const g of group) r = Math.max(r, need(g, cx, cy) + LOOP_WOBBLE);
+        if (r > rmax) return this.rjv('rmax');
+        const blk = this.ringBlock(w, cx, cy, r + LOOP_WOBBLE);
+        if (!blk) break;
+        if (it >= 4) return this.rjv('ringBlocked');
+        const bn = Math.hypot(blk.x, blk.y);
+        if (bn < 1e-6) return this.rjv('ringBlocked');
+        cx -= (blk.x / bn) * 12;
+        cy -= (blk.y / bn) * 12;
+      }
+      // même cercle déjà évalué ?
+      for (let k = 0; k < tried.length; k += 3) if (Math.abs(tried[k] - cx) < 4 && Math.abs(tried[k + 1] - cy) < 4 && Math.abs(tried[k + 2] - r) < 4) return;
+      tried.push(cx, cy, r);
+      const members: Enemy[] = [];
+      for (const e of w.enemies) {
+        const d = Math.hypot(e.pos.x - cx, e.pos.y - cy);
+        if (d >= r + LOOP_WOBBLE) continue;
+        if (e.state === 'spawn' || e.type === 'moth') return this.rjv('spawnOrMothInside');
+        if (d + e.radius + 2 > r - LOOP_WOBBLE) return this.rjv('memberTouch'); // il toucherait le fil
+        members.push(e);
+      }
+      if (!members.length) return this.rjv('noMember');
+      // valeur : dégâts utiles par seconde (borne haute avant l'approche, pour élaguer)
+      const unit = cutUnit * (1 + THREAD.comboPerExtra * (members.length - 1));
+      let gain = 0;
+      for (const m of members) {
+        const dmg = unit * (m.elite || m.boss ? s.eliteMult : 1);
+        const shooter = m.shotDmg > 0 && !m.boss;
+        gain += Math.min(m.hp, dmg) * (shooter ? 1.3 : 1) + (dmg >= m.hp ? 0.3 * m.hp : 0);
+      }
+      const loopT = ((TAU + LOOP_EXTRA / 2) * r) / v + 0.1;
+      const d0 = Math.hypot(hp.x - cx, hp.y - cy);
+      const L = Math.abs(d0 - r);
+      if (gain / (loopT + L / v + 0.37) <= bestV) return this.rjv('lowValue');
+      if (L > LOOP_MAX_APPROACH) return this.rjv('approachFar');
+      // point d'entrée : tangent au cercle dans le sens de rotation (on s'enroule sans foncer sur les cibles)
+      const pcs = new Map<number, number>();
+      for (const dir of [1, -1] as const) {
+        const a0 = entryAngle(cx, cy, r, dir, hp.x, hp.y);
+        const ex = cx + Math.cos(a0) * r;
+        const ey = cy + Math.sin(a0) * r;
+        const la = Math.hypot(ex - hp.x, ey - hp.y);
+        const La = la <= 8 ? 0 : la;
+        if (La > 0 && !w.arena.lineOfWalk(hp, { x: ex, y: ey })) {
+          this.rjv('noWalkLine');
+          continue;
+        }
+        const tStart = now + La / v + 0.07;
+        const tEnd = tStart + loopT;
+        const val = gain / (tEnd - now + 0.3);
+        if (val <= bestV) {
+          this.rjv('lowValue');
+          continue;
+        }
+        const tk = Math.round(La / 20);
+        let pc = pcs.get(tk);
+        if (pc === undefined) pcs.set(tk, (pc = this.loopOdds(w, cx, cy, r, members, tStart, tEnd)));
+        // l'orbite en cours garde son sens (pas de demi-tour)
+        const same = cur && cur.dir === dir && Math.hypot(cur.cx - cx, cur.cy - cy) < 16 && Math.abs(cur.r - r) < 12;
+        // orbite en cours : une coupure ne fait que retarder la découpe (on continue de tourner)
+        const pv = val * (same ? keep * Math.max(pc, LOOP_KEEP_ODDS) : pc);
+        if (pv <= bestV) {
+          this.rjv('odds');
+          continue;
+        }
+        const pp = this.loopProjOdds(w, cx, cy, r, dir, a0, tStart, tEnd, v);
+        const pv2 = pv * (same ? Math.max(pp, LOOP_KEEP_ODDS) : pp);
+        if (pv2 <= bestV) continue;
+        bestV = pv2;
+        let mx = 0;
+        let my = 0;
+        for (const m of members) {
+          mx += m.pos.x;
+          my += m.pos.y;
+        }
+        const ox = cx - mx / members.length;
+        const oy = cy - my / members.length;
+        best = { cx, cy, r, dir, members, a0, cuts0: h.cuts, since: now, lap: loopT, value: pv2, counted: false, circling: false, sw: 0, lastAng: a0, ox, oy };
+      }
+    };
+    if (cur) {
+      keep = LOOP_KEEP;
+      const alive = cur.members.filter((m) => m.hp > 0 && m.state !== 'spawn');
+      if (alive.length) consider(alive);
+    }
+    for (const seed of seeds) {
+      consider([seed]);
+      // groupe : on ajoute les voisins les plus proches tant que le cercle reste fermable
+      const others = seeds
+        .filter((o) => o !== seed && Math.hypot(o.pos.x - seed.pos.x, o.pos.y - seed.pos.y) < 2 * rmax)
+        .sort((a, b) => Math.hypot(a.pos.x - seed.pos.x, a.pos.y - seed.pos.y) - Math.hypot(b.pos.x - seed.pos.x, b.pos.y - seed.pos.y));
+      const group = [seed];
+      for (const o of others.slice(0, 4)) {
+        group.push(o);
+        let cx = 0;
+        let cy = 0;
+        for (const g of group) {
+          cx += g.pos.x;
+          cy += g.pos.y;
+        }
+        cx /= group.length;
+        cy /= group.length;
+        let r = LOOP_MIN_R;
+        for (const g of group) r = Math.max(r, need(g, cx, cy) + LOOP_WOBBLE);
+        if (r > rmax) {
+          group.pop();
+          continue;
+        }
+        consider(group.slice());
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Projectiles perçus (après le temps de réaction) : l'un d'eux traversera-t-il le cercle là où le fil est
+   * déjà tracé ? Le fil à l'angle σ (depuis a0, dans le sens `dir`) existe à partir de tStart + σ r / v.
+   * Renvoie les chances que le fil survive.
+   */
+  private loopProjOdds(w: World, cx: number, cy: number, r: number, dir: 1 | -1, a0: number, tStart: number, tEnd: number, v: number): number {
+    const now = w.t;
+    const T = tEnd - now;
+    const react = this.profile.reaction;
+    let odds = 1;
+    for (const p of w.projectiles) {
+      if (p.fromHero || now - p.born < react) continue;
+      const qx = p.pos.x - cx;
+      const qy = p.pos.y - cy;
+      const a = p.vel.x * p.vel.x + p.vel.y * p.vel.y;
+      if (a < 1) continue;
+      const b = 2 * (qx * p.vel.x + qy * p.vel.y);
+      const c = qx * qx + qy * qy - r * r;
+      const disc = b * b - 4 * a * c;
+      if (disc < 0) continue;
+      const sq = Math.sqrt(disc);
+      for (const t of [(-b - sq) / (2 * a), (-b + sq) / (2 * a)]) {
+        if (t <= 0 || t > T) continue;
+        const X = { x: p.pos.x + p.vel.x * t, y: p.pos.y + p.vel.y * t };
+        let sig = (Math.atan2(X.y - cy, X.x - cx) - a0) * dir;
+        sig = ((sig % TAU) + TAU) % TAU;
+        if (now + t < tStart + (sig * r) / v - 0.05) continue; // passé avant le tracé
+        if (!w.arena.lineOfSight(p.pos, X)) continue;
+        odds *= 0.1;
+        this.rjv('proj');
+        break;
+      }
+      if (odds < 0.01) return odds;
+    }
+    return odds;
+  }
+
+  /**
+   * Menaces indépendantes du sens de rotation, en chances que le fil survive : tirs et charges à venir (rythme
+   * des ennemis connu d'un joueur compétent : armement visible, cadence), mites, ennemis au sol qui atteindraient
+   * le fil, zones au sol sur le cercle.
+   */
+  private loopOdds(w: World, cx: number, cy: number, r: number, members: Enemy[], tStart: number, tEnd: number): number {
+    const now = w.t;
+    const T1 = Math.max(0, tStart - now);
+    const T2 = tEnd - now;
+    /** une salve tirée à `tf` (relatif) depuis la distance d du centre croise-t-elle le cercle pendant [T1, T2] ? */
+    const salvo = (tf: number, d: number, fast: number, slow: number, cycle = 0): boolean => {
+      const near = Math.abs(d - r);
+      const far = d + r;
+      // salve suivante, puis les suivantes à la cadence de l'ennemi
+      for (let k = 0; k < 3 && tf < T2; k++, tf += cycle) {
+        if (tf + near / fast < T2 && tf + far / slow > T1) return true;
+        if (cycle <= 0) break;
+      }
+      return false;
+    };
+    let odds = 1;
+    const risk = (k: string, keep: number): void => {
+      odds *= keep;
+      this.rjv(k);
+    };
+    for (const e of w.enemies) {
+      const d = Math.hypot(e.pos.x - cx, e.pos.y - cy);
+      const member = members.includes(e);
+      const spawnDelay = e.state === 'spawn' ? e.t : 0;
+      if (e.boss) {
+        odds *= this.bossLoopOdds(e, d, r, member, T1, T2, salvo);
+        continue;
+      }
+      // tirs à venir
+      const shotSp = SHOOTER_SPEED[e.type];
+      if (shotSp) {
+        const tf = e.state === 'windup' ? e.t : spawnDelay + Math.max(0, e.cd) + 0.5;
+        if (salvo(tf, d, shotSp, shotSp, ENEMIES[e.type as MinionType].period)) risk('shotSoon', 0.15);
+      }
+      if (e.elite) {
+        const tf = e.eliteWind > 0 ? e.eliteWind : spawnDelay + e.eliteCd + 0.6;
+        if (salvo(tf, d, 140, 140, 5.1)) risk('eliteSoon', 0.1);
+      }
+      // mage : flaque sous l'héroïne, qu'elle retraverserait au tour suivant
+      if (e.type === 'mage') {
+        const tf = e.state === 'windup' ? e.t : spawnDelay + Math.max(0, e.cd) + 0.3;
+        if (tf < T2 - 0.6) risk('mage', 0.5);
+      }
+      // charges (loup, crabe-ciseaux) : elles traversent le cercle
+      if (e.type === 'wolf' || e.type === 'snipper') {
+        if (e.state === 'windup' || e.state === 'charge') {
+          if (d < r + 360) risk('chargeNow', 0.1);
+        } else if (d < r + 330) {
+          const next = e.state === 'recover' ? e.t + ENEMIES[e.type].period + 0.6 : spawnDelay + Math.max(0, e.cd) + 0.6;
+          if (next < T2) risk('chargeSoon', 0.2);
+        }
+      }
+      if (odds < 0.01) return odds;
+      if (member) continue;
+      // mites : elles filent vers le fil
+      if (e.type === 'moth') {
+        if (d - r < 105 * Math.max(0, T2 - spawnDelay) + 30) risk('moth', 0.1);
+        continue;
+      }
+      if (e.flying) continue;
+      const gap = Math.abs(d - r) - e.radius;
+      if (gap < 6 || d < r) {
+        risk('groundOnRing', 0.05);
+        continue;
+      }
+      if (CHASERS.has(e.type)) {
+        if (spawnDelay + gap / Math.max(1, e.speed) < T2) risk('chaserReach', 0.25);
+      } else if (e.speed > 0 && gap < e.speed * 0.6) risk('shooterNear', 0.5);
+    }
+    // zones au sol (flaques, ondes, pluie) sur le cercle, et charges télégraphiées qui le traversent
+    for (const z of w.hazards) {
+      if (z.endAt < now + T1 || z.activeAt > now + T2) continue;
+      if (z.kind === 'circle') {
+        const d = Math.hypot(z.pos.x - cx, z.pos.y - cy);
+        if (Math.abs(d - r) < z.radius + HERO.radius || d + r < z.radius) risk('zone', 0.2);
+      } else if (z.to && segDist2(cx, cy, z.pos.x, z.pos.y, z.to.x, z.to.y) < (r + z.radius + 4) ** 2) risk('chargeLine', 0.2);
+    }
+    return odds;
+  }
+
+  /** Boss : le prochain motif (connu, joué en boucle) laisse-t-il le temps de fermer le cercle ? */
+  private bossLoopOdds(e: Enemy, d: number, r: number, member: boolean, T1: number, T2: number, salvo: (tf: number, d: number, fast: number, slow: number, cycle?: number) => boolean): number {
+    const b = e.boss!;
+    const list = BOSSES[b.archetype].phases[b.phase];
+    const kind = b.breath > 0 ? list[b.patternIdx % list.length].kind : b.pattern?.kind;
+    if (!kind) return 1;
+    const tp = b.breath > 0 ? b.breath + (kind === 'charge' ? 0.7 : 0.6) : e.state === 'windup' ? e.t : 0;
+    const near = member || d < r + 200;
+    let ok = true;
+    switch (kind) {
+      case 'aimed':
+      case 'ring':
+      case 'spiral':
+        ok = b.breath > 0 ? !salvo(tp, d, 330, 150) : false;
+        break;
+      case 'charge':
+        ok = !(near && tp < T2);
+        break;
+      case 'slam':
+        ok = !(near && tp + 0.4 < T2);
+        break;
+      case 'puddles':
+        ok = !(tp + 0.5 < T2);
+        break;
+      case 'summon':
+        ok = !(member && tp + 1.2 < T2);
+        break;
+      case 'rain':
+        break;
+    }
+    if (ok) return 1;
+    this.rjv('boss:' + kind);
+    return 0.1;
   }
 
   choosePower(offer: PowerId[], ctx: ChoiceContext): PowerId {

@@ -290,6 +290,15 @@ export function limb(ctx: Ctx, x1: number, y1: number, x2: number, y2: number, w
   ctx.stroke();
 }
 
+/** Membre articulé : bâton d'encre traversé d'une fine entaille de lumière (sculpture du cuir). */
+export function bone(ctx: Ctx, x1: number, y1: number, x2: number, y2: number, w: number, color: string): void {
+  limb(ctx, x1, y1, x2, y2, w, color);
+  if (w >= 2.2) {
+    const dx = x2 - x1, dy = y2 - y1;
+    limb(ctx, x1 + dx * 0.28, y1 + dy * 0.28, x1 + dx * 0.72, y1 + dy * 0.72, Math.min(0.8, w * 0.28), CUT);
+  }
+}
+
 /** Ombre portée au sol (rétrécit pendant la chute). */
 export function shadow(ctx: Ctx, r: Rig, rx: number, ry: number, y: number, a = 0.32): void {
   const k = 1 - r.die * 0.6;

@@ -11,7 +11,7 @@ const OUT = 'ios/Resources/Atlases';
 
 const chars = {
   hero: ['scout', 'windMonk', 'emberSorcerer'],
-  enemies: ['goblin', 'jelly', 'jellySmall', 'bat', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage'],
+  enemies: ['goblin', 'jelly', 'jellySmall', 'bat', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage', 'moth', 'snipper'],
   bosses: ['treant', 'queen', 'scorpion', 'wyvern', 'ashlord'],
 };
 const specsFor = (name, group) => {
@@ -22,7 +22,9 @@ const specsFor = (name, group) => {
   ];
   if (group === 'hero') base.push({ state: 'idle', frames: 4, loop: 0.2, aiming: true, tag: 'aim' });
   if (group !== 'hero' && name !== 'jelly' && name !== 'jellySmall') base.push({ state: 'windup', frames: 6, loop: 0.5 });
-  if (['wolf', 'bat', 'scorpion', 'wyvern'].includes(name)) base.push({ state: 'charge', frames: 4, loop: 0.25 });
+  if (['wolf', 'bat', 'scorpion', 'wyvern', 'snipper'].includes(name)) base.push({ state: 'charge', frames: 4, loop: 0.25 });
+  if (group !== 'hero') base.push({ state: 'idle', frames: 6, loop: 0.5, dyingFrames: true, tag: 'death' });
+  if (group === 'hero') base.push({ state: 'idle', frames: 6, loop: 0.5, cuttingFrames: true, tag: 'cut' });
   if (group === 'bosses') base.push({ state: 'breath', frames: 8, loop: 1.6 });
   return base.map((b) => ({ ...b, name, size, frames: b.frames, tag: b.tag ?? b.state }));
 };

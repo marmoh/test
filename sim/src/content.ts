@@ -19,7 +19,7 @@ export interface EnemyDef {
 }
 
 export const ENEMIES: Record<MinionType, EnemyDef> = {
-  goblin: { type: 'goblin', name: 'Gobelin frondeur', hp: 220, contact: 60, speed: 70, radius: 15, flying: false, shotDmg: 80, cost: 2, period: 1.8 },
+  goblin: { type: 'goblin', name: 'Gobelin frondeur', hp: 220, contact: 60, speed: 70, radius: 15, flying: false, shotDmg: 80, cost: 2, period: 3.0 },
   mushroom: { type: 'mushroom', name: 'Champignon-spore', hp: 300, contact: 50, speed: 0, radius: 16, flying: false, shotDmg: 60, cost: 3, period: 3 },
   wolf: { type: 'wolf', name: "Loup d'ombre", hp: 260, contact: 120, speed: 90, radius: 16, flying: false, shotDmg: 0, cost: 3, period: 3.2 },
   skeleton: { type: 'skeleton', name: 'Archer squelette', hp: 200, contact: 40, speed: 60, radius: 14, flying: false, shotDmg: 70, cost: 3, period: 2.4 },

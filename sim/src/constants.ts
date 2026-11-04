@@ -132,7 +132,7 @@ export const THREAD = {
   /** distance entre deux points du fil (pt) */
   spacing: 9,
   /** durée de vie d'un point avant que l'encre ne sèche (s) */
-  life: 2.6,
+  life: 3.2,
   maxPoints: 110,
   /** aire minimale d'une boucle (pt²) : évite les découpes accidentelles en zigzag */
   minArea: 1400,
