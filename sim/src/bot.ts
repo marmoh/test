@@ -202,6 +202,7 @@ export class Bot implements Controller {
   // menaces perçues (tableaux réutilisés)
   private th: number[] = [];
   private ch: number[] = [];
+  private chE: Enemy[] = [];
   private zs: Hazard[] = [];
   private chasers: Enemy[] = [];
   private readonly probe: Pt = { x: 0, y: 0 };
@@ -301,7 +302,7 @@ export class Bot implements Controller {
   }
 
   /** Danger d'une trajectoire (immobile à partir de l'indice `stop`). */
-  private danger(pts: Float64Array, stop: number, now: number, loop = false): number {
+  private danger(pts: Float64Array, stop: number, now: number, loop = false, members: Enemy[] | null = null): number {
     const skip = loop;
     let d = 0;
     const th = this.th;
@@ -361,8 +362,11 @@ export class Bot implements Controller {
       }
     }
     const ch = this.ch;
+    const chE = this.chE;
     for (let k = 0; k < ch.length; k += 7) {
       const ex = ch[k], ey = ch[k + 1], sp = ch[k + 2], rr = ch[k + 3], delay = ch[k + 4], contact = ch[k + 5];
+      // en orbite, les cibles entourées restent dedans (le centre les suit, la marge du rayon exclut le contact)
+      if (members && !CHASERS.has(chE[k / 7].type) && members.includes(chE[k / 7])) continue;
       let first = true;
       // boucle : le poursuivant marche vers la position actuelle de l'héroïne (elle tourne, il ne peut pas couper
       // n'importe où) ; sinon, modèle prudent « tout point à portée »
@@ -433,6 +437,7 @@ export class Bot implements Controller {
     }
     const ch = this.ch;
     ch.length = 0;
+    this.chE.length = 0;
     const chasers = this.chasers;
     chasers.length = 0;
     for (const e of w.enemies) {
@@ -447,6 +452,7 @@ export class Bot implements Controller {
       // sens du déplacement prévu en boucle : les tireurs reculent quand l'héroïne s'approche, les autres foncent
       const flee = e.type === 'goblin' || e.type === 'skeleton' || e.type === 'mage' ? -1 : 1;
       ch.push(e.pos.x, e.pos.y, sp, rr, e.state === 'spawn' ? e.t : 0, e.contact, flee);
+      this.chE.push(e);
     }
 
     // Ciseaux de lune : suivre la boucle en cours (ou en planifier une) tant que le danger le permet
@@ -460,7 +466,7 @@ export class Bot implements Controller {
       }
       this.fillLoopPath(lp, hp.x, hp.y, speed);
       // en boucle, les poursuivants marchent vers l'héroïne qui tourne (modèle orienté, pas « tout point à portée »)
-      const ld = this.danger(this.loopPath, NP - 1, now, true);
+      const ld = this.danger(this.loopPath, NP - 1, now, true, lp.circling ? lp.members : null);
       (this as unknown as { dbg: string }).dbg = `ld=${ld.toFixed(1)}`;
       if (ld === 0 || process.env.BLIND) return { mx: this.ldir.x, my: this.ldir.y, touching: true };
       loopScore = ld * 10 - LOOP_BONUS;
