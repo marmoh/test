@@ -58,7 +58,7 @@ export function expectedTalentRank(n: number): number {
 
 export const HEAL_BETWEEN_ROOMS = 0.15;
 
-// §5 Mise à l'échelle (cf. DECISIONS : la SPEC donnait 0,09 / 0,06)
+// §5 Mise à l'échelle : PV 0,03/D (SPEC 0,09), dégâts 0,06/D (SPEC) — cf. DECISIONS n° 18
 export const SCALE = { hpPerD: 0.03, dmgPerD: 0.06 } as const;
 
 /**
