@@ -10,6 +10,11 @@ export interface Save {
   gold: number;
   settings: { sound: boolean; haptics: boolean; autoFire: boolean; reduceMotion: boolean };
   bonuses: { potion: number; scroll: number; aegis: number };
+  heroId: 'scout' | 'windMonk' | 'emberSorcerer';
+  heroes: string[];
+  talents: { vigor: number; strength: number; agility: number; fortune: number };
+  tournament: { week: string; attempts: number; best: number };
+  starterPack: boolean;
 }
 
 const KEY = 'ombrelune.save.v1';
@@ -25,6 +30,11 @@ function fresh(): Save {
     gold: 300,
     settings: { sound: true, haptics: true, autoFire: false, reduceMotion: false },
     bonuses: { potion: 1, scroll: 1, aegis: 1 },
+    heroId: 'scout',
+    heroes: ['scout'],
+    talents: { vigor: 0, strength: 0, agility: 0, fortune: 0 },
+    tournament: { week: '', attempts: 5, best: 0 },
+    starterPack: false,
   };
 }
 
@@ -73,4 +83,15 @@ export function recordAttempt(n: number, won: boolean, stars: number): { firstTh
 
 export function totalStars(): number {
   return Object.values(save().stars).reduce((a, b) => a + b, 0);
+}
+
+/** Coût en or du rang suivant d'un talent (rang 0 → 1 : 50, puis croissance quadratique). */
+export function talentCost(rank: number): number {
+  return 25 * (rank + 1) * (rank + 2);
+}
+
+export function tournamentState(weekKey: string): Save['tournament'] {
+  const s = save();
+  if (s.tournament.week !== weekKey) s.tournament = { week: weekKey, attempts: 5, best: 0 };
+  return s.tournament;
 }

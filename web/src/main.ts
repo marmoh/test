@@ -2,14 +2,16 @@ import './style.css';
 import type { RoomTemplate } from '../../sim/src/arena.js';
 import { generateLevel, type LevelDef } from '../../sim/src/level.js';
 import { Bot, BOTS } from '../../sim/src/bot.js';
-import { isoWeek } from '../../sim/src/formulas.js';
+import { isoWeek, tournamentSeed, tournamentScore } from '../../sim/src/formulas.js';
+import { NO_TALENTS } from '../../sim/src/hero.js';
+import { heroesSheet, shopSheet, tournamentSheet, settingsSheet } from './menus.js';
 import { APP_NAME, LEVEL_COUNT } from '../../sim/src/constants.js';
 import { UI_ICONS, iconURL } from '../../art/src/icons.js';
 import { Combat } from './combat.js';
 import { buildMap, topBar } from './map.js';
 import { mountSheet } from './sheet.js';
 import { titleScreen, preLevel, choosePower, victory, defeat, pauseMenu, toast, el } from './ui.js';
-import { save, lives, recordAttempt, persist } from './state.js';
+import { save, lives, recordAttempt, persist, tournamentState } from './state.js';
 import { setSound } from './audio.js';
 
 document.title = APP_NAME;
@@ -40,9 +42,33 @@ function showMap(): void {
   screen.appendChild(topBar());
   screen.appendChild(buildMap((n) => void openLevel(n)));
   const wk = isoWeek(new Date());
-  const banner = el(`<button class="tournament"><img src="${iconURL(UI_ICONS.trophy)}"/><div><b>Tournoi de la semaine ${wk.week}</b><small>Mêmes conditions pour tous · 5 essais</small></div><span class="go">›</span></button>`);
-  banner.addEventListener('click', () => toast('Le tournoi ouvre lundi à 00:00 UTC'));
+  const weekKey = `${wk.year}-W${wk.week}`;
+  const tState = tournamentState(weekKey);
+  const banner = el(`<button class="tournament"><img src="${iconURL(UI_ICONS.trophy)}"/><div><b>Tournoi de la semaine ${wk.week}</b><small>Mêmes conditions pour tous · ${tState.attempts} essai${tState.attempts > 1 ? 's' : ''}</small></div><span class="go">›</span></button>`);
+  const openTournament = () => tournamentSheet(weekKey, wk.week, () => playTournament(weekKey));
+  banner.addEventListener('click', openTournament);
   screen.appendChild(banner);
+  const refresh = () => {
+    const old = screen.querySelector('.topbar');
+    old?.replaceWith(topBar());
+  };
+  const nav = el(`<nav class="bottom-nav">
+    <button data-tab="heroes"><img src="${iconURL(UI_ICONS.aegis)}"/><span>Héros</span></button>
+    <button data-tab="shop"><img src="${iconURL(UI_ICONS.gem)}"/><span>Boutique</span></button>
+    <button data-tab="map" class="on"><img src="${iconURL(UI_ICONS.star)}"/><span>Carte</span></button>
+    <button data-tab="tour"><img src="${iconURL(UI_ICONS.trophy)}"/><span>Tournoi</span></button>
+    <button data-tab="settings"><img src="${iconURL(UI_ICONS.scroll)}"/><span>Réglages</span></button>
+  </nav>`);
+  nav.addEventListener('click', (e) => {
+    const b = (e.target as Element).closest('button');
+    if (!b) return;
+    const tab = b.dataset.tab;
+    if (tab === 'heroes') heroesSheet(refresh);
+    else if (tab === 'shop') shopSheet(refresh);
+    else if (tab === 'tour') openTournament();
+    else if (tab === 'settings') settingsSheet();
+  });
+  screen.appendChild(nav);
   root.appendChild(screen);
   const timer = screen.querySelector<HTMLElement>('.timer');
   const tickLives = () => {
@@ -87,6 +113,8 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
         autoFire: st.autoFire,
         reduceMotion: st.reduceMotion,
         haptics: st.haptics,
+        heroId: save().heroId,
+        talents: params.has('demo') ? undefined : save().talents,
         demoBot: params.has('demo') ? new Bot(BOTS.expert, 7) : undefined,
       },
       {
@@ -123,6 +151,48 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
       start(pick);
     });
   } else start(null);
+}
+
+function playTournament(weekKey: string): void {
+  const t = tournamentState(weekKey);
+  if (t.attempts <= 0) return toast('Plus d’essai cette semaine');
+  t.attempts--;
+  persist();
+  const seed = tournamentSeed(new Date());
+  const lvl = generateLevel(120, seed, ROOMS, 1, { kind: 'hard', mult: 1.35, roomCount: 4 });
+  clear();
+  const screen = el(`<div class="screen combat-screen"></div>`);
+  root.appendChild(screen);
+  const end = (c: Combat, won: boolean, kills: number, hpLeft: number, seconds: number) => {
+    const score = tournamentScore(kills, hpLeft, seconds);
+    const best = score > t.best;
+    if (best) t.best = score;
+    persist();
+    const o = el(`<div class="overlay result-overlay ${won ? 'win' : 'lose'}"><div class="scrim"></div><div class="result"><h2 class="rtitle">${won ? 'Tournoi terminé' : 'Essai terminé'}</h2><div class="score-big">${score}</div><p class="rsub">${best ? 'Nouveau meilleur score !' : `Meilleur score : ${t.best}`}</p><div class="rstats"><div><span>Ennemis</span><b>${kills}</b></div><div><span>PV restants</span><b>${Math.round(hpLeft)}</b></div><div><span>Temps</span><b>${Math.round(seconds)} s</b></div></div><div class="ractions"><button class="btn ghost map">Carte</button><button class="btn primary again" ${t.attempts > 0 ? '' : 'disabled'}>Rejouer (${t.attempts})</button></div></div></div>`);
+    root.appendChild(o);
+    requestAnimationFrame(() => o.classList.add('in'));
+    o.querySelector('.map')!.addEventListener('click', () => (c.destroy(), showMap()));
+    o.querySelector('.again')!.addEventListener('click', () => (c.destroy(), playTournament(weekKey)));
+  };
+  let kills = 0;
+  const c: Combat = new Combat(
+    screen,
+    { level: lvl, templates: TEMPLATES, heroId: 'scout', talents: NO_TALENTS, autoFire: false, reduceMotion: save().settings.reduceMotion, haptics: save().settings.haptics },
+    {
+      choosePower: (offer, hero) => choosePower(offer, hero),
+      defeat: async () => {
+        end(c, false, c.stats().kills, 0, c.stats().seconds);
+        return new Promise(() => undefined);
+      },
+      pause: () => pauseMenu(),
+      finish: (r) => {
+        kills = r.kills;
+        end(c, true, kills, r.hpFrac * c.stats().maxHp, r.seconds);
+      },
+      retry: () => undefined,
+      quit: () => (c.destroy(), showMap()),
+    },
+  );
 }
 
 // démo : ?level=12&play lance directement un niveau ; ?sheet affiche la planche ; ?ui=… montre un écran

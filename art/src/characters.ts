@@ -231,6 +231,137 @@ export const drawScout: Painter = (ctx, p) => {
   ctx.globalAlpha = 1;
 };
 
+/** Corps commun des héros débloquables : robe, tête, bras orienté vers la cible. */
+function heroBody(ctx: Ctx, p: Pose, robe: string, robeDark: string, trim: string, head: (hx: number, fx: number, C: (c: string) => string) => void, weapon: (C: (c: string) => string) => void): void {
+  const C = tint(p);
+  const moving = p.state === 'move';
+  const run = moving ? p.t * 15 : 0;
+  const bob = moving ? Math.abs(Math.sin(run)) * 2.6 : Math.sin(p.t * 2.4) * 0.7;
+  const sway = moving ? Math.sin(run) * 3 : Math.sin(p.t * 1.8) * 0.8;
+  const fx = facingSign(p);
+  if (p.blink && Math.floor(p.t * 16) % 2 === 0) ctx.globalAlpha = 0.45;
+  groundShadow(ctx, 13, 5, 12);
+  const s = moving ? Math.sin(run) : 0;
+  ellipse(ctx, -5, 11 + s * 1.5, 3.5, 2.6, C('#3a2a22'), INK, 1.5);
+  ellipse(ctx, 5, 11 - s * 1.5, 3.5, 2.6, C('#3a2a22'), INK, 1.5);
+  ctx.save();
+  ctx.translate(0, -bob);
+  ctx.beginPath();
+  ctx.moveTo(-7, -7);
+  ctx.quadraticCurveTo(-12 - sway * 0.4, 4, -10 + sway, 11);
+  ctx.quadraticCurveTo(0, 13, 10 + sway, 11);
+  ctx.quadraticCurveTo(12 - sway * 0.4, 4, 7, -7);
+  ctx.closePath();
+  ctx.fillStyle = C(robe);
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = INK;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-9, 2);
+  ctx.quadraticCurveTo(0, 5, 9, 2);
+  ctx.strokeStyle = C(trim);
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(1, -6);
+  ctx.quadraticCurveTo(0 + sway * 0.5, 4, -1 + sway, 11);
+  ctx.strokeStyle = C(robeDark);
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  head(fx * 1.2, fx, C);
+  ctx.restore();
+  ctx.save();
+  ctx.translate(0, -4 - bob);
+  ctx.rotate(p.facing);
+  ctx.translate(12, 0);
+  weapon(C);
+  ctx.restore();
+  ctx.globalAlpha = 1;
+};
+
+export const drawWindMonk: Painter = (ctx, p) => {
+  heroBody(
+    ctx,
+    p,
+    '#f0a43a',
+    '#c47a1a',
+    '#5fd8ff',
+    (hx, fx, C) => {
+      circle(ctx, hx, -12, 8.2, C('#e8b98a'), INK, 2);
+      ellipse(ctx, hx - fx * 2, -16, 4, 2, 'rgba(255,255,255,.35)');
+      eyes(ctx, hx + fx * 2.2, -11, 2.8, 1.5, fx, INK, INK, Math.sin(p.t * 1.3) > 0.98);
+      // bandeau de vent qui flotte
+      ctx.beginPath();
+      ctx.moveTo(hx - 8, -14);
+      ctx.lineTo(hx + 8, -14);
+      ctx.strokeStyle = C('#5fd8ff');
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      const fl = Math.sin(p.t * 8) * 3;
+      ctx.beginPath();
+      ctx.moveTo(hx - fx * 8, -14);
+      ctx.quadraticCurveTo(hx - fx * 16, -16 + fl, hx - fx * 22, -10 + fl);
+      ctx.stroke();
+    },
+    (C) => {
+      // paume ouverte et tourbillon d'air
+      circle(ctx, 0, 0, 4, C('#e8b98a'), INK, 1.5);
+      if (p.aiming) {
+        ctx.strokeStyle = 'rgba(191,244,255,0.85)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 2; i++) {
+          ctx.beginPath();
+          ctx.arc(6 + i * 4, 0, 5 + i * 3, -1.2 + p.t * 8, 1.2 + p.t * 8);
+          ctx.stroke();
+        }
+        glow(ctx, 8, 0, 10, '#bff4ff', 0.6);
+      }
+    },
+  );
+};
+
+export const drawEmberSorcerer: Painter = (ctx, p) => {
+  heroBody(
+    ctx,
+    p,
+    '#5a3a8a',
+    '#3a2266',
+    '#ffb347',
+    (hx, fx, C) => {
+      circle(ctx, hx, -12, 8, C('#f2c9a0'), INK, 2);
+      eyes(ctx, hx + fx * 2.2, -11, 2.8, 1.5, fx, INK, INK, Math.sin(p.t * 1.1) > 0.98);
+      // chapeau pointu qui ondule
+      const w = Math.sin(p.t * 3) * 2;
+      ctx.beginPath();
+      ctx.moveTo(hx - 12, -15);
+      ctx.quadraticCurveTo(hx, -12, hx + 12, -15);
+      ctx.lineTo(hx + 5, -18);
+      ctx.quadraticCurveTo(hx - fx * 2 + w, -28, hx - fx * 10 + w, -34);
+      ctx.quadraticCurveTo(hx - fx * 2, -24, hx - 5, -18);
+      ctx.closePath();
+      ctx.fillStyle = C('#3a2266');
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = INK;
+      ctx.stroke();
+      circle(ctx, hx - fx * 10 + w, -34, 2.4, C('#ffcf4a'), INK, 1.2);
+    },
+    (C) => {
+      ctx.beginPath();
+      ctx.moveTo(-6, 6);
+      ctx.lineTo(6, -2);
+      ctx.strokeStyle = C('#5a3a22');
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      const fl = 3.5 + Math.sin(p.t * 16) * 0.8 + (p.aiming ? 2 : 0);
+      glow(ctx, 8, -3, fl * 3.5, '#ff8a3d', 0.7);
+      circle(ctx, 8, -3, fl, '#ffd36b', INK, 1.5);
+      circle(ctx, 7, -4, fl * 0.45, '#fff3c2');
+    },
+  );
+};
+
 // ───────────────────────────── Ennemis ─────────────────────────────
 
 export const drawGoblin: Painter = (ctx, p) => {
@@ -1055,6 +1186,9 @@ export const drawAshlord: Painter = (ctx, p) => {
 
 export const PAINTERS: Record<string, Painter> = {
   hero: drawScout,
+  scout: drawScout,
+  windMonk: drawWindMonk,
+  emberSorcerer: drawEmberSorcerer,
   goblin: drawGoblin,
   jelly: drawJelly,
   jellySmall: (ctx, p) => drawJelly(ctx, { ...p, variant: 1 }),

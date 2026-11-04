@@ -41,6 +41,8 @@ export interface CombatOptions {
   autoFire?: boolean;
   reduceMotion?: boolean;
   haptics?: boolean;
+  heroId?: 'scout' | 'windMonk' | 'emberSorcerer';
+  talents?: import('../../sim/src/hero.js').Talents;
   /** démo : un bot joue à la place du joueur */
   demoBot?: { input(w: World): { mx: number; my: number; touching: boolean }; beginRoom?(w: World): void };
 }
@@ -102,9 +104,9 @@ export class Combat {
     this.fx.reduceMotion = !!opt.reduceMotion;
     this.amb = new Ambience(AW, AH, this.theme.moteKind, this.theme.mote);
 
-    const talents = talentsForLevel(opt.level.n);
+    const talents = opt.talents ?? talentsForLevel(opt.level.n);
     this.hero = newHero(talents, {}, opt.autoFire);
-    const hd = HEROES.scout;
+    const hd = HEROES[opt.heroId ?? 'scout'];
     if (hd.startPower) grantPower(this.hero, hd.startPower);
     if (opt.scroll) grantPower(this.hero, opt.scroll);
     if (opt.potion) {
@@ -121,6 +123,11 @@ export class Combat {
     this.startRoom(0);
     this.last = performance.now();
     this.raf = requestAnimationFrame((t) => this.frame(t));
+  }
+
+  /** Chiffres de la tentative en cours (score de tournoi). */
+  stats(): { kills: number; seconds: number; maxHp: number } {
+    return { kills: this.kills + (this.world?.kills ?? 0), seconds: this.seconds, maxHp: this.hero.stats.maxHp };
   }
 
   destroy(): void {
@@ -540,7 +547,7 @@ export class Combat {
     if (h.flashT > 0) glow(ctx, 0, 0, 30, '#ffffff', 0.6);
     const aiming = !h.moving && !!this.world.target;
     const state: AnimState = h.moving ? 'move' : 'idle';
-    PAINTERS.hero(ctx, { t, facing: h.facing, state, windup: 0, flash: 0, elite: false, seed: 0, aiming, blink: h.invuln > 0 });
+    PAINTERS[this.opt.heroId ?? 'scout'](ctx, { t, facing: h.facing, state, windup: 0, flash: 0, elite: false, seed: 0, aiming, blink: h.invuln > 0 });
     ctx.restore();
   }
 
@@ -700,6 +707,31 @@ export class Combat {
 
   private drawProjectile(ctx: Ctx, p: Projectile, q: { x: number; y: number }, t: number): void {
     const ang = Math.atan2(p.vel.y, p.vel.x);
+    if (p.fromHero && this.opt.heroId && this.opt.heroId !== 'scout') {
+      ctx.save();
+      ctx.translate(q.x, q.y);
+      ctx.rotate(ang);
+      if (this.opt.heroId === 'windMonk') {
+        ctx.strokeStyle = 'rgba(191,244,255,0.9)';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        for (let i = 0; i < 2; i++) {
+          ctx.beginPath();
+          ctx.arc(-i * 9, 0, 7 - i * 2, -1.1, 1.1);
+          ctx.stroke();
+        }
+        glow(ctx, 0, 0, 12, '#bff4ff', 0.45);
+      } else {
+        ctx.fillStyle = alpha('#ff8a3d', 0.4);
+        ctx.beginPath();
+        ctx.ellipse(-10, 0, 12, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        glow(ctx, 0, 0, 12, '#ff8a3d', 0.7);
+        circle(ctx, 0, 0, 4.5, '#ffd36b', INK, 1.5);
+      }
+      ctx.restore();
+      return;
+    }
     if (p.fromHero) {
       ctx.save();
       ctx.translate(q.x, q.y);
