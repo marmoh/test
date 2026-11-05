@@ -7,12 +7,14 @@
 #   products     crée les achats intégrés (consommables, non consommables) du .storekit
 #   dragon       crée le groupe « Ordre du Dragon », ses abonnements et l'essai gratuit
 #   localize     ajoute les langues du .storekit (en-US, es-ES) aux produits, abonnements et groupe
+#   review_screenshots  capture pour la vérification de chaque produit (boutique, ou pass pour les pass)
 #   leaderboard  crée le classement récurrent du tournoi (Game Center)
 #   beta         archive Release, export App Store et envoi sur TestFlight
 #
 # Toutes les lanes de création sont idempotentes : ce qui existe déjà (même identifiant) est laissé tel quel.
 # Les identifiants, prix et textes des produits viennent de ios/Ombrelune.storekit (une seule source).
 
+require "digest"
 require "json"
 require "net/http"
 
@@ -135,6 +137,13 @@ platform :ios do
     UI.message("Builds : #{builds.empty? ? 'aucun' : builds.map { |b| "#{b.dig('attributes', 'version')} (#{b.dig('attributes', 'processingState')})" }.join(', ')}")
     asc_all("/v1/apps/#{a['id']}/inAppPurchasesV2?limit=200").each do |p|
       UI.message("Achat intégré : #{p.dig('attributes', 'productId')} — #{p.dig('attributes', 'inAppPurchaseType')} — #{p.dig('attributes', 'state')}")
+      next unless p.dig("attributes", "state") == "MISSING_METADATA"
+      # diagnostic : ce qu'Apple a reçu pour ce produit
+      shot = asc(:get, "/v2/inAppPurchases/#{p['id']}/appStoreReviewScreenshot")["data"]
+      locs = asc_all("/v2/inAppPurchases/#{p['id']}/inAppPurchaseLocalizations?limit=200").map { |l| "#{l.dig('attributes', 'locale')}:#{l.dig('attributes', 'state')}" }
+      prices = (asc(:get, "/v1/inAppPurchasePriceSchedules/#{p['id']}/manualPrices?limit=5")["data"] rescue []).size
+      avail = (asc(:get, "/v2/inAppPurchases/#{p['id']}/inAppPurchaseAvailability")["data"] rescue nil)
+      UI.message("  capture : #{shot ? shot.dig('attributes', 'assetDeliveryState', 'state') : 'aucune'} ; langues : #{locs.join(', ')} ; prix : #{prices} ; disponibilité : #{avail ? 'oui' : 'non'}")
     end
     asc_all("/v1/apps/#{a['id']}/subscriptionGroups?limit=200").each do |g|
       UI.message("Groupe d'abonnements : #{g.dig('attributes', 'referenceName')} (id #{g['id']})")
@@ -308,6 +317,48 @@ platform :ios do
         })
         UI.success("+ #{s['productID']} #{loc} : #{l['displayName']}")
       end
+    end
+  end
+
+  desc "Envoie la capture pour la vérification d'Apple de chaque achat intégré et abonnement qui n'en a pas"
+  lane :review_screenshots do
+    shots = File.join(ROOT, "docs", "screens", "ios")
+    shot_for = ->(pid) { File.join(shots, pid.start_with?("ombrelune.pass.") ? "04-pass.png" : "03-shop.png") }
+    targets = asc_all("/v1/apps/#{app_id}/inAppPurchasesV2?limit=200").map do |p|
+      [p.dig("attributes", "productId"), "/v2/inAppPurchases/#{p['id']}/appStoreReviewScreenshot",
+       "inAppPurchaseAppStoreReviewScreenshots", { inAppPurchaseV2: rel("inAppPurchases", p["id"]) }]
+    end
+    asc_all("/v1/apps/#{app_id}/subscriptionGroups?limit=200").each do |g|
+      asc_all("/v1/subscriptionGroups/#{g['id']}/subscriptions?limit=200").each do |s|
+        targets << [s.dig("attributes", "productId"), "/v1/subscriptions/#{s['id']}/appStoreReviewScreenshot",
+                    "subscriptionAppStoreReviewScreenshots", { subscription: rel("subscriptions", s["id"]) }]
+      end
+    end
+    targets.each do |pid, existing_path, type, relationships|
+      if asc(:get, existing_path)["data"]
+        UI.message("= #{pid} a déjà sa capture")
+        next
+      end
+      file = shot_for.(pid)
+      bytes = File.binread(file)
+      reserved = asc(:post, "/v1/#{type}", data: {
+        type: type,
+        attributes: { fileName: File.basename(file), fileSize: bytes.bytesize },
+        relationships: relationships
+      })["data"]
+      reserved.dig("attributes", "uploadOperations").each do |op|
+        uri = URI(op["url"])
+        req = Net::HTTP.const_get(op["method"].capitalize).new(uri)
+        op["requestHeaders"].each { |h| req[h["name"]] = h["value"] }
+        req.body = bytes.byteslice(op["offset"], op["length"])
+        res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |http| http.request(req) }
+        UI.user_error!("Envoi de #{File.basename(file)} pour #{pid} → #{res.code}") unless res.code.to_i.between?(200, 299)
+      end
+      asc(:patch, "/v1/#{type}/#{reserved['id']}", data: {
+        type: type, id: reserved["id"],
+        attributes: { uploaded: true, sourceFileChecksum: Digest::MD5.hexdigest(bytes) }
+      })
+      UI.success("+ #{pid} : #{File.basename(file)}")
     end
   end
 

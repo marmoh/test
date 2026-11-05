@@ -238,8 +238,8 @@ Le détail est en tête de `ios/Services/AdService.swift` ; résumé :
 
 **Fait le 5 novembre 2026 par l'API** (§15) : la fiche de l'app (créée sur le site), §14.3, §14.4, §14.5 (groupe
 **22548846**, reporté dans `ProductID.dragonGroupID` et le `.storekit`) et §14.6. Les produits sont en état
-« Métadonnées manquantes » tant qu'il leur manque la **capture pour la vérification** ; leurs localisations
-anglaise et espagnole (et celles du groupe) sont envoyées (`fastlane localize`). Build 0.1.0 (1) validé sur TestFlight.
+leurs captures pour la vérification (`fastlane review_screenshots` : boutique, ou écran du pass pour les pass) et
+leurs localisations anglaise et espagnole, ainsi que celles du groupe (`fastlane localize`), sont envoyées. Build 0.1.0 (1) validé sur TestFlight.
 Reste aussi §14.1 et §14.7.
 L'App ID `com.marmoh.ombrelune` a été créé par Xcode (équipe P42VAGHFV3) avec Game Center et iCloud.
 
@@ -359,6 +359,7 @@ LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane status        # lecture seule
 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane products      # achats intégrés du .storekit
 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane dragon        # groupe, abonnements, prix des 175 pays, essai (≈ 15 min)
 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane localize      # langues en-US, es-ES des produits, abonnements, groupe
+LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane review_screenshots  # capture pour la vérification de chaque produit
 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane leaderboard   # Game Center et classement du tournoi
 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane beta          # archive, export, envoi TestFlight (sans soumission)
 ```
