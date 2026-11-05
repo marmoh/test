@@ -23,7 +23,8 @@ final class GameScene: SKScene {
         var reduceMotion = false
         var haptics = true
         var dragonSkin = false
-        var threadSkin: ThreadSkin = .ink
+        /// Apparence du pass de saison portée (cosmétique).
+        var skin: SkinID?
         /// Graine de la tentative (aléas de combat), comme `Date.now() & 0xffff` du web.
         var attemptSalt = Int.random(in: 0...0xffff)
     }
@@ -96,7 +97,7 @@ final class GameScene: SKScene {
         world = World(RoomSetup(arena: Arena(tpl), D: config.level.D, waves: room.waves, boss: room.boss,
                                 seed: seedOf(room.seed, config.attemptSalt)), hero: hero)
         arenaNode = ArenaNode(template: tpl, kingdom: config.level.kingdom)
-        heroNode = HeroNode(heroId: config.heroId, dragonSkin: config.dragonSkin)
+        heroNode = HeroNode(heroId: config.heroId, dragonSkin: config.dragonSkin, skin: config.skin)
         projectileLayer = ProjectileLayer(heroId: config.heroId)
         orbFrames = TextureBank.shared.frames(TextureBank.shared.vfx, "heal_orb")
         super.init(size: CGSize(width: 390, height: 844))
@@ -105,7 +106,6 @@ final class GameScene: SKScene {
         backgroundColor = Ink.curtain
         fx.reduceMotion = config.reduceMotion || UIAccessibility.isReduceMotionEnabled
         fx.toScene = { scenePoint($0, $1) }
-        threadNode.inkColor = UIColor(hex: config.threadSkin.rgb)
         build()
         startRoom(0)
     }

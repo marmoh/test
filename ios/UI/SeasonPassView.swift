@@ -1,62 +1,59 @@
 import StoreKit
 import SwiftUI
 
-/// Pass de saison (§11, DECISIONS #50) : 30 paliers, piste gratuite et piste premium (non-consommable
-/// `ombrelune.pass.season1`). L'XP vient des parties (victoire, étoiles, premier succès, tournoi).
+/// Pass de saison (§11, §12.6, DECISIONS #62 ; `passSheet` du web) : saisons de 6 semaines, 30 paliers,
+/// piste gratuite et piste premium (non-consommable `ombrelune.pass.season<N>`, 4,99 €). On avance en gagnant :
+/// +10 lunes par victoire, +10 par étoile nouvelle. Récompenses fixes, affichées d'avance ; rien ne compte en tournoi.
+@MainActor
 struct SeasonPassView: View {
     @Environment(AppModel.self) private var app
     @State private var buying = false
 
     var body: some View {
-        let pass = app.progress.pass
-        let owned = app.wallet.ownsSeasonPass
+        let pass = app.progress.pass()
+        let season = app.currentSeason
+        let daysLeft = max(0, Int(((season.end - Date().timeIntervalSince1970) / 86_400).rounded(.up)))
+        let ready = pass.claimableCount
         VStack(spacing: 0) {
-            SheetHeader(title: "Pass de saison \(SeasonPass.season)")
+            SheetHeader(title: "Pass de saison")
             VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text("Palier \(pass.tier)/\(SeasonPass.tiers)").font(Theme.display(20))
+                HStack(alignment: .bottom) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Saison \(season.number) · \(daysLeft) jours restants").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+                        Text(SeasonPass.name).font(Theme.display(22))
+                    }
                     Spacer()
-                    Text("\(pass.xp % SeasonPass.xpPerTier)/\(SeasonPass.xpPerTier) XP").font(Theme.text(13, weight: .bold)).monospacedDigit()
+                    VStack(alignment: .trailing, spacing: 0) {
+                        Text("Palier").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+                        Text("\(pass.tier)/\(SeasonPass.tiers)").font(Theme.display(24))
+                    }
                 }
                 GeometryReader { g in
                     ZStack(alignment: .leading) {
                         Rectangle().fill(Theme.paper3)
-                        Rectangle().fill(Theme.goldLeaf)
-                            .frame(width: pass.tier >= SeasonPass.tiers ? g.size.width : g.size.width * CGFloat(pass.xp % SeasonPass.xpPerTier) / CGFloat(SeasonPass.xpPerTier))
+                        Rectangle().fill(Theme.goldLeaf).frame(width: g.size.width * CGFloat(SeasonPass.progress(pass.points)))
+                        Text(pass.tier >= SeasonPass.tiers ? "Pass terminé" : "\(pass.points % SeasonPass.pointsPerTier)/\(SeasonPass.pointsPerTier) lunes vers le palier \(pass.tier + 1)")
+                            .font(Theme.text(11, weight: .bold))
+                            .frame(maxWidth: .infinity)
                     }
                 }
-                .frame(height: 10)
+                .frame(height: 16)
                 .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5))
-                Text("Victoire : 40 XP + 10 par étoile (+20 la première fois) · défaite : 15 · essai de tournoi : 50.")
+                .accessibilityElement(children: .combine)
+                Text("Lunes : +\(SeasonPass.pointsPerWin) par victoire, +\(SeasonPass.pointsPerNewStar) par étoile nouvelle.")
                     .font(Theme.note(12)).foregroundStyle(Theme.ink2)
-                if !owned {
-                    Button {
-                        guard !buying else { return }
-                        buying = true
-                        Task {
-                            let r = await app.store.purchase(.seasonPass1)
-                            buying = false
-                            if r == .purchased { app.audio.play(.win); app.show("Piste premium débloquée ✓") }
-                            else if case .failed(let m) = r { app.show(m) }
-                        }
-                    } label: {
-                        HStack {
-                            InkIcon(name: "ui_crown", size: 20, fallback: "crown.fill")
-                            Text("Débloquer la piste premium")
-                            Spacer()
-                            Text(app.store.product(.seasonPass1)?.displayPrice ?? "4,99 €").font(Theme.text(16, weight: .heavy))
-                        }
-                    }
-                    .buttonStyle(InkButtonStyle(kind: .primary))
-                    .disabled(buying)
+                premiumBox(pass)
+                if ready > 0 {
+                    Button("Tout réclamer (\(ready))") { app.claimAllPass() }
+                        .buttonStyle(InkButtonStyle(kind: .jade))
                 }
             }
             .foregroundStyle(Theme.ink)
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
             HStack {
-                Text("Palier").frame(width: 46)
                 Text("Gratuit").frame(maxWidth: .infinity)
+                Text("").frame(width: 46)
                 Text("Premium").frame(maxWidth: .infinity)
             }
             .font(Theme.text(12, weight: .heavy))
@@ -66,45 +63,89 @@ struct SeasonPassView: View {
                 ScrollView {
                     LazyVStack(spacing: 6) {
                         ForEach(1...SeasonPass.tiers, id: \.self) { t in
-                            row(t, pass: pass, owned: owned).id(t)
+                            row(t, pass: pass).id(t)
                         }
                     }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 30)
                 }
-                .onAppear { proxy.scrollTo(max(1, pass.tier), anchor: .center) }
+                .onAppear { proxy.scrollTo(min(SeasonPass.tiers, max(1, pass.tier + 1)), anchor: .center) }
             }
+            Text("Paiement par l’App Store (non consommable, une fois par saison). Aucune récompense aléatoire ; rien du pass ne compte en tournoi.")
+                .font(Theme.note(11)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
+                .padding(.horizontal, 20).padding(.bottom, 8)
         }
         .background(PaperBackground())
         .toast(Binding(get: { app.toast }, set: { app.toast = $0 }))
+        .onAppear { app.syncPassPremium() }
     }
 
-    private func row(_ t: Int, pass: SeasonPassState, owned: Bool) -> some View {
+    @ViewBuilder
+    private func premiumBox(_ pass: SeasonPassState) -> some View {
+        HStack(spacing: 10) {
+            InkIcon(name: "ui_crown", size: 32, fallback: "crown.fill")
+            VStack(alignment: .leading, spacing: 2) {
+                if pass.premium {
+                    Text("Piste premium débloquée").font(Theme.text(15, weight: .heavy))
+                    Text("Merci ! Toutes les récompenses premium atteintes sont à toi.").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+                } else {
+                    Text("Piste premium").font(Theme.text(15, weight: .heavy))
+                    Text("3 apparences, \(premiumGems) gemmes, or et bonus · récompenses déjà atteintes comprises").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+                }
+            }
+            Spacer(minLength: 0)
+            if !pass.premium {
+                Button(buying ? "Confirmation…" : priceText) {
+                    guard !buying else { return }
+                    buying = true
+                    Task {
+                        await app.buyPassPremium()
+                        buying = false
+                    }
+                }
+                .buttonStyle(InkButtonStyle(kind: .primary))
+                .fixedSize()
+                .disabled(buying || app.passProduct == nil)
+            }
+        }
+        .padding(10)
+        .paperCard(fill: pass.premium ? Theme.goldLeaf.opacity(0.15) : Theme.cut, border: Theme.goldLeaf, shadow: 3)
+    }
+
+    private var priceText: String {
+        if let id = app.passProduct, let p = app.store.product(id) { return p.displayPrice }
+        return app.passProduct == nil ? "Bientôt" : "4,99 €"
+    }
+
+    private var premiumGems: Int {
+        SeasonPass.premiumTrack.reduce(0) { if case .gems(let n) = $1 { return $0 + n } else { return $0 } }
+    }
+
+    private func row(_ t: Int, pass: SeasonPassState) -> some View {
         let reached = t <= pass.tier
-        return HStack(spacing: 8) {
+        return HStack(spacing: 6) {
+            cell(t, premium: false, pass: pass, reached: reached)
             Text("\(t)")
-                .font(Theme.display(18))
-                .frame(width: 46, height: 46)
+                .font(Theme.display(17))
+                .frame(width: 40, height: 40)
                 .background(Circle().fill(reached ? Theme.goldLeaf : Theme.paper3))
                 .overlay(Circle().strokeBorder(Theme.ink, lineWidth: 2))
-            cell(t, reward: SeasonPass.freeReward(t), premium: false, reached: reached,
-                 claimed: pass.claimedFree.contains(t), can: pass.canClaim(t, premium: false, owned: owned), locked: false)
-            cell(t, reward: SeasonPass.premiumReward(t), premium: true, reached: reached,
-                 claimed: pass.claimedPremium.contains(t), can: pass.canClaim(t, premium: true, owned: owned), locked: !owned)
+            cell(t, premium: true, pass: pass, reached: reached)
         }
         .foregroundStyle(Theme.ink)
     }
 
-    private func cell(_ t: Int, reward: Reward, premium: Bool, reached: Bool, claimed: Bool, can: Bool, locked: Bool) -> some View {
-        Button {
-            if let r = app.progress.claimPass(tier: t, premium: premium, wallet: app.wallet) {
-                app.audio.play(.star)
-                app.show("Reçu : \(r.label)")
-            }
+    private func cell(_ t: Int, premium: Bool, pass: SeasonPassState, reached: Bool) -> some View {
+        let reward = SeasonPass.reward(premium: premium, tier: t)
+        let claimed = pass.isClaimed(premium: premium, tier: t)
+        let can = pass.canClaim(premium: premium, tier: t)
+        let locked = premium && !pass.premium
+        return Button {
+            app.claimPass(tier: t, premium: premium)
         } label: {
             HStack(spacing: 6) {
                 InkIcon(name: reward.iconName, size: 24)
-                Text(reward.label).font(Theme.text(13, weight: .bold)).lineLimit(2).minimumScaleFactor(0.8)
+                Text(reward.label).font(Theme.text(12.5, weight: .bold)).lineLimit(2).minimumScaleFactor(0.8)
                 Spacer(minLength: 0)
                 if claimed {
                     Image(systemName: "checkmark").font(.system(size: 13, weight: .heavy)).foregroundStyle(Theme.jade)

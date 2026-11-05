@@ -2,6 +2,7 @@ import SpriteKit
 import SwiftUI
 
 /// Héberge la scène de combat dans SwiftUI (une `SKView` réglée à 60 i/s, ordre des enfants ignoré).
+@MainActor
 struct GameViewHost: UIViewRepresentable {
     let scene: GameScene
 

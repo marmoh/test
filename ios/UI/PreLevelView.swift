@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Pré-niveau (§12.2, `preLevel` du web) : objectif, étoiles obtenues, ennemis rencontrés, bonus à équiper
 /// (Potion, Parchemin, Égide), JOUER. Une vie n'est retirée qu'en cas de défaite.
+@MainActor
 struct PreLevelView: View {
     let n: Int
     @Environment(AppModel.self) private var app
@@ -61,6 +62,7 @@ struct PreLevelView: View {
         }
         .background(PaperBackground())
         .presentationDetents([.medium, .large])
+        .toast(Binding(get: { app.toast }, set: { app.toast = $0 }))
     }
 
     private func objective(_ level: LevelDef, boss: BossSpec?) -> String {
@@ -72,9 +74,10 @@ struct PreLevelView: View {
     private func bonusButton(_ b: BonusKind) -> some View {
         let count = app.wallet.bonusCount(b)
         let on = chosen.contains(b)
+        let price = ShopPrices.bonus(b)
         return Button {
             app.audio.play(.tap)
-            if on { chosen.remove(b) } else if count > 0 { chosen.insert(b) }
+            if on { chosen.remove(b) } else if count > 0 { chosen.insert(b) } else if app.buyBonus(b) { chosen.insert(b) }
         } label: {
             VStack(spacing: 2) {
                 InkIcon(name: b.iconName, size: 34)
@@ -87,14 +90,24 @@ struct PreLevelView: View {
             .background(on ? Theme.jade.opacity(0.25) : Theme.cut)
             .overlay(Rectangle().strokeBorder(on ? Theme.jade : Theme.ink, lineWidth: on ? 3 : 2))
             .overlay(alignment: .topTrailing) {
-                Text("\(count)").font(Theme.text(12, weight: .heavy)).foregroundStyle(Theme.cut)
-                    .frame(minWidth: 20, minHeight: 20).background(Circle().fill(Theme.ink)).offset(x: 6, y: -6)
+                if count > 0 || on {
+                    Text("\(count)").font(Theme.text(12, weight: .heavy)).foregroundStyle(Theme.cut)
+                        .frame(minWidth: 20, minHeight: 20).background(Circle().fill(Theme.ink)).offset(x: 6, y: -6)
+                } else {
+                    HStack(spacing: 2) {
+                        InkIcon(name: price.currency == .gold ? "ui_coin" : "ui_gem", size: 13)
+                        Text("\(price.amount)").font(Theme.text(12, weight: .heavy))
+                    }
+                    .foregroundStyle(Theme.ink)
+                    .padding(.horizontal, 5).padding(.vertical, 1)
+                    .background(Theme.paper)
+                    .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5))
+                    .offset(x: 6, y: -8)
+                }
             }
-            .opacity(count > 0 || on ? 1 : 0.45)
         }
         .buttonStyle(.plain)
-        .disabled(count == 0 && !on)
-        .accessibilityLabel("\(b.name), \(b.blurb), \(count) en stock")
+        .accessibilityLabel("\(b.name), \(b.blurb), " + (count > 0 ? "\(count) en stock" : "à acheter : \(price.amount) \(price.currency == .gold ? "or" : "gemmes")"))
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 }

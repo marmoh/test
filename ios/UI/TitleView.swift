@@ -1,6 +1,7 @@
 import SwiftUI
 
 /// Écran titre : scène de théâtre d'ombres, rideaux qui s'ouvrent sur « Lever le rideau » (`titleScreen` du web).
+@MainActor
 struct TitleView: View {
     let onStart: () -> Void
     @Environment(AppModel.self) private var app
@@ -76,6 +77,7 @@ struct TitleView: View {
 }
 
 /// Pan de rideau (plis verticaux).
+@MainActor
 struct Curtain: View {
     var body: some View {
         Canvas { ctx, size in
@@ -93,6 +95,7 @@ struct Curtain: View {
 }
 
 /// Forêt d'encre au bas de l'écran titre (même tracé que le web).
+@MainActor
 struct ForestSilhouette: View {
     let far: Color
     var body: some View {

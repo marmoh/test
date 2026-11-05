@@ -3,6 +3,7 @@ import SwiftUI
 
 /// Boutique (§11, `shopSheet` du web) : offre de départ (une seule fois), Ordre du Dragon, gemmes (StoreKit 2),
 /// dépenses en gemmes et en or (vies, Potion, Égide). Aucun objet aléatoire ; aucune publicité ici.
+@MainActor
 struct ShopView: View {
     @Environment(AppModel.self) private var app
     @State private var busy: ProductID?
@@ -24,11 +25,11 @@ struct ShopView: View {
                         if app.lives.lives >= LivesState.max { return app.show("Tes vies sont au maximum") }
                         app.show(app.lives.refill(using: app.wallet) ? "Vies remplies ✓" : "Pas assez de gemmes")
                     }
-                    spendRow(icon: "ui_potion", title: "Potion", priceIcon: "ui_coin", price: ShopPrices.potionGold) {
-                        app.show(app.wallet.buyBonus(.potion, gold: ShopPrices.potionGold) ? "C’est fait ✓" : "Pas assez d’or")
-                    }
-                    spendRow(icon: "ui_aegis", title: "Égide", priceIcon: "ui_coin", price: ShopPrices.aegisGold) {
-                        app.show(app.wallet.buyBonus(.aegis, gold: ShopPrices.aegisGold) ? "C’est fait ✓" : "Pas assez d’or")
+                    ForEach(BonusKind.allCases, id: \.self) { k in
+                        let price = ShopPrices.bonus(k)
+                        spendRow(icon: k.iconName, title: "\(k.name) (\(app.wallet.bonusCount(k)))", priceIcon: price.currency == .gold ? "ui_coin" : "ui_gem", price: price.amount) {
+                            if app.buyBonus(k) { app.show("C’est fait ✓") }
+                        }
                     }
                     Text("Paiements sécurisés par l’App Store. Aucun objet aléatoire. Publicité seulement si tu la demandes, contre une vie.")
                         .font(Theme.note(12)).foregroundStyle(Theme.ink2).padding(.top, 8)

@@ -65,9 +65,10 @@ final class HeroNode: SKNode {
     private var tickMax = -1.0
     private var lastHpText = ""
 
-    init(heroId: HeroID, dragonSkin: Bool) {
+    init(heroId: HeroID, dragonSkin: Bool, skin: SkinID? = nil) {
         frames = PuppetFrames(heroId.rawValue)
         super.init()
+        if let skin { addChild(Self.skinOverlay(skin)) }
         halo.strokeColor = Ink.jade.withAlphaComponent(0.5)
         halo.lineWidth = 2
         halo.position = CGPoint(x: 0, y: -12)
@@ -122,6 +123,53 @@ final class HeroNode: SKNode {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) indisponible") }
+
+    /// Apparences du pass (oreilles de renard, ailes de papier, couronne de lune), découpées dans l'encre.
+    /// Esquisses posées sur la marionnette en attendant leurs images d'atlas (`web/src/skins.ts`).
+    static func skinOverlay(_ s: SkinID) -> SKNode {
+        let node = SKNode()
+        switch s {
+        case .foxEars:
+            for side: CGFloat in [-1, 1] {
+                let p = CGMutablePath()
+                p.move(to: CGPoint(x: 4 * side, y: 20))
+                p.addLine(to: CGPoint(x: 11 * side, y: 34))
+                p.addLine(to: CGPoint(x: 14 * side, y: 18))
+                p.closeSubpath()
+                let ear = SKShapeNode(path: p)
+                ear.fillColor = Ink.ink
+                ear.strokeColor = Ink.ink
+                node.addChild(ear)
+            }
+        case .paperWings:
+            for side: CGFloat in [-1, 1] {
+                let p = CGMutablePath()
+                p.move(to: CGPoint(x: 4 * side, y: 6))
+                p.addLine(to: CGPoint(x: 26 * side, y: 22))
+                p.addLine(to: CGPoint(x: 22 * side, y: 2))
+                p.addLine(to: CGPoint(x: 6 * side, y: -2))
+                p.closeSubpath()
+                let wing = SKShapeNode(path: p)
+                wing.fillColor = Ink.paper
+                wing.strokeColor = Ink.ink
+                wing.lineWidth = 1.5
+                wing.zPosition = -0.2
+                node.addChild(wing)
+            }
+        case .moonCrown:
+            let p = CGMutablePath()
+            p.addArc(center: CGPoint(x: 0, y: 30), radius: 8, startAngle: .pi * 0.15, endAngle: .pi * 0.85, clockwise: true)
+            p.addArc(center: CGPoint(x: 0, y: 33), radius: 6, startAngle: .pi * 0.8, endAngle: .pi * 0.2, clockwise: false)
+            p.closeSubpath()
+            let crown = SKShapeNode(path: p)
+            crown.fillColor = Ink.gold
+            crown.strokeColor = Ink.ink
+            crown.lineWidth = 1
+            node.addChild(crown)
+        }
+        node.zPosition = 0.1
+        return node
+    }
 
     func update(_ h: HeroState, hasTarget: Bool, touching: Bool, t: Double, hurt: Double) {
         let tex: SKTexture?

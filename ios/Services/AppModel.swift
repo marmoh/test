@@ -91,6 +91,7 @@ final class AppModel {
         audio.start()
         gameCenter.authenticate()
         await store.load()
+        syncPassPremium()
         await ads.load()
     }
 
@@ -153,7 +154,7 @@ final class AppModel {
             level: level, templates: content.templates, mode: .saga, heroId: currentHero, talents: progress.talents,
             potion: bonuses.contains(.potion), aegis: bonuses.contains(.aegis), scroll: nil, scrollPending: bonuses.contains(.scroll),
             autoFire: settings.autoFire, reduceMotion: settings.reduceMotion, haptics: settings.haptics,
-            dragonSkin: subscribed && wallet.snapshot.dragonSkin, threadSkin: progress.threadSkin)
+            dragonSkin: subscribed && wallet.snapshot.dragonSkin, skin: progress.skin)
         launch(CombatSession(level: level, mode: .saga, config: cfg, app: self))
     }
 
@@ -177,9 +178,10 @@ final class AppModel {
         let bonus = DragonPerks.goldBonus(fortuneRank: progress.talents.fortune, subscribed: subscribed)
         let gold = Formulas.goldReward(n, firstThreeStars: rec.firstThree, goldBonus: bonus)
         wallet.addGold(gold)
+        let chests = rec.chests.map { "Coffre d’étoiles (\($0.index * StarChest.every) ★) : " + Reward.summary($0.rewards) }
         return VictoryInfo(level: n, stars: r.stars, gold: gold, kills: r.kills, seconds: r.seconds, dragonBonus: subscribed,
-                           chestsAvailable: progress.chestsAvailable, passXP: SeasonPass.xp(won: true, stars: r.stars, firstClear: rec.firstClear),
-                           isLast: n >= K.levelCount)
+                           passPoints: rec.passPoints, newTier: rec.tierAfter > rec.tierBefore ? rec.tierAfter : nil,
+                           chests: chests, isLast: n >= K.levelCount)
     }
 
     private func recordDefeat(_ s: CombatSession) {
@@ -245,7 +247,7 @@ final class AppModel {
         // mêmes conditions pour tous : héroïne standard, sans talents, sans bonus, tir auto
         let cfg = GameScene.Config(level: level, templates: content.templates, mode: .tournament(week: week), heroId: .scout,
                                    talents: .none, autoFire: true, reduceMotion: settings.reduceMotion, haptics: settings.haptics,
-                                   dragonSkin: subscribed && wallet.snapshot.dragonSkin, threadSkin: progress.threadSkin)
+                                   dragonSkin: subscribed && wallet.snapshot.dragonSkin, skin: progress.skin)
         launch(CombatSession(level: level, mode: .tournament(week: week), config: cfg, app: self))
     }
 
@@ -292,10 +294,54 @@ final class AppModel {
         }
     }
 
-    func openStarChest() {
-        guard let r = progress.openChest(wallet: wallet) else { return }
+    // MARK: pass de saison
+
+    var currentSeason: SeasonPass.Season { SeasonPass.season(at: Date().timeIntervalSince1970) }
+
+    /// Produit StoreKit de la piste premium de la saison en cours (un non-consommable par saison).
+    var passProduct: ProductID? { ProductID(rawValue: SeasonPass.productID(season: currentSeason.number)) }
+
+    /// Reporte le droit StoreKit de la saison en cours (achat, restauration, autre appareil) sur le pass.
+    func syncPassPremium() {
+        if wallet.ownsSeasonPass(season: currentSeason.number) { progress.unlockPremium() }
+    }
+
+    func buyPassPremium() async {
+        guard let id = passProduct else { return show("Piste premium bientôt disponible") }
+        switch await store.purchase(id) {
+        case .purchased:
+            progress.unlockPremium()
+            audio.play(.win)
+            show("Piste premium débloquée ✓")
+        case .pending: show("Achat en attente de validation")
+        case .cancelled: break
+        case .failed(let m): show(m)
+        }
+    }
+
+    func claimPass(tier t: Int, premium: Bool) {
+        if let r = progress.claimPass(tier: t, premium: premium, wallet: wallet, lives: lives) {
+            audio.play(.star)
+            show("Reçu : \(r.label)")
+        }
+    }
+
+    func claimAllPass() {
+        let rs = progress.claimAllPass(wallet: wallet, lives: lives)
+        guard !rs.isEmpty else { return }
         audio.play(.star)
-        show("Coffre d’étoiles : " + r.map(\.label).joined(separator: " · "))
+        show(Reward.summary(rs))
+    }
+
+    /// Achète un bonus d'avant niveau (Potion, Parchemin, Égide).
+    @discardableResult
+    func buyBonus(_ k: BonusKind) -> Bool {
+        if wallet.buyBonus(k) {
+            audio.play(.tap)
+            return true
+        }
+        show(ShopPrices.bonus(k).currency == .gold ? "Pas assez d’or" : "Pas assez de gemmes")
+        return false
     }
 
     /// « Effacer la progression » : tout sauf les achats.

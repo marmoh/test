@@ -110,7 +110,7 @@ final class ThreadNode: SKNode {
             hintLabel.isHidden = true
         }
 
-        var lightPaths = (0..<Self.buckets).map { _ in CGMutablePath() }
+        let lightPaths = (0..<Self.buckets).map { _ in CGMutablePath() }
         var used = [Bool](repeating: false, count: Self.buckets)
         if !th.isEmpty {
             var pts: [(x: Double, y: Double, a: Double)] = th.map { ($0.x, $0.y, max(0, 1 - (w.t - $0.t) / life)) }

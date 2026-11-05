@@ -28,6 +28,7 @@ enum AtlasImages {
 }
 
 /// Icône d'encre de `Icons.atlas` (`ui_star`, `power_flame`…), avec repli sur un symbole système.
+@MainActor
 struct InkIcon: View {
     let name: String
     var size: CGFloat = 22
@@ -43,6 +44,7 @@ struct InkIcon: View {
 }
 
 /// Portrait de marionnette (atlas des personnages).
+@MainActor
 struct Puppet: View {
     let name: String
     var size: CGFloat = 64
@@ -63,6 +65,7 @@ struct Puppet: View {
 }
 
 /// Pastille de la barre du haut (vies, étoiles, or, gemmes).
+@MainActor
 struct Chip<Content: View>: View {
     var action: (() -> Void)?
     @ViewBuilder var content: () -> Content
@@ -85,6 +88,7 @@ struct Chip<Content: View>: View {
 }
 
 /// Message bref en bas de l'écran.
+@MainActor
 struct ToastModifier: ViewModifier {
     @Binding var text: String?
 
@@ -101,7 +105,7 @@ struct ToastModifier: ViewModifier {
                     .padding(.bottom, 96)
                     .padding(.horizontal, 24)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .task(id: text) {
+                    .task(id: text) { @MainActor in
                         try? await Task.sleep(for: .seconds(2.4))
                         withAnimation { self.text = nil }
                     }
@@ -117,6 +121,7 @@ extension View {
 }
 
 /// En-tête de feuille : titre en petites capitales et bouton de fermeture.
+@MainActor
 struct SheetHeader: View {
     let title: String
     var badge: String?
@@ -150,6 +155,7 @@ struct SheetHeader: View {
 }
 
 /// Étoiles d'un niveau (pleines / vides).
+@MainActor
 struct StarsRow: View {
     let count: Int
     var size: CGFloat = 26
@@ -170,8 +176,9 @@ extension Reward {
         switch self {
         case .gold: "ui_coin"
         case .gems: "ui_gem"
-        case .bonus(let k, _): k == .potion ? "ui_potion" : k == .scroll ? "ui_scroll" : "ui_aegis"
-        case .threadSkin: "power_longThread"
+        case .bonus(let k, _): k.iconName
+        case .lives: "ui_heart"
+        case .skin: "ui_crown"
         }
     }
 }

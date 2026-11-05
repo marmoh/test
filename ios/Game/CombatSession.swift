@@ -46,8 +46,11 @@ struct VictoryInfo: Equatable {
     var kills: Int
     var seconds: Double
     var dragonBonus: Bool
-    var chestsAvailable: Int
-    var passXP: Int
+    /// Lunes du pass gagnées ; palier atteint s'il a changé.
+    var passPoints: Int
+    var newTier: Int?
+    /// Coffres d'étoiles ouverts par cette victoire (déjà crédités) : « Coffre d'étoiles (40 ★) : +200 or · … ».
+    var chests: [String]
     var isLast: Bool
 }
 

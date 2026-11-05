@@ -143,11 +143,11 @@ public enum PowerTuning {
     public static let ricochetDmg: Double = 0.25
     public static let chainTargets = 2
     public static let chainFrac: Double = 0.2
-    public static let shieldCooldown: Double = 20
+    public static let shieldCooldown: Double = 25
     public static let pierceDmg: Double = 0.85
     public static let frostSlow: Double = 0.4
     public static let frostDuration: Double = 2
-    public static let orbDamage: Double = 110
+    public static let orbDamage: Double = 80
     public static let speedPerStack: Double = 0.2
     public static let poisonPerStack: Double = 0.015
 }

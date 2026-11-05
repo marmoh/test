@@ -80,16 +80,43 @@ final class Progress {
     func stars(_ n: Int) -> Int { data.stars(n) }
     var totalStars: Int { data.totalStars }
 
-    /// Enregistre l'issue d'une tentative (étoiles, déblocage, XP du pass, héros débloqué).
+    /// Issue d'une tentative (port de `recordAttempt` du web, sans les vies gérées par `LivesCenter`).
+    struct AttemptOutcome {
+        var firstThree = false
+        var firstClear = false
+        /// Lunes du pass gagnées, palier avant et après.
+        var passPoints = 0
+        var tierBefore = 0
+        var tierAfter = 0
+        /// Coffres d'étoiles ouverts par cette victoire (déjà crédités).
+        var chests: [(index: Int, rewards: [Reward])] = []
+    }
+
+    /// Enregistre une tentative : étoiles, déblocage, lunes du pass, coffres d'étoiles (crédités), héros débloqué.
     @discardableResult
-    func record(level n: Int, won: Bool, stars: Int, wallet: Wallet) -> (firstThree: Bool, firstClear: Bool) {
-        var r = (firstThree: false, firstClear: false)
+    func record(level n: Int, won: Bool, stars: Int, wallet: Wallet, now: Date = Date()) -> AttemptOutcome {
+        var out = AttemptOutcome()
+        let season = SeasonPass.season(at: now.timeIntervalSince1970).number
         mutate { d in
-            r = d.record(level: n, won: won, stars: stars)
-            d.seasonPass.xp += SeasonPass.xp(won: won, stars: stars, firstClear: r.firstClear)
+            d.seasonPass = d.seasonPass.current(season: season)
+            out.tierBefore = d.seasonPass.tier
+            let prev = d.stars(n)
+            let r = d.record(level: n, won: won, stars: stars)
+            out.firstThree = r.firstThree
+            out.firstClear = r.firstClear
+            if won {
+                out.passPoints = SeasonPass.pointsForWin(prevStars: prev, stars: stars)
+                d.seasonPass.points += out.passPoints
+                for index in StarChest.pending(opened: d.chestsOpened, stars: d.totalStars) {
+                    out.chests.append((index, StarChest.rewards(index)))
+                    d.chestsOpened = index
+                }
+            }
+            out.tierAfter = d.seasonPass.tier
         }
+        for c in out.chests { wallet.grant(c.rewards) }
         if won && n >= HeroUnlock.emberUnlockLevel { wallet.unlockHero(.emberSorcerer) }
-        return r
+        return out
     }
 
     // MARK: héros et talents
@@ -109,20 +136,6 @@ final class Progress {
         return true
     }
 
-    // MARK: coffres d'étoiles
-
-    var chestsAvailable: Int { data.chestsAvailable }
-
-    /// Ouvre le prochain coffre d'étoiles disponible.
-    func openChest(wallet: Wallet) -> [Reward]? {
-        guard data.chestsAvailable > 0 else { return nil }
-        let k = data.chestsOpened + 1
-        let rewards = StarChest.rewards(k)
-        wallet.grant(rewards)
-        mutate { $0.chestsOpened = k }
-        return rewards
-    }
-
     // MARK: tournoi
 
     func tournament(week: String) -> TournamentState { data.tournament.current(week: week) }
@@ -135,7 +148,6 @@ final class Progress {
             if t.attempts > 0 {
                 t.attempts -= 1
                 ok = true
-                d.seasonPass.xp += SeasonPass.tournamentXP
             }
             d.tournament = t
         }
@@ -170,28 +182,69 @@ final class Progress {
         mutate { $0.honors.append(h) }
     }
 
-    // MARK: pass de saison
+    // MARK: pass de saison (rien ne s'applique en tournoi)
 
-    var pass: SeasonPassState { data.seasonPass }
-
-    func claimPass(tier t: Int, premium: Bool, wallet: Wallet) -> Reward? {
-        guard data.seasonPass.canClaim(t, premium: premium, owned: wallet.ownsSeasonPass) else { return nil }
-        let r = premium ? SeasonPass.premiumReward(t) : SeasonPass.freeReward(t)
-        if case .threadSkin = r {} else { wallet.grant([r]) }
-        mutate { d in
-            if premium { d.seasonPass.claimedPremium.insert(t) } else { d.seasonPass.claimedFree.insert(t) }
-            if case .threadSkin(let s) = r {
-                d.ownedThreadSkins.insert(s)
-                d.threadSkin = s
-            }
-        }
-        return r
+    /// Pass de la saison en cours (une nouvelle saison le remet à zéro).
+    func pass(now: Date = Date()) -> SeasonPassState {
+        data.seasonPass.current(season: SeasonPass.season(at: now.timeIntervalSince1970).number)
     }
 
-    var threadSkin: ThreadSkin { data.threadSkin }
-    func wear(_ s: ThreadSkin) {
-        guard data.ownedThreadSkins.contains(s) else { return }
-        mutate { $0.threadSkin = s }
+    /// Piste premium achetée (StoreKit) ou restaurée pour la saison en cours.
+    func unlockPremium(now: Date = Date()) {
+        let season = SeasonPass.season(at: now.timeIntervalSince1970).number
+        guard !pass(now: now).premium else { return }
+        mutate { d in
+            d.seasonPass = d.seasonPass.current(season: season)
+            d.seasonPass.premium = true
+        }
+    }
+
+    /// Réclame un palier ; l'or, les gemmes et les bonus vont au portefeuille, les vies à `LivesCenter`.
+    func claimPass(tier t: Int, premium: Bool, wallet: Wallet, lives: LivesCenter, now: Date = Date()) -> Reward? {
+        var reward: Reward?
+        let season = SeasonPass.season(at: now.timeIntervalSince1970).number
+        mutate { d in
+            d.seasonPass = d.seasonPass.current(season: season)
+            reward = d.seasonPass.claim(premium: premium, tier: t)
+        }
+        if let reward { grant([reward], wallet: wallet, lives: lives) }
+        return reward
+    }
+
+    /// « Tout réclamer » : piste gratuite puis premium, paliers croissants.
+    func claimAllPass(wallet: Wallet, lives: LivesCenter, now: Date = Date()) -> [Reward] {
+        var rewards: [Reward] = []
+        let season = SeasonPass.season(at: now.timeIntervalSince1970).number
+        mutate { d in
+            d.seasonPass = d.seasonPass.current(season: season)
+            rewards = d.seasonPass.claimAll()
+        }
+        grant(rewards, wallet: wallet, lives: lives)
+        return rewards
+    }
+
+    private func grant(_ rewards: [Reward], wallet: Wallet, lives: LivesCenter) {
+        wallet.grant(rewards)
+        for r in rewards {
+            switch r {
+            case .lives: lives.refillFree()
+            case .skin(let s):
+                mutate { d in
+                    if !d.skins.contains(s) { d.skins.append(s) }
+                    if d.skin == nil { d.skin = s }
+                }
+            default: break
+            }
+        }
+    }
+
+    // MARK: apparences
+
+    var skins: [SkinID] { data.skins }
+    var skin: SkinID? { data.skin }
+    func wear(_ s: SkinID?) {
+        guard s == nil || data.skins.contains(s!) else { return }
+        mutate { $0.skin = s }
     }
 
     // MARK: divers

@@ -25,123 +25,222 @@ public enum BonusKind: String, Codable, CaseIterable, Sendable {
     }
 }
 
-/// Prix de la boutique en jeu (identiques au web, `shopSheet`).
+/// Prix de la boutique en jeu et des bonus (DECISIONS #65) : identiques au web (`BONUS_PRICE`, `shopSheet`).
 public enum ShopPrices {
     /// Recharge de 5 vies (§11).
     public static let livesRefillGems = 90
-    public static let potionGold = 150
-    public static let aegisGold = 200
+    public enum Currency: Sendable { case gold, gems }
+    /// Potion de vie 150 or, Parchemin 25 gemmes, Égide 200 or.
+    public static func bonus(_ k: BonusKind) -> (currency: Currency, amount: Int) {
+        switch k {
+        case .potion: (.gold, 150)
+        case .scroll: (.gems, 25)
+        case .aegis: (.gold, 200)
+        }
+    }
     /// « Continuer » à la défaite (§11) : 60 gemmes la 1re fois, 120 la 2e, 2 au plus par tentative.
     public static func continueCost(_ used: Int) -> Int? { used == 0 ? 60 : used == 1 ? 120 : nil }
 }
 
+// MARK: - apparences (pass de saison, cosmétiques)
+
+/// Apparences de l'héroïne gagnées dans le pass (`SKINS` de `web/src/season.ts`).
+public enum SkinID: String, Codable, CaseIterable, Sendable {
+    case foxEars, paperWings, moonCrown
+
+    public var name: String {
+        switch self {
+        case .foxEars: "Oreilles de renard"
+        case .paperWings: "Ailes de papier"
+        case .moonCrown: "Couronne de lune"
+        }
+    }
+
+    public var desc: String {
+        switch self {
+        case .foxEars: "Oreilles et queue de renard découpées dans l’encre."
+        case .paperWings: "Deux ailes de papier ajourées qui battent doucement."
+        case .moonCrown: "Un croissant d’or à la feuille au-dessus de la capuche."
+        }
+    }
+}
+
 // MARK: - récompenses
 
+/// Récompense fixe (aucun hasard, §11) : port de `Reward` de `web/src/season.ts`.
 public enum Reward: Codable, Equatable, Sendable {
     case gold(Int)
     case gems(Int)
     case bonus(BonusKind, Int)
-    /// Apparence du fil (cosmétique, sans effet en combat).
-    case threadSkin(ThreadSkin)
+    /// 5 vies (recharge complète).
+    case lives
+    case skin(SkinID)
 
     public var label: String {
         switch self {
         case .gold(let n): "\(n) or"
         case .gems(let n): "\(n) gemmes"
-        case .bonus(let k, let n): n > 1 ? "\(k.name) ×\(n)" : k.name
-        case .threadSkin(let s): s.name
+        case .bonus(.potion, let n): n > 1 ? "\(n) potions" : "Potion de vie"
+        case .bonus(.scroll, let n): n > 1 ? "\(n) parchemins" : "Parchemin"
+        case .bonus(.aegis, let n): n > 1 ? "\(n) égides" : "Égide"
+        case .lives: "5 vies"
+        case .skin(let s): s.name
         }
+    }
+
+    /// Résumé « +300 or · +40 gemmes · Ailes de papier » (`rewardsSummary`).
+    public static func summary(_ rs: [Reward]) -> String {
+        var gold = 0, gems = 0, lives = 0
+        var bonus: [BonusKind: Int] = [:]
+        var skins: [String] = []
+        for r in rs {
+            switch r {
+            case .gold(let n): gold += n
+            case .gems(let n): gems += n
+            case .bonus(let k, let n): bonus[k, default: 0] += n
+            case .lives: lives += 1
+            case .skin(let s): skins.append(s.name)
+            }
+        }
+        var parts: [String] = []
+        if gold > 0 { parts.append("+\(gold) or") }
+        if gems > 0 { parts.append("+\(gems) gemmes") }
+        for k in BonusKind.allCases { if let n = bonus[k] { parts.append("+" + Reward.bonus(k, n).label) } }
+        if lives > 0 { parts.append("+5 vies") }
+        return (parts + skins).joined(separator: " · ")
     }
 }
 
-/// Apparences du fil de découpe (pass de saison).
-public enum ThreadSkin: String, Codable, CaseIterable, Sendable {
-    case ink, jade, gold, moon
-
-    public var name: String {
-        switch self {
-        case .ink: "Fil d’encre"
-        case .jade: "Fil de jade"
-        case .gold: "Fil d’or"
-        case .moon: "Fil de lune"
-        }
-    }
-
-    /// Couleur RVB (0xRRGGBB) du trait ; jamais vermillon (réservé au danger).
-    public var rgb: UInt32 {
-        switch self {
-        case .ink: 0x1B1418
-        case .jade: 0x2B8A74
-        case .gold: 0xC9A13B
-        case .moon: 0x6F9FC4
-        }
-    }
-}
-
-// MARK: - coffres d'étoiles (§8)
+// MARK: - coffres d'étoiles (§8, DECISIONS #64)
 
 public enum StarChest {
-    /// Contenu du k-ième coffre (k ≥ 1) : or + gemmes + 1 bonus, en alternance (DECISIONS #51).
-    public static func rewards(_ k: Int) -> [Reward] {
-        let bonus = BonusKind.allCases[(k - 1) % BonusKind.allCases.count]
-        return [.gold(150 + 10 * k), .gems(20), .bonus(bonus, 1)]
+    public static let every = 20
+    public static let gold = 200
+    public static let gems = 20
+
+    /// Contenu du coffre n° `index` (1, 2, 3…) : or + gemmes + 1 bonus, sans hasard (le bonus tourne).
+    public static func rewards(_ index: Int) -> [Reward] {
+        let bonus = BonusKind.allCases[(index - 1) % 3]
+        return [.gold(gold), .gems(gems), .bonus(bonus, 1)]
+    }
+
+    /// Numéros des coffres à ouvrir (`pendingChests`).
+    public static func pending(opened: Int, stars: Int) -> [Int] {
+        let earned = stars / every
+        return earned > opened ? Array((opened + 1)...earned) : []
     }
 }
 
-// MARK: - pass de saison (§11, DECISIONS #50)
+// MARK: - pass de saison (§11, §12.6, DECISIONS #62) — port de `web/src/season.ts`
 
 public enum SeasonPass {
-    public static let season = 1
     public static let tiers = 30
-    public static let xpPerTier = 100
+    public static let pointsPerTier = 40
+    public static let pointsPerWin = 10
+    public static let pointsPerNewStar = 10
+    public static let seasonDays = 42
+    /// Lundi 2 novembre 2026, 00:00 UTC : début de la saison 1.
+    public static let epoch: TimeInterval = 1_793_577_600
+    public static let name = "La Lune de papier"
+    public static let productPrefix = "ombrelune.pass.season"
 
-    /// XP d'une partie (victoire : 40 + 10 par étoile, +20 la première fois ; défaite : 15 ; essai de tournoi : 50).
-    public static func xp(won: Bool, stars: Int, firstClear: Bool) -> Int {
-        won ? 40 + 10 * stars + (firstClear ? 20 : 0) : 15
-    }
-    public static let tournamentXP = 50
-
-    /// Palier atteint (0 à 30) pour une XP donnée.
-    public static func tier(forXP xp: Int) -> Int { min(tiers, max(0, xp) / xpPerTier) }
-
-    public static func freeReward(_ t: Int) -> Reward {
-        if t % 5 == 0 { return .gems(15) }
-        if t % 4 == 0 { return .bonus(t % 8 == 0 ? .aegis : .potion, 1) }
-        return .gold(50 + 5 * t)
+    public struct Season: Equatable, Sendable {
+        public var number: Int
+        public var start: TimeInterval
+        public var end: TimeInterval
     }
 
-    public static func premiumReward(_ t: Int) -> Reward {
-        switch t {
-        case 10: return .threadSkin(.jade)
-        case 20: return .threadSkin(.gold)
-        case 30: return .threadSkin(.moon)
-        default: break
-        }
-        if t % 5 == 0 { return .gems(50) }
-        if t % 3 == 0 { return .bonus(.scroll, 1) }
-        if t % 7 == 0 { return .bonus(.aegis, 1) }
-        return .gold(100 + 10 * t)
+    /// Saison en cours (avant l'époque : saison 1).
+    public static func season(at now: TimeInterval) -> Season {
+        let len = TimeInterval(seasonDays * 86_400)
+        let i = max(0, Int(((now - epoch) / len).rounded(.down)))
+        let start = epoch + Double(i) * len
+        return Season(number: i + 1, start: start, end: start + len)
     }
+
+    public static func productID(season: Int) -> String { "\(productPrefix)\(season)" }
+
+    /// Lunes gagnées par une victoire : `prevStars` = meilleur score avant, `stars` = résultat.
+    public static func pointsForWin(prevStars: Int, stars: Int) -> Int {
+        pointsPerWin + pointsPerNewStar * max(0, stars - prevStars)
+    }
+
+    public static func tier(forPoints p: Int) -> Int { min(tiers, max(0, p) / pointsPerTier) }
+
+    /// Avancement dans le palier en cours (0…1), 1 si tout est atteint.
+    public static func progress(_ p: Int) -> Double {
+        tier(forPoints: p) >= tiers ? 1 : Double(p % pointsPerTier) / Double(pointsPerTier)
+    }
+
+    public static let freeTrack: [Reward] = [
+        .gold(100), .bonus(.potion, 1), .gold(150), .gems(10), .bonus(.scroll, 1),
+        .gold(200), .bonus(.aegis, 1), .gems(15), .gold(250), .gems(20),
+        .bonus(.potion, 1), .gold(300), .bonus(.scroll, 1), .gems(15), .gold(350),
+        .bonus(.aegis, 1), .gold(400), .gems(20), .bonus(.potion, 1), .gems(25),
+        .gold(450), .bonus(.scroll, 1), .gold(500), .gems(20), .bonus(.aegis, 1),
+        .gold(550), .bonus(.potion, 1), .gems(25), .gold(600), .gems(50),
+    ]
+
+    public static let premiumTrack: [Reward] = [
+        .gems(30), .gold(300), .bonus(.potion, 2), .gems(30), .bonus(.scroll, 2),
+        .gold(400), .bonus(.aegis, 2), .gems(40), .gold(500), .skin(.foxEars),
+        .gems(40), .bonus(.potion, 2), .gold(600), .bonus(.scroll, 2), .lives,
+        .gems(50), .bonus(.aegis, 2), .gold(700), .gems(50), .skin(.paperWings),
+        .bonus(.potion, 3), .gold(800), .gems(60), .bonus(.scroll, 3), .lives,
+        .bonus(.aegis, 3), .gems(60), .gold(1000), .gems(80), .skin(.moonCrown),
+    ]
+
+    public static func reward(premium: Bool, tier t: Int) -> Reward { (premium ? premiumTrack : freeTrack)[t - 1] }
 }
 
+/// État du pass de la saison en cours (`PassState`).
 public struct SeasonPassState: Codable, Equatable, Sendable {
-    public var season = SeasonPass.season
-    public var xp = 0
+    public var season: Int
+    public var points = 0
+    /// Piste premium achetée pour cette saison.
+    public var premium = false
     public var claimedFree: Set<Int> = []
     public var claimedPremium: Set<Int> = []
-    public init() {}
 
-    public var tier: Int { SeasonPass.tier(forXP: xp) }
+    public init(season: Int = 1) { self.season = season }
 
-    public func canClaim(_ t: Int, premium: Bool, owned: Bool) -> Bool {
-        guard t >= 1, t <= tier else { return false }
-        return premium ? owned && !claimedPremium.contains(t) : !claimedFree.contains(t)
+    /// Une autre saison repart à zéro (le premium ne passe pas d'une saison à l'autre).
+    public func current(season s: Int) -> SeasonPassState { season == s ? self : SeasonPassState(season: s) }
+
+    public var tier: Int { SeasonPass.tier(forPoints: points) }
+
+    public func isClaimed(premium p: Bool, tier t: Int) -> Bool { (p ? claimedPremium : claimedFree).contains(t) }
+
+    public func canClaim(premium p: Bool, tier t: Int) -> Bool {
+        guard t >= 1, t <= SeasonPass.tiers, t <= tier else { return false }
+        if p && !premium { return false }
+        return !isClaimed(premium: p, tier: t)
+    }
+
+    public mutating func claim(premium p: Bool, tier t: Int) -> Reward? {
+        guard canClaim(premium: p, tier: t) else { return nil }
+        if p { claimedPremium.insert(t) } else { claimedFree.insert(t) }
+        return SeasonPass.reward(premium: p, tier: t)
+    }
+
+    /// Tout ce qui peut être réclamé (piste gratuite puis premium, paliers croissants).
+    public mutating func claimAll() -> [Reward] {
+        var out: [Reward] = []
+        for p in [false, true] { for t in 1...SeasonPass.tiers { if let r = claim(premium: p, tier: t) { out.append(r) } } }
+        return out
+    }
+
+    public var claimableCount: Int {
+        var n = 0
+        for p in [false, true] { for t in 1...SeasonPass.tiers where canClaim(premium: p, tier: t) { n += 1 } }
+        return n
     }
 
     public func merged(with o: SeasonPassState) -> SeasonPassState {
         guard o.season == season else { return o.season > season ? o : self }
         var m = self
-        m.xp = max(xp, o.xp)
+        m.points = max(points, o.points)
+        m.premium = premium || o.premium
         m.claimedFree.formUnion(o.claimedFree)
         m.claimedPremium.formUnion(o.claimedPremium)
         return m
@@ -190,10 +289,11 @@ public struct ProgressData: Codable, Equatable, Sendable {
     public var talents = Talents.none
     public var tournament = TournamentState()
     public var seasonPass = SeasonPassState()
-    /// Coffres d'étoiles déjà ouverts (un tous les 20 ★).
+    /// Coffres d'étoiles déjà ouverts (un tous les 20 ★, crédités à la victoire qui les mérite).
     public var chestsOpened = 0
-    public var threadSkin: ThreadSkin = .ink
-    public var ownedThreadSkins: Set<ThreadSkin> = [.ink]
+    /// Apparences possédées (pass de saison) et apparence portée (cosmétique).
+    public var skins: [SkinID] = []
+    public var skin: SkinID?
     /// Distinctions cosmétiques du tournoi (« Semaine 45 · top 10 % »).
     public var honors: [String] = []
     /// L'écran titre a été passé une fois.
@@ -202,8 +302,6 @@ public struct ProgressData: Codable, Equatable, Sendable {
 
     public func stars(_ n: Int) -> Int { stars[String(n)] ?? 0 }
     public var totalStars: Int { stars.values.reduce(0, +) }
-    public var chestsAvailable: Int { max(0, Formulas.starChestsEarned(totalStars) - chestsOpened) }
-
     /// Enregistre une tentative (étoiles, déblocage). Renvoie « première fois à 3 étoiles » et « premier succès ».
     public mutating func record(level n: Int, won: Bool, stars s: Int) -> (firstThree: Bool, firstClear: Bool) {
         let prev = stars(n)
@@ -226,7 +324,7 @@ public struct ProgressData: Codable, Equatable, Sendable {
         m.tournament = tournament.merged(with: o.tournament)
         m.seasonPass = seasonPass.merged(with: o.seasonPass)
         m.chestsOpened = max(chestsOpened, o.chestsOpened)
-        m.ownedThreadSkins.formUnion(o.ownedThreadSkins)
+        for k in o.skins where !m.skins.contains(k) { m.skins.append(k) }
         for h in o.honors where !m.honors.contains(h) { m.honors.append(h) }
         m.seenTitle = seenTitle || o.seenTitle
         return m

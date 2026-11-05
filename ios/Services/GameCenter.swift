@@ -108,6 +108,7 @@ final class GameCenterService {
 }
 
 /// Classement Game Center natif (feuille).
+@MainActor
 struct GameCenterLeaderboardView: UIViewControllerRepresentable {
     @Environment(\.dismiss) private var dismiss
 

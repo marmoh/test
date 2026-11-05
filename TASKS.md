@@ -53,9 +53,9 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] Captures de chaque écran (`pnpm web:shots`)
 
 ## M6 — iOS (`ios/`)
-- [ ] `project.yml` XcodeGen (iOS 17+), cibles app + tests
-- [ ] `Core/` : port Swift de la simulation (même RNG, mêmes formules), lecture des JSON
-- [ ] `Game/` : SpriteKit (atlas, rendu, VFX), contrôles, Core Haptics
+- [x] `project.yml` XcodeGen (iOS 17+), cibles app + tests
+- [x] `Core/` : port Swift de la simulation (même RNG, mêmes formules), lecture des JSON
+- [x] `Game/` : SpriteKit (atlas, rendu, VFX), contrôles, Core Haptics
 - [~] `UI/` : SwiftUI — fait : `Theme`, `SettingsView`, `DragonView` (`SubscriptionStoreView` + gestion), `LivesView` (+ publicité factice) ; reste : carte, pré-niveau, pouvoirs, résultats, héros, boutique, pass, tournoi
 - [~] `Services/` : fait : StoreKit 2 (`Store` : chargement, achat, restauration, `Transaction.updates`/`unfinished`, crédit idempotent via `CreditLedger`), `Wallet`, `GameSettings`, `LivesCenter`, `AdService` (protocole + `MockAdService` + ATT) ; reste : GameKit, persistance JSON + iCloud KV (implémentera `PurchaseSink`), AVAudioEngine
 - [x] `Ombrelune.storekit` avec tous les produits §11 (gemmes, offre de départ, pass saison 1, Ordre du Dragon mensuel/annuel avec essai de 3 jours)
@@ -64,10 +64,10 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [ ] Polices OFL embarquées (`Resources/Fonts`, `UIAppFonts`)
 
 ## M7 — Parité et qualité
-- [ ] Traces de rejeu TS (entrée → état) et tests XCTest de parité
-- [ ] Tests de bornes de performance (150 projectiles, 30 ennemis)
+- [x] Traces de rejeu TS (entrée → état) et tests XCTest de parité
+- [x] Tests de bornes de performance (150 projectiles, 30 ennemis)
 - [~] Tournoi hebdomadaire : jouable dans le prototype web (graine ISO, 5 essais, score) ; Game Center à faire
 
 ## M8 — Phase Mac
-- [ ] `docs/MAC_PHASE.md` : génération XcodeGen, signature, StoreKit local, Game Center sandbox, profilage iPhone 11, TestFlight (étapes monétisation déjà listées dans `docs/MONETISATION.md`)
+- [x] `docs/MAC_PHASE.md` : génération XcodeGen, signature, StoreKit local, Game Center sandbox, profilage iPhone 11, TestFlight (étapes monétisation déjà listées dans `docs/MONETISATION.md`)
 - [ ] Conditions d'utilisation et politique de confidentialité définitives (liens sous l'offre d'abonnement)

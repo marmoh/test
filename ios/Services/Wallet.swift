@@ -106,7 +106,7 @@ final class Wallet: PurchaseSink {
     @ObservationIgnored private let store: any BlobStore
     @ObservationIgnored private let key: String
 
-    init(store: any BlobStore, key: String = Wallet.key) {
+    init(store: any BlobStore, key: String = "wallet") {
         self.store = store
         self.key = key
         snapshot = Self.read(store, key) ?? Snapshot()
@@ -131,7 +131,11 @@ final class Wallet: PurchaseSink {
     var gold: Int { snapshot.gold }
     var heroes: Set<String> { snapshot.heroes }
     func owns(_ hero: HeroID) -> Bool { snapshot.heroes.contains(hero.rawValue) }
-    var ownsSeasonPass: Bool { snapshot.entitlements.nonConsumables.contains(.seasonPass1) }
+    /// Piste premium du pass de la saison `season` possédée (droit StoreKit non consommable).
+    func ownsSeasonPass(season: Int) -> Bool {
+        guard let id = ProductID(rawValue: SeasonPass.productID(season: season)) else { return false }
+        return snapshot.entitlements.nonConsumables.contains(id)
+    }
     var ownsStarterPack: Bool { snapshot.entitlements.nonConsumables.contains(.starterPack) || snapshot.starterCredited }
     var isDragon: Bool { snapshot.entitlements.dragon.isActive }
     var dragon: DragonStatus { snapshot.entitlements.dragon }
@@ -227,12 +231,19 @@ final class Wallet: PurchaseSink {
         return true
     }
 
-    /// Achète un bonus avec de l'or (Potion 150, Égide 200 : boutique du web).
+    /// Achète un bonus (Potion 150 or, Parchemin 25 gemmes, Égide 200 or : DECISIONS #65).
     @discardableResult
-    func buyBonus(_ k: BonusKind, gold cost: Int) -> Bool {
-        guard snapshot.gold >= cost else { return false }
+    func buyBonus(_ k: BonusKind) -> Bool {
+        let price = ShopPrices.bonus(k)
         var s = snapshot
-        s.gold -= cost
+        switch price.currency {
+        case .gold:
+            guard s.gold >= price.amount else { return false }
+            s.gold -= price.amount
+        case .gems:
+            guard s.gems >= price.amount else { return false }
+            s.gems -= price.amount
+        }
         s.bonuses[k] += 1
         commit(s)
         return true
@@ -253,7 +264,7 @@ final class Wallet: PurchaseSink {
             case .gold(let n): s.gold += n
             case .gems(let n): s.gems += n
             case .bonus(let k, let n): s.bonuses[k] += n
-            case .threadSkin: break
+            case .lives, .skin: break
             }
         }
         commit(s)

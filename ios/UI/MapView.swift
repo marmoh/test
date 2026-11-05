@@ -3,6 +3,7 @@ import SwiftUI
 /// Carte saga (§12.1, port de `web/src/map.ts`) : chemin sinueux à défilement vertical à travers les 5 royaumes,
 /// 300 nœuds (étoiles, crâne des niveaux difficiles, boss), avatar de l'héroïne sur le niveau courant,
 /// vies et gemmes en haut, bandeaux du tournoi et du pass, navigation basse.
+@MainActor
 struct MapScreen: View {
     @Environment(AppModel.self) private var app
 
@@ -17,9 +18,6 @@ struct MapScreen: View {
                         TributeTag { app.claimTribute() }
                     }
                     Spacer()
-                    if app.progress.chestsAvailable > 0 {
-                        ChestTag(count: app.progress.chestsAvailable) { app.openStarChest() }
-                    }
                 }
                 .padding(.horizontal, 12)
                 Spacer()
@@ -74,8 +72,8 @@ enum MapGeo {
     static func mix(_ a: UIColor, _ b: UIColor, _ f: Double) -> Color {
         var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
         var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
-        a.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
-        b.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        _ = a.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        _ = b.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
         let t = CGFloat(max(0, min(1, f)))
         return Color(red: r1 + (r2 - r1) * t, green: g1 + (g2 - g1) * t, blue: b1 + (b2 - b1) * t)
     }
@@ -83,6 +81,7 @@ enum MapGeo {
 
 // MARK: - carte défilante
 
+@MainActor
 struct SagaMap: View {
     let current: Int
     let onSelect: (Int) -> Void
@@ -114,6 +113,7 @@ struct SagaMap: View {
 }
 
 /// Le Trône de la Lune, au sommet de la carte.
+@MainActor
 struct MapHeader: View {
     var body: some View {
         GeometryReader { geo in
@@ -133,6 +133,7 @@ struct MapHeader: View {
 }
 
 /// Quatre niveaux de la carte : ciel, chemin, décor (Canvas), puis les nœuds (boutons).
+@MainActor
 struct MapChunk: View {
     let g: Int
     let current: Int
@@ -280,6 +281,7 @@ struct MapChunk: View {
 }
 
 /// Nœud de niveau : numéro, étoiles, crâne (difficile), boss (couronne et portrait).
+@MainActor
 struct MapNode: View {
     let n: Int
     let current: Int
@@ -342,6 +344,7 @@ struct MapNode: View {
 }
 
 /// La marionnette de l'héroïne tenue par sa baguette, sur le niveau courant.
+@MainActor
 struct MapAvatar: View {
     let heroId: HeroID
     let crown: Bool
@@ -367,6 +370,7 @@ struct MapAvatar: View {
 
 // MARK: - barre du haut, étiquettes, bandeaux, navigation
 
+@MainActor
 struct TopBar: View {
     @Environment(AppModel.self) private var app
 
@@ -413,6 +417,7 @@ struct TopBar: View {
 }
 
 /// « Tribut de l'Ordre » : 60 gemmes à réclamer chaque semaine (abonnés).
+@MainActor
 struct TributeTag: View {
     let action: () -> Void
     var body: some View {
@@ -435,26 +440,7 @@ struct TributeTag: View {
     }
 }
 
-/// Coffre d'étoiles à ouvrir (un tous les 20 ★).
-struct ChestTag: View {
-    let count: Int
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                InkIcon(name: "ui_chest", size: 24, fallback: "shippingbox.fill")
-                Text(count > 1 ? "\(count) coffres" : "Coffre d’étoiles").font(Theme.text(13, weight: .heavy))
-            }
-            .foregroundStyle(Theme.ink)
-            .padding(.horizontal, 10).padding(.vertical, 5)
-            .background(Theme.cut)
-            .overlay(Rectangle().strokeBorder(Theme.goldLeaf, lineWidth: 2))
-            .rotationEffect(.degrees(2))
-        }
-        .buttonStyle(.plain)
-    }
-}
-
+@MainActor
 struct TournamentBanner: View {
     @Environment(AppModel.self) private var app
     var body: some View {
@@ -478,28 +464,29 @@ struct TournamentBanner: View {
     }
 }
 
+@MainActor
 struct PassBanner: View {
     @Environment(AppModel.self) private var app
     var body: some View {
-        let pass = app.progress.pass
-        let claimable = (1...SeasonPass.tiers).contains { pass.canClaim($0, premium: false, owned: false) || pass.canClaim($0, premium: true, owned: app.wallet.ownsSeasonPass) }
+        let pass = app.progress.pass()
+        let claimable = pass.claimableCount
         Button { app.audio.play(.tap); app.sheet = .pass } label: {
             HStack(spacing: 10) {
                 InkIcon(name: "ui_chest", size: 26, fallback: "gift.fill")
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Pass de saison \(SeasonPass.season) · palier \(pass.tier)/\(SeasonPass.tiers)").font(Theme.text(14, weight: .heavy))
+                    Text("Pass de saison · palier \(pass.tier)/\(SeasonPass.tiers)").font(Theme.text(14, weight: .heavy))
                     GeometryReader { g in
                         ZStack(alignment: .leading) {
                             Rectangle().fill(Theme.paper3)
-                            Rectangle().fill(Theme.goldLeaf).frame(width: g.size.width * CGFloat(pass.xp % SeasonPass.xpPerTier) / CGFloat(SeasonPass.xpPerTier))
+                            Rectangle().fill(Theme.goldLeaf).frame(width: g.size.width * CGFloat(SeasonPass.progress(pass.points)))
                         }
                     }
                     .frame(height: 5)
                     .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1))
                 }
-                if claimable {
-                    Text("!").font(Theme.text(15, weight: .heavy)).foregroundStyle(Theme.cut)
-                        .frame(width: 22, height: 22).background(Circle().fill(Theme.vermilion))
+                if claimable > 0 {
+                    Text("\(claimable)").font(Theme.text(13, weight: .heavy)).foregroundStyle(Theme.cut)
+                        .frame(minWidth: 22, minHeight: 22).background(Circle().fill(Theme.vermilion))
                 }
                 Text("›").font(Theme.display(24)).foregroundStyle(Theme.vermilion)
             }
@@ -511,6 +498,7 @@ struct PassBanner: View {
     }
 }
 
+@MainActor
 struct BottomNav: View {
     @Environment(AppModel.self) private var app
 

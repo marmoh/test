@@ -20,7 +20,7 @@ final class LivesCenter {
     @ObservationIgnored private let key: String
     @ObservationIgnored private let clock: () -> Date
 
-    init(store: any BlobStore, key: String = LivesCenter.key, clock: @escaping () -> Date = Date.init) {
+    init(store: any BlobStore, key: String = "lives", clock: @escaping () -> Date = Date.init) {
         self.store = store
         self.key = key
         self.clock = clock
@@ -87,6 +87,12 @@ final class LivesCenter {
         snapshot.lives = .full(now: now)
         save()
         return true
+    }
+
+    /// 5 vies offertes (récompense du pass de saison) : recharge complète.
+    func refillFree() {
+        snapshot.lives = .full(now: now)
+        save()
     }
 
     func reset() {

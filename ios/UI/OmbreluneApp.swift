@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Point d'entrée de l'app iOS (« Ombrelune », `APP_NAME`).
 @main
+@MainActor
 struct OmbreluneApp: App {
     @State private var app = AppModel()
 
@@ -9,7 +10,7 @@ struct OmbreluneApp: App {
         WindowGroup {
             RootView()
                 .environment(app)
-                .task { await app.launch() }
+                .task { @MainActor in await app.launch() }
                 .preferredColorScheme(.light)
                 .statusBarHidden(app.combat != nil)
         }
@@ -18,6 +19,7 @@ struct OmbreluneApp: App {
 
 /// Navigation : écran titre → carte saga (barre du haut, bandeaux, navigation basse) ; feuilles pour les écrans
 /// secondaires ; le combat en plein écran.
+@MainActor
 struct RootView: View {
     @Environment(AppModel.self) private var app
 
@@ -74,6 +76,7 @@ struct RootView: View {
 }
 
 /// Contenus manquants (paquet incomplet) : message clair au lieu d'un écran vide.
+@MainActor
 struct ContentErrorView: View {
     let message: String
     var body: some View {

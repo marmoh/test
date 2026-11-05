@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Héros et talents (§12.6, `heroesSheet` du web) : trois héros (débloqués ou non), Parure du Dragon pour les
 /// membres de l'Ordre, talents permanents achetés avec l'or (désactivés en tournoi), apparence du fil.
+@MainActor
 struct HeroesView: View {
     @Environment(AppModel.self) private var app
 
@@ -43,11 +44,13 @@ struct HeroesView: View {
                     .foregroundStyle(Theme.ink)
                     .padding(.top, 10)
 
-                    SectionTitle(text: "Apparence du fil")
+                    SectionTitle(text: "Apparences")
                     HStack(spacing: 8) {
-                        ForEach(ThreadSkin.allCases, id: \.self) { skinChip($0) }
+                        skinChip(nil)
+                        ForEach(SkinID.allCases, id: \.self) { skinChip($0) }
                     }
-                    Text("D’autres fils se gagnent dans le pass de saison.").font(Theme.note(12)).foregroundStyle(Theme.ink2).padding(.top, 6)
+                    Text("Les apparences se gagnent sur la piste premium du pass de saison. Purement cosmétiques.")
+                        .font(Theme.note(12)).foregroundStyle(Theme.ink2).padding(.top, 6)
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
@@ -125,26 +128,26 @@ struct HeroesView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func skinChip(_ s: ThreadSkin) -> some View {
-        let owned = app.progress.data.ownedThreadSkins.contains(s)
-        let on = app.progress.threadSkin == s
+    private func skinChip(_ s: SkinID?) -> some View {
+        let owned = s == nil || app.progress.skins.contains(s!)
+        let on = app.progress.skin == s
         return Button {
             app.audio.play(.tap)
             app.progress.wear(s)
         } label: {
             VStack(spacing: 4) {
-                Capsule().fill(Color(hex: s.rgb)).frame(height: 6)
-                    .overlay(Capsule().stroke(Theme.ink, style: StrokeStyle(lineWidth: 1, dash: [3, 2])))
-                Text(s.name).font(Theme.text(11, weight: .bold)).lineLimit(1).minimumScaleFactor(0.7)
+                InkIcon(name: s == nil ? "ui_starEmpty" : "ui_crown", size: 26, fallback: "sparkles")
+                Text(s?.name ?? "Aucune").font(Theme.text(11, weight: .bold)).lineLimit(2).multilineTextAlignment(.center).minimumScaleFactor(0.7)
             }
             .foregroundStyle(Theme.ink)
             .padding(6)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 70)
             .background(on ? Theme.jade.opacity(0.18) : Theme.cut)
             .overlay(Rectangle().strokeBorder(on ? Theme.jade : Theme.ink, lineWidth: on ? 2.5 : 1.5))
             .opacity(owned ? 1 : 0.35)
         }
         .buttonStyle(.plain)
         .disabled(!owned)
+        .accessibilityLabel((s?.name ?? "Aucune apparence") + (owned ? "" : ", à gagner dans le pass"))
     }
 }

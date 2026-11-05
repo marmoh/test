@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Combat (§12.3) : la scène SpriteKit en plein écran ; au-dessus, seulement « Niveau n · Salle 2/4 » et la pause.
 /// Les écrans de choix du pouvoir, pause, défaite, victoire et fin de tournoi se superposent à la scène.
+@MainActor
 struct CombatScreen: View {
     let session: CombatSession
     @Environment(AppModel.self) private var app
@@ -72,8 +73,7 @@ struct CombatScreen: View {
                        onRetry: { session.resolveDefeat(.retry) },
                        onMap: { session.resolveDefeat(.map) })
         case let .victory(info):
-            VictoryView(info: info, onNext: { app.afterVictory(next: true) }, onMap: { app.afterVictory(next: false) },
-                        onChest: info.chestsAvailable > 0 ? { app.openStarChest() } : nil)
+            VictoryView(info: info, onNext: { app.afterVictory(next: true) }, onMap: { app.afterVictory(next: false) })
         case let .tournament(info):
             TournamentResultView(info: info, onMap: { app.closeCombat() }, onAgain: {
                 app.closeCombat()
@@ -89,6 +89,7 @@ struct CombatScreen: View {
 // MARK: - choix du pouvoir (§12.4)
 
 /// Trois cartes illustrées qui se retournent l'une après l'autre ; rareté par couleur de cadre.
+@MainActor
 struct PowerChoiceView: View {
     let offer: [PowerID]
     let owned: [PowerID: Int]
@@ -112,7 +113,7 @@ struct PowerChoiceView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.ink.opacity(0.72).ignoresSafeArea())
-        .task {
+        .task { @MainActor in
             let reduce = systemReduceMotion || app.settings.reduceMotion
             for i in offer.indices {
                 try? await Task.sleep(for: .milliseconds(reduce ? 60 : (i == 0 ? 350 : 160)))
@@ -172,6 +173,7 @@ struct PowerChoiceView: View {
 
 // MARK: - pause
 
+@MainActor
 struct PauseView: View {
     @Bindable var settings: GameSettings
     let onChoice: (PauseChoice) -> Void
@@ -207,6 +209,7 @@ struct PauseView: View {
 
 // MARK: - défaite (§12.5, §11)
 
+@MainActor
 struct DefeatView: View {
     let continuesUsed: Int
     let gems: Int
@@ -216,6 +219,7 @@ struct DefeatView: View {
     let onMap: () -> Void
     @Environment(AppModel.self) private var app
     @State private var showDragon = false
+    @State private var showShop = false
 
     var body: some View {
         let cost = ShopPrices.continueCost(continuesUsed)
@@ -241,6 +245,12 @@ struct DefeatView: View {
                 .disabled(gems < cost)
                 .opacity(gems < cost ? 0.55 : 1)
                 Text("Rend 50 % des PV et efface les projectiles.").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+                if gems < cost {
+                    Button("Gemmes : boutique") { showShop = true }
+                        .font(Theme.text(13, weight: .bold)).underline().foregroundStyle(Theme.ink)
+                }
+                Text(continuesUsed == 0 ? "2 continues possibles (60 puis 120 gemmes)" : "Dernier continue possible")
+                    .font(Theme.note(11)).foregroundStyle(Theme.ink2)
             }
             HStack(spacing: 10) {
                 Button("Carte", action: onMap).buttonStyle(InkButtonStyle(kind: .ghost))
@@ -269,22 +279,22 @@ struct DefeatView: View {
         .sheet(isPresented: $showDragon) {
             DragonView(context: .defeat, store: app.store, wallet: app.wallet)
         }
+        .sheet(isPresented: $showShop) { ShopView() }
     }
 }
 
 // MARK: - victoire (§12.5)
 
 /// Étoiles qui tombent une à une, or qui défile, coffre d'étoiles, NIVEAU SUIVANT.
+@MainActor
 struct VictoryView: View {
     let info: VictoryInfo
     let onNext: () -> Void
     let onMap: () -> Void
-    var onChest: (() -> Void)?
     @Environment(AppModel.self) private var app
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var shownStars = 0
     @State private var gold = 0
-    @State private var chestOpened = false
 
     var body: some View {
         VStack(spacing: 12) {
@@ -310,18 +320,23 @@ struct VictoryView: View {
             if info.dragonBonus {
                 Text("dont +25 % de l’Ordre du Dragon").font(Theme.note(12)).foregroundStyle(Theme.ink2)
             }
-            Text("+\(info.passXP) XP du pass de saison").font(Theme.note(12)).foregroundStyle(Theme.ink2)
-            if let onChest, !chestOpened {
-                Button {
-                    chestOpened = true
-                    onChest()
-                } label: {
-                    HStack {
-                        InkIcon(name: "ui_chest", size: 26, fallback: "shippingbox.fill")
-                        Text("Ouvrir le coffre d’étoiles")
-                    }
+            if info.passPoints > 0 {
+                HStack(spacing: 6) {
+                    InkIcon(name: "ui_chest", size: 20, fallback: "gift.fill")
+                    Text("Pass de saison : +\(info.passPoints) lunes" + (info.newTier.map { " · palier \($0) atteint !" } ?? ""))
+                        .font(Theme.text(13, weight: .bold))
                 }
-                .buttonStyle(InkButtonStyle(kind: .jade))
+                .foregroundStyle(Theme.ink)
+            }
+            ForEach(info.chests, id: \.self) { c in
+                HStack(spacing: 6) {
+                    InkIcon(name: "ui_chest", size: 24, fallback: "shippingbox.fill")
+                    Text(c).font(Theme.text(13, weight: .bold)).multilineTextAlignment(.leading)
+                }
+                .foregroundStyle(Theme.ink)
+                .padding(6)
+                .background(Theme.goldLeaf.opacity(0.18))
+                .overlay(Rectangle().strokeBorder(Theme.goldLeaf, lineWidth: 1.5))
             }
             HStack(spacing: 10) {
                 Button("Carte", action: onMap).buttonStyle(InkButtonStyle(kind: .ghost))
@@ -336,7 +351,7 @@ struct VictoryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.ink.opacity(0.6).ignoresSafeArea())
         .toast(Binding(get: { app.toast }, set: { app.toast = $0 }))
-        .task {
+        .task { @MainActor in
             let reduce = systemReduceMotion || app.settings.reduceMotion
             try? await Task.sleep(for: .milliseconds(reduce ? 100 : 600))
             for _ in 0..<info.stars {
@@ -364,6 +379,7 @@ struct VictoryView: View {
 
 // MARK: - fin d'un essai de tournoi
 
+@MainActor
 struct TournamentResultView: View {
     let info: TournamentInfo
     let onMap: () -> Void

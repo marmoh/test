@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Tournoi hebdomadaire (§10, `tournamentSheet` du web) : règles, essais restants, meilleur score,
 /// classement Game Center récurrent hebdomadaire, distinctions cosmétiques.
+@MainActor
 struct TournamentView: View {
     @Environment(AppModel.self) private var app
     @State private var showBoard = false
@@ -58,7 +59,7 @@ struct TournamentView: View {
         }
         .background(PaperBackground())
         .toast(Binding(get: { app.toast }, set: { app.toast = $0 }))
-        .task {
+        .task { @MainActor in
             app.submitBestScore()
             await app.gameCenter.loadTop()
             await app.checkTournamentHonors()

@@ -140,7 +140,7 @@ enum SaveMerge {
                 var m = a.merged(with: b)
                 if remoteStamp > localStamp {
                     m.heroId = b.heroId
-                    m.threadSkin = b.threadSkin
+                    m.skin = b.skin
                 }
                 return (try? enc.encode(m)) ?? local
             }
