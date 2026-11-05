@@ -126,8 +126,11 @@ struct GameCenterLeaderboardView: UIViewControllerRepresentable {
         let dismiss: () -> Void
         init(dismiss: @escaping () -> Void) { self.dismiss = dismiss }
         func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {
-            gameCenterViewController.dismiss(animated: true)
-            dismiss()
+            // GameKit appelle ce délégué sur le fil principal.
+            MainActor.assumeIsolated {
+                gameCenterViewController.dismiss(animated: true)
+                dismiss()
+            }
         }
     }
 }

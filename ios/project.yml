@@ -83,6 +83,9 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
+        # Atlas SpriteKit en pages de 4096 px (le cadre de scène @3x fait 2136 px de haut ; à 2048, Xcode
+        # refuse le cadre et découpe Bosses/Enemies/VFX en plusieurs pages). Tous les iPhone sous iOS 17 lisent 4096.
+        TEXTURE_ATLAS_MAXIMUM_SIZE: 4096x4096
         SUPPORTS_MACCATALYST: NO
 
   OmbreluneTests:

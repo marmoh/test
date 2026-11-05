@@ -29,7 +29,7 @@ final class TextureBank {
     }
 
     /// Précharge les atlas d'un combat (évite les saccades à la première apparition).
-    func preload(kingdom: Int, completion: @escaping @MainActor () -> Void) {
+    func preload(kingdom: Int, completion: @escaping @MainActor @Sendable () -> Void) {
         SKTextureAtlas.preloadTextureAtlases([hero, enemies, bosses, vfx, stage, decor(kingdom)]) {
             Task { @MainActor in completion() }
         }
