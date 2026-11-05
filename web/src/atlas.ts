@@ -1,7 +1,7 @@
 /** Rendu des images d'atlas (utilisé par tools/art-atlas.mjs via ?atlas). */
 import { PAINTERS, type AnimState } from '../../art/src/characters.js';
 import { INK_POWERS as POWER_ICONS, INK_UI as UI_ICONS, iconURL } from '../../art/src/icons.js';
-import { KINGDOMS, INK, type KingdomTheme } from '../../art/src/palette.js';
+import { KINGDOMS, INK, CUT, type KingdomTheme } from '../../art/src/palette.js';
 import { alpha } from '../../art/src/draw.js';
 import {
   AW, AH, WALL, CELL,
@@ -143,8 +143,108 @@ function vfxFrames(scale: number): Record<string, string> {
   return out;
 }
 
+/**
+ * Icône de l'app iOS (carrée, opaque ; iOS arrondit les coins) : écran de papier éclairé par derrière, lune découpée,
+ * forêt d'encre de l'écran titre, l'Éclaireuse (seule marionnette teintée) au bout de sa baguette, rideaux et
+ * lambrequin. Rendue par `tools/app-icon.swift` dans `AppIcon.appiconset/AppIcon-1024.png`.
+ */
+function appIcon(px: number): string {
+  const S = 1024;
+  const th = KINGDOMS[0];
+  const c = document.createElement('canvas');
+  c.width = c.height = px;
+  const ctx = c.getContext('2d')!;
+  ctx.scale(px / S, px / S);
+  // papier éclairé par derrière
+  const g = ctx.createRadialGradient(500, 420, 40, 512, 470, 760);
+  g.addColorStop(0, th.light);
+  g.addColorStop(0.55, th.paper);
+  g.addColorStop(1, th.edge);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+  // lune découpée (croissant : disque de lumière mangé par l'encre)
+  const mx = 650, my = 300, r = 150;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(mx, my, r, 0, Math.PI * 2);
+  ctx.fillStyle = CUT;
+  ctx.fill();
+  ctx.clip();
+  ctx.beginPath();
+  ctx.arc(mx + 74, my - 48, r * 0.9, 0, Math.PI * 2);
+  ctx.fillStyle = INK;
+  ctx.fill();
+  ctx.restore();
+  ctx.beginPath();
+  ctx.arc(mx, my, r, 0, Math.PI * 2);
+  ctx.lineWidth = 16;
+  ctx.strokeStyle = INK;
+  ctx.stroke();
+  // forêt d'encre (tracé de l'écran titre, 400 × 160 → 1024 × 330)
+  const forest = (pts: number[][], fill: string) => {
+    const sx = S / 400, sy = 330 / 160, oy = S - 330;
+    ctx.beginPath();
+    ctx.moveTo(0, S);
+    for (const [x, y] of pts) ctx.lineTo(x * sx, oy + y * sy);
+    ctx.lineTo(S, S);
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+  };
+  forest([[0, 110], [20, 80], [34, 104], [52, 60], [72, 104], [90, 86], [112, 112], [140, 70], [166, 112], [190, 92], [214, 116], [246, 64], [276, 112], [300, 90], [326, 114], [352, 72], [380, 108], [400, 92]], th.far);
+  forest([[0, 132], [30, 104], [48, 126], [70, 96], [96, 130], [128, 120], [160, 134], [200, 124], [240, 136], [272, 118], [300, 132], [330, 108], [360, 130], [400, 116]], INK);
+  // baguette, puis la marionnette
+  const hx = 470, hy = 640, k = 7.4;
+  ctx.beginPath();
+  ctx.moveTo(hx + 4, hy + 2 * k);
+  ctx.lineTo(hx + 4 + Math.tan((8 * Math.PI) / 180) * (S - hy), S + 10);
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = INK;
+  ctx.stroke();
+  ctx.save();
+  ctx.translate(hx, hy);
+  ctx.scale(k, k);
+  PAINTERS.scout(ctx, { t: 0.4, facing: -0.25, state: 'idle', windup: 0, flash: 0, elite: false, seed: 0, aiming: true });
+  ctx.restore();
+  // rideaux sur les côtés, lambrequin en haut
+  for (const left of [true, false]) {
+    ctx.save();
+    ctx.translate(left ? 0 : S - 86, 0);
+    ctx.beginPath();
+    if (left) {
+      ctx.moveTo(0, 0); ctx.lineTo(86, 0); ctx.lineTo(86, 720); ctx.quadraticCurveTo(86, 860, 0, 900);
+    } else {
+      ctx.moveTo(86, 0); ctx.lineTo(0, 0); ctx.lineTo(0, 720); ctx.quadraticCurveTo(0, 860, 86, 900);
+    }
+    ctx.closePath();
+    ctx.clip();
+    paintFrame(ctx, 86, S, 0, 0, th);
+    ctx.restore();
+  }
+  // lambrequin : bande d'encre festonnée, glands à la feuille d'or
+  ctx.fillStyle = INK;
+  ctx.fillRect(0, 0, S, 70);
+  for (let x = -8; x < S + 64; x += 64) {
+    ctx.beginPath();
+    ctx.arc(x + 32, 70, 32, 0, Math.PI);
+    ctx.fill();
+  }
+  ctx.fillStyle = '#c9a13b';
+  for (let x = -8; x < S + 64; x += 64) {
+    ctx.beginPath();
+    ctx.moveTo(x, 70);
+    ctx.lineTo(x - 7, 104);
+    ctx.lineTo(x + 7, 104);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.fillRect(0, 60, S, 6);
+  return c.toDataURL('image/png');
+}
+
 declare global {
   interface Window {
+    atlasAppIcon: (px: number) => string;
     atlasFrames: (f: FrameSpec, scale: number) => string[];
     atlasIcons: (scale: number) => Promise<Record<string, string>>;
     atlasDecor: (k: number, scale: number) => Record<string, string>;
@@ -155,6 +255,7 @@ declare global {
 }
 
 export function mountAtlas(): void {
+  window.atlasAppIcon = appIcon;
   window.atlasFrames = (f, scale) => Array.from({ length: f.frames }, (_, i) => renderFrame(f, i, scale));
   window.atlasIcons = async (scale) => {
     const out: Record<string, string> = {};
