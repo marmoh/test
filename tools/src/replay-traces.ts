@@ -13,7 +13,7 @@
  * Après toute modification de `sim/src` : `pnpm traces`, puis relancer les tests Swift.
  */
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -297,7 +297,30 @@ function mathVectors(): void {
     rows.push([a, Math.sin(a), Math.cos(a), k, 0, Math.atan2(k, 0), Math.hypot(k, 0), Math.abs(k), 2, Math.pow(Math.abs(k), 2)].map(hex));
     rows.push([a + 1e-9, Math.sin(a + 1e-9), Math.cos(a + 1e-9), 0, k, Math.atan2(0, k), Math.hypot(0, k), k + 41, 0.93, Math.pow(k + 41, 0.93)].map(hex));
   }
-  write('math.json', { format: 1, columns: ['a', 'sin', 'cos', 'y', 'x', 'atan2', 'hypot', 'px', 'py', 'pow'], rows });
+  const data = { format: 1, columns: ['a', 'sin', 'cos', 'y', 'x', 'atan2', 'hypot', 'px', 'py', 'pow'], rows };
+  guardMath(data);
+  write('math.json', data);
+}
+
+/**
+ * Garde-fou (DECISIONS #68) : le port Swift (`DMath`) reproduit les fonctions de V8 telles qu'elles ont produit
+ * `math.json`. Certaines constructions de Node 22 donnent 1 ulp d'écart sur sin / cos / pow (Node 22 de Homebrew
+ * sur Mac Apple Silicon : 13 valeurs sur 13 620) ; des traces régénérées là ne seraient plus rejouables en Swift.
+ * Si les vecteurs diffèrent de ceux du dépôt, on s'arrête avant d'écrire quoi que ce soit (`--force` pour passer outre).
+ */
+function guardMath(data: { rows: string[][] }): void {
+  const file = join(OUT, 'math.json');
+  if (process.argv.includes('--force') || !existsSync(file)) return;
+  const old = JSON.parse(readFileSync(file, 'utf8')) as { rows: string[][] };
+  const diffs = data.rows.flatMap((row, i) => row.flatMap((v, j) => (old.rows[i]?.[j] === v ? [] : [`ligne ${i}, ${(data as { columns?: string[] }).columns?.[j] ?? j}`])));
+  if (diffs.length === 0 && old.rows.length === data.rows.length) return;
+  console.error(
+    `✗ Ce Node (${process.version}, V8 ${process.versions.v8}, ${process.platform}-${process.arch}) ne calcule pas les fonctions ` +
+      `mathématiques comme celui qui a produit content/traces/math.json (${diffs.length} écarts : ${diffs.slice(0, 4).join(' ; ')}…).\n` +
+      `  Les traces ne sont PAS régénérées : le port Swift ne pourrait plus les rejouer au bit près.\n` +
+      `  Régénérer sur la machine qui a produit les traces du dépôt (Node 22 sous Linux), ou relancer avec --force si DMath.swift a été adapté.`,
+  );
+  process.exit(1);
 }
 
 // ───────────────────────────── 2. génération des niveaux ─────────────────────────────
