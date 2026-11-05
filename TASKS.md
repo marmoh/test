@@ -81,5 +81,6 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] App Store Connect par l'API (fastlane) : achats intégrés, pass saison 2, Ordre du Dragon (groupe 22548846 reporté dans le code), classement du tournoi, build TestFlight — `docs/MAC_PHASE.md` §15
 - [ ] Site d'Apple : accord Applications payantes, envoi de la fiche App Store (`fastlane/metadata/`) — §14
 - [ ] Réseau publicitaire réel (identifiants AdMob, `app-ads.txt`, étiquette de confidentialité) — §9 et §14.7
+- [x] Fil court et progressif (retour de test) : 2,2 s au départ, Fil long +40 % × 3, talent Encre lente, une carte de fil par tirage, aiguilles à 30 % ; 300 niveaux recalés, traces régénérées sous Rosetta (DECISIONS #71, #72)
 - [ ] Profilage sur iPhone 11 (§11)
 - [ ] Conditions d'utilisation et politique de confidentialité définitives (liens sous l'offre d'abonnement)

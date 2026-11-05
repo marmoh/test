@@ -979,6 +979,23 @@
         }
       }
     },
+    "+6 % durée du fil" : {
+      "comment" : "Talent Encre lente, par rang",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+6% thread duration"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+6 % duración del hilo"
+          }
+        }
+      }
+    },
     "1 bouclier" : {
       "comment" : "Effet de l’Égide",
       "localizations" : {
@@ -2314,6 +2331,23 @@
         }
       }
     },
+    "Encre lente" : {
+      "comment" : "Talent permanent (durée du fil)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slow Ink"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tinta lenta"
+          }
+        }
+      }
+    },
     "Ennemis" : {
       "localizations" : {
         "en" : {
@@ -3019,19 +3053,19 @@
         }
       }
     },
-    "Le fil sèche 50 % moins vite" : {
+    "Le fil dure 40 % plus longtemps" : {
       "comment" : "Description du pouvoir Fil long",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The thread dries 50% slower"
+            "value" : "Thread lasts 40% longer"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El hilo se seca un 50 % más despacio"
+            "value" : "El hilo dura un 40 % más"
           }
         }
       }

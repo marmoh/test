@@ -42,9 +42,16 @@ deux avertissements de concurrence, nom PostScript d'IM Fell (`IM_FELL_English_S
 ouvre directement `map`, `heroes`, `shop`, `pass`, `tournament`, `settings`, `lives`, `dragon`, `prelevel` ou
 `combat` (`-level N`).
 
-**Traces de parité** : ne pas lancer `pnpm traces` sur ce Mac. Node 22 de Homebrew sur Apple Silicon calcule `sin`,
-`cos` et `pow` à 1 ulp près autrement que la machine qui a produit `content/traces/` (13 valeurs sur 13 620) ; l'outil
-le détecte et refuse d'écrire (DECISIONS #68). Les traces du dépôt, elles, passent sur le simulateur.
+**Traces de parité** : pas avec le Node arm64 de Homebrew, qui calcule `sin`, `cos` et `pow` à 1 ulp près autrement
+que Linux (13 valeurs sur 13 620 ; l'outil refuse alors d'écrire, DECISIONS #68). Utiliser **Node 22 x86-64 sous
+Rosetta**, qui calcule exactement comme Linux (0 écart, DECISIONS #72) :
+
+```sh
+curl -fsSLO https://nodejs.org/dist/v22.23.4/node-v22.23.4-darwin-x64.tar.gz   # vérifier avec SHASUMS256.txt
+tar xzf node-v22.23.4-darwin-x64.tar.gz
+ESBUILD_BINARY_PATH=$PWD/$(ls -d node_modules/.pnpm/@esbuild+darwin-arm64@*/node_modules/@esbuild/darwin-arm64/bin/esbuild | tail -1) \
+  arch -x86_64 node-v22.23.4-darwin-x64/bin/node node_modules/tsx/dist/cli.mjs tools/src/replay-traces.ts
+```
 
 ---
 

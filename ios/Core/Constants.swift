@@ -46,7 +46,7 @@ public enum K {
     public static let bossSlamMargin: Double = 0.35
 
     /// Le tir automatique d'aiguilles est l'attaque secondaire (DECISIONS #31, #40).
-    public static let shotDmgMult: Double = 0.1
+    public static let shotDmgMult: Double = 0.3
     /// Les aiguilles épinglent les mites de papier : dégâts × 3 contre elles (DECISIONS #41).
     public static let needleMothMult: Double = 3
 }
@@ -79,7 +79,12 @@ public enum TalentK {
     public static let damagePerRank: Double = 0.02
     public static let fireRatePerRank: Double = 0.015
     public static let goldPerRank: Double = 0.05
+    /// « Encre lente » : durée du fil, par rang (DECISIONS #71).
+    public static let inkPerRank: Double = 0.06
 }
+
+/// Carte « Fil long » : durée du fil par prise (DECISIONS #71).
+public let longThreadPerStack: Double = 0.4
 
 /// Rang de talent attendu au niveau n (modèle des bots).
 public func expectedTalentRank(_ n: Int) -> Int { min(TalentK.maxRank, n / 25) }
@@ -157,8 +162,8 @@ public enum PowerTuning {
 public enum ThreadTuning {
     /// Distance entre deux points du fil (pt).
     public static let spacing: Double = 9
-    /// Durée de vie d'un point avant que l'encre ne sèche (s) ; 3,2 → 6 (DECISIONS #40).
-    public static let life: Double = 6
+    /// Durée de vie d'un point avant que l'encre ne sèche (s) ; 3,2 → 6 (DECISIONS #40) → 2,2 (#71).
+    public static let life: Double = 2.2
     public static let maxPoints = 200
     /// Aire minimale d'une boucle (pt²).
     public static let minArea: Double = 1400

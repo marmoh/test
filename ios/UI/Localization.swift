@@ -73,7 +73,7 @@ extension PowerID {
 
     var detail: String {
         switch self {
-        case .longThread: String(localized: "Le fil sèche 50 % moins vite", comment: "Description du pouvoir Fil long")
+        case .longThread: String(localized: "Le fil dure 40 % plus longtemps", comment: "Description du pouvoir Fil long")
         case .sharpScissors: String(localized: "+30 % de dégâts de découpe", comment: "Description du pouvoir Ciseaux affûtés")
         case .steelThread: String(localized: "Ni les mites ni les crabes ne coupent le fil", comment: "Description du pouvoir Fil d’acier")
         case .barbedThread: String(localized: "Le fil blesse les ennemis qui le touchent", comment: "Description du pouvoir Fil barbelé")

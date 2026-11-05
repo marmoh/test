@@ -6,14 +6,41 @@
  "kind": "normal",
  "D": 2.58,
  "mult": 1,
- "budgetScale": 0.864,
- "seed": 9,
- "powerSeed": 157043638,
+ "budgetScale": 0.95,
+ "seed": 1,
+ "powerSeed": 2843635629,
  "rooms": [
   {
-   "template": "room_21",
+   "template": "room_08",
    "waves": [
     [
+     {
+      "type": "bat",
+      "c": 8,
+      "r": 3
+     },
+     {
+      "type": "bat",
+      "c": 2,
+      "r": 1
+     },
+     {
+      "type": "bat",
+      "c": 7,
+      "r": 3
+     },
+     {
+      "type": "bat",
+      "c": 7,
+      "r": 7
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 1
+     },
      {
       "type": "bat",
       "c": 3,
@@ -21,135 +48,123 @@
      },
      {
       "type": "bat",
-      "c": 0,
+      "c": 8,
+      "r": 9
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 1535329610,
+   "budget": 14
+  },
+  {
+   "template": "room_04",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 6,
       "r": 9
      },
      {
-      "type": "goblin",
+      "type": "bat",
       "c": 7,
-      "r": 5
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 3
      }
     ],
     [
      {
       "type": "bat",
-      "c": 3,
+      "c": 0,
+      "r": 7
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 3
+     },
+     {
+      "type": "bat",
+      "c": 0,
+      "r": 3
+     },
+     {
+      "type": "bat",
+      "c": 4,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 940344877,
+   "budget": 16
+  },
+  {
+   "template": "room_15",
+   "waves": [
+    [
+     {
+      "type": "bat",
+      "c": 8,
+      "r": 6
+     },
+     {
+      "type": "bat",
+      "c": 6,
       "r": 7
      },
      {
       "type": "bat",
       "c": 1,
-      "r": 2
-     },
-     {
-      "type": "goblin",
-      "c": 5,
-      "r": 9
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 3691143320,
-   "budget": 13
-  },
-  {
-   "template": "room_14",
-   "waves": [
-    [
-     {
-      "type": "goblin",
-      "c": 1,
-      "r": 0
-     },
-     {
-      "type": "goblin",
-      "c": 6,
-      "r": 2
-     },
-     {
-      "type": "bat",
-      "c": 4,
-      "r": 4
-     },
-     {
-      "type": "bat",
-      "c": 2,
-      "r": 6
-     }
-    ],
-    [
-     {
-      "type": "bat",
-      "c": 0,
-      "r": 5
-     },
-     {
-      "type": "bat",
-      "c": 8,
-      "r": 9
-     },
-     {
-      "type": "bat",
-      "c": 0,
-      "r": 9
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 897992416,
-   "budget": 15
-  },
-  {
-   "template": "room_11",
-   "waves": [
-    [
-     {
-      "type": "bat",
-      "c": 0,
-      "r": 8
-     },
-     {
-      "type": "bat",
-      "c": 3,
       "r": 3
      },
      {
-      "type": "goblin",
-      "c": 8,
-      "r": 9
-     },
-     {
-      "type": "goblin",
-      "c": 8,
-      "r": 4
-     }
-    ],
-    [
-     {
       "type": "bat",
       "c": 5,
       "r": 4
      },
      {
+      "type": "goblin",
+      "c": 1,
+      "r": 1
+     }
+    ],
+    [
+     {
       "type": "bat",
+      "c": 4,
+      "r": 4
+     },
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 4
+     },
+     {
+      "type": "goblin",
       "c": 6,
-      "r": 5
+      "r": 0
      },
      {
       "type": "bat",
       "c": 1,
-      "r": 2
-     },
-     {
-      "type": "goblin",
-      "c": 4,
-      "r": 2
+      "r": 8
      }
     ]
    ],
    "boss": null,
-   "seed": 1585484408,
-   "budget": 16
+   "seed": 317180241,
+   "budget": 18
   }
  ],
  "stars": {
@@ -158,10 +173,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.955,
-  "expert": 0.98,
+  "moyen": 0.865,
+  "expert": 1,
   "band": "Chapitres 1–2",
   "ok": true,
-  "avgSeconds": 81
+  "avgSeconds": 104
  }
 }

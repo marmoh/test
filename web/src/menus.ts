@@ -2,7 +2,7 @@
 import { HEROES, type HeroId } from '../../sim/src/content.js';
 import { TALENTS } from '../../sim/src/constants.js';
 import { tournamentScore } from '../../sim/src/formulas.js';
-import { INK_UI, iconURL } from '../../art/src/icons.js';
+import { INK_UI, INK_POWERS, iconURL } from '../../art/src/icons.js';
 import { liveSprite } from './portraits.js';
 import { APP_NAME } from '../../sim/src/constants.js';
 import { save, persist, talentCost, tournamentState, subscribed, subscription, recordEntitlements, restorePurchases, eraseProgress } from './state.js';
@@ -49,7 +49,7 @@ export function heroesSheet(onChange: () => void): void {
     <h3 class="sec">Apparences <small>pass de saison · cosmétiques</small></h3>
     <div class="skins">${skinCards()}</div>
     <h3 class="sec">Talents permanents <small>désactivés en tournoi</small></h3>
-    <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', INK_UI.heart)}${talentRow('strength', 'Force', '+2 % dégâts', INK_UI.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', INK_UI.coin)}${talentRow('fortune', 'Fortune', '+5 % or', INK_UI.chest)}</div>
+    <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', INK_UI.heart)}${talentRow('strength', 'Force', '+2 % dégâts', INK_UI.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', INK_UI.coin)}${talentRow('fortune', 'Fortune', '+5 % or', INK_UI.chest)}${talentRow('ink', 'Encre lente', '+6 % durée du fil', INK_POWERS.longThread)}</div>
     <p class="fine">Or disponible : <b>${s.gold}</b></p>`,
   );
   o.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 92, 2.1, 'idle', { aiming: true, facing: 0.15 })));

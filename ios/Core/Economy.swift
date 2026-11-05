@@ -320,7 +320,8 @@ public struct ProgressData: Codable, Equatable, Sendable {
         for (k, v) in o.stars { m.stars[k] = max(m.stars[k] ?? 0, v) }
         m.unlocked = max(unlocked, o.unlocked)
         m.talents = Talents(vigor: max(talents.vigor, o.talents.vigor), strength: max(talents.strength, o.talents.strength),
-                            agility: max(talents.agility, o.talents.agility), fortune: max(talents.fortune, o.talents.fortune))
+                            agility: max(talents.agility, o.talents.agility), fortune: max(talents.fortune, o.talents.fortune),
+                            ink: max(talents.ink, o.talents.ink))
         m.tournament = tournament.merged(with: o.tournament)
         m.seasonPass = seasonPass.merged(with: o.seasonPass)
         m.chestsOpened = max(chestsOpened, o.chestsOpened)

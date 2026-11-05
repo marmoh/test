@@ -224,7 +224,7 @@ export interface PowerDef {
  * rebond mural) ; Déflagration, Aimant à soins et Pas éclair sont retirés. 12 communs, 8 rares, 4 épiques.
  */
 export const POWERS: PowerDef[] = [
-  { id: 'longThread', name: 'Fil long', family: 'thread', rarity: 'common', maxStacks: 2, desc: 'Le fil sèche 50 % moins vite' },
+  { id: 'longThread', name: 'Fil long', family: 'thread', rarity: 'common', maxStacks: 3, desc: 'Le fil dure 40 % plus longtemps' },
   { id: 'sharpScissors', name: 'Ciseaux affûtés', family: 'thread', rarity: 'common', maxStacks: 3, desc: '+30 % de dégâts de découpe' },
   { id: 'steelThread', name: "Fil d'acier", family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Ni les mites ni les crabes ne coupent le fil' },
   { id: 'barbedThread', name: 'Fil barbelé', family: 'thread', rarity: 'rare', maxStacks: 1, desc: 'Le fil blesse les ennemis qui le touchent' },

@@ -44,7 +44,7 @@ export interface Save {
   bonuses: { potion: number; scroll: number; aegis: number };
   heroId: 'scout' | 'windMonk' | 'emberSorcerer';
   heroes: string[];
-  talents: { vigor: number; strength: number; agility: number; fortune: number };
+  talents: { vigor: number; strength: number; agility: number; fortune: number; ink: number };
   tournament: { week: string; attempts: number; best: number };
   starterPack: boolean;
   /** Ordre du Dragon (abonnement simulé : formule, date de fin, essai). */
@@ -83,7 +83,7 @@ function fresh(): Save {
     bonuses: { potion: 1, scroll: 1, aegis: 1 },
     heroId: 'scout',
     heroes: ['scout'],
-    talents: { vigor: 0, strength: 0, agility: 0, fortune: 0 },
+    talents: { vigor: 0, strength: 0, agility: 0, fortune: 0, ink: 0 },
     tournament: { week: '', attempts: 5, best: 0 },
     starterPack: false,
     subscription: noSubscription(),
@@ -111,6 +111,8 @@ export function save(): Save {
       settings: { ...base.settings, ...parsed.settings },
       subscription: { ...base.subscription, ...parsed.subscription },
       ads: { ...base.ads, ...parsed.ads },
+      // « Encre lente » (DECISIONS #71) : rang 0 pour les sauvegardes d'avant
+      talents: { ...base.talents, ...parsed.talents },
     };
     // migration 1 → 2 : pass de saison (saison en cours), apparences, coffres d'étoiles.
     // Les coffres déjà mérités par une ancienne sauvegarde s'ouvriront à la prochaine victoire.

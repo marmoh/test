@@ -163,7 +163,7 @@ public struct PowerDef: Sendable, Identifiable {
 public enum Powers {
     /// 24 pouvoirs (DECISIONS #28), dans l'ordre de `POWERS` (l'ordre compte pour les offres à graine).
     public static let all: [PowerDef] = [
-        PowerDef(id: .longThread, name: "Fil long", family: .thread, rarity: .common, maxStacks: 2, desc: "Le fil sèche 50 % moins vite"),
+        PowerDef(id: .longThread, name: "Fil long", family: .thread, rarity: .common, maxStacks: 3, desc: "Le fil dure 40 % plus longtemps"),
         PowerDef(id: .sharpScissors, name: "Ciseaux affûtés", family: .thread, rarity: .common, maxStacks: 3, desc: "+30 % de dégâts de découpe"),
         PowerDef(id: .steelThread, name: "Fil d'acier", family: .thread, rarity: .rare, maxStacks: 1, desc: "Ni les mites ni les crabes ne coupent le fil"),
         PowerDef(id: .barbedThread, name: "Fil barbelé", family: .thread, rarity: .rare, maxStacks: 1, desc: "Le fil blesse les ennemis qui le touchent"),

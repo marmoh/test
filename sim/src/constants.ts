@@ -49,6 +49,8 @@ export const TALENTS = {
   damagePerRank: 0.02,
   fireRatePerRank: 0.015,
   goldPerRank: 0.05,
+  /** « Encre lente » : durée du fil, par rang (DECISIONS #71) */
+  inkPerRank: 0.06,
 } as const;
 
 /** Rang de talent attendu au niveau n (modèle des bots). */
@@ -105,6 +107,9 @@ export const LIVES = { max: 5, regenSeconds: 30 * 60 } as const;
 export const STAR_THRESHOLDS = { two: 0.5, three: 0.8 } as const;
 
 // §6 tirage
+/** Carte « Fil long » : durée du fil par prise (DECISIONS #71). */
+export const LONG_THREAD_PER_STACK = 0.4;
+
 export const RARITY_WEIGHTS = { common: 0.6, rare: 0.3, epic: 0.1 } as const;
 
 // Orbes de soin (lâchés par les ennemis)
@@ -137,8 +142,11 @@ export const POWER_TUNING = {
 export const THREAD = {
   /** distance entre deux points du fil (pt) */
   spacing: 9,
-  /** durée de vie d'un point avant que l'encre ne sèche (s) ; 3,2 → 6 (DECISIONS #40) */
-  life: 6,
+  /**
+   * durée de vie d'un point avant que l'encre ne sèche (s) : 3,2 → 6 (DECISIONS #40) → 2,2 (#71) ; le fil
+   * s'allonge avec la carte « Fil long » (+40 % par prise) et le talent « Encre lente » (+6 % par rang)
+   */
+  life: 2.2,
   maxPoints: 200,
   /** aire minimale d'une boucle (pt²) : évite les découpes accidentelles en zigzag */
   minArea: 1400,
@@ -154,7 +162,10 @@ export const THREAD = {
   confettiRadius: 72,
 } as const;
 
-/** Le tir automatique d'aiguilles devient l'appoint (0,5 → 0,3 : DECISIONS #31 ; 0,3 → 0,1 : #40). */
-export const SHOT_DMG_MULT = 0.1;
+/**
+ * Aiguilles : 0,5 → 0,3 (DECISIONS #31) → 0,1 (#40) → 0,3 (#71) : avec le fil court du début, les flèches font
+ * l'essentiel des dégâts ; la découpe prend le relais à mesure que le fil s'allonge (cartes, talent).
+ */
+export const SHOT_DMG_MULT = 0.3;
 /** Les aiguilles épinglent les mites de papier : dégâts × 3 contre elles (DECISIONS #41). */
 export const NEEDLE_MOTH_MULT = 3;

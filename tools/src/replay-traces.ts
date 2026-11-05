@@ -318,7 +318,8 @@ function guardMath(data: { rows: string[][] }): void {
     `✗ Ce Node (${process.version}, V8 ${process.versions.v8}, ${process.platform}-${process.arch}) ne calcule pas les fonctions ` +
       `mathématiques comme celui qui a produit content/traces/math.json (${diffs.length} écarts : ${diffs.slice(0, 4).join(' ; ')}…).\n` +
       `  Les traces ne sont PAS régénérées : le port Swift ne pourrait plus les rejouer au bit près.\n` +
-      `  Régénérer sur la machine qui a produit les traces du dépôt (Node 22 sous Linux), ou relancer avec --force si DMath.swift a été adapté.`,
+      `  Sur Mac Apple Silicon : Node 22 x86-64 sous Rosetta (docs/MAC_PHASE.md, « Traces de parité »), ou Linux ;\n` +
+      `  --force seulement si DMath.swift a été adapté.`,
   );
   process.exit(1);
 }

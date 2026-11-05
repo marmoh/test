@@ -6,13 +6,27 @@ public struct Talents: Codable, Equatable, Sendable {
     public var strength: Int
     public var agility: Int
     public var fortune: Int
+    /// « Encre lente » : le fil dure plus longtemps (DECISIONS #71).
+    public var ink: Int
 
-    public init(vigor: Int = 0, strength: Int = 0, agility: Int = 0, fortune: Int = 0) {
-        self.vigor = vigor; self.strength = strength; self.agility = agility; self.fortune = fortune
+    public init(vigor: Int = 0, strength: Int = 0, agility: Int = 0, fortune: Int = 0, ink: Int = 0) {
+        self.vigor = vigor; self.strength = strength; self.agility = agility; self.fortune = fortune; self.ink = ink
+    }
+
+    private enum CodingKeys: String, CodingKey { case vigor, strength, agility, fortune, ink }
+
+    /// Les sauvegardes d'avant « Encre lente » n'ont pas `ink` : rang 0.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        vigor = try c.decode(Int.self, forKey: .vigor)
+        strength = try c.decode(Int.self, forKey: .strength)
+        agility = try c.decode(Int.self, forKey: .agility)
+        fortune = try c.decode(Int.self, forKey: .fortune)
+        ink = try c.decodeIfPresent(Int.self, forKey: .ink) ?? 0
     }
 
     public static let none = Talents()
-    public static func atRank(_ r: Int) -> Talents { Talents(vigor: r, strength: r, agility: r, fortune: r) }
+    public static func atRank(_ r: Int) -> Talents { Talents(vigor: r, strength: r, agility: r, fortune: r, ink: r) }
     /// Talents attendus au niveau n (bots, prototype).
     public static func forLevel(_ n: Int) -> Talents { atRank(expectedTalentRank(n)) }
 }
@@ -84,7 +98,7 @@ public func computeStats(_ talents: Talents, _ powers: [PowerID: Int]) -> HeroSt
         dodge: n(.dodge) > 0 ? 0.1 : 0,
         flashStep: n(.flashStep) > 0,
         magnet: n(.magnet) > 0,
-        threadLife: 1 + 0.5 * Double(n(.longThread)),
+        threadLife: (1 + TalentK.inkPerRank * Double(talents.ink)) * (1 + longThreadPerStack * Double(n(.longThread))),
         steelThread: n(.steelThread) > 0,
         barbedThread: n(.barbedThread) > 0,
         cutMult: 1 + 0.3 * Double(n(.sharpScissors)),

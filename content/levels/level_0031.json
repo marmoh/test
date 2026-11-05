@@ -138,10 +138,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.88,
-  "expert": 0.985,
+  "moyen": 0.915,
+  "expert": 0.995,
   "band": "Chapitres 1–2",
   "ok": true,
-  "avgSeconds": 82
+  "avgSeconds": 66
  }
 }

@@ -6,83 +6,88 @@
  "kind": "normal",
  "D": 1.336,
  "mult": 1,
- "budgetScale": 0.785,
- "seed": 15,
- "powerSeed": 3999989574,
+ "budgetScale": 0.864,
+ "seed": 8,
+ "powerSeed": 3300872081,
  "rooms": [
+  {
+   "template": "room_14",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 0
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 7
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 6,
+      "r": 7
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 2
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3969416998,
+   "budget": 11
+  },
   {
    "template": "room_02",
    "waves": [
     [
      {
       "type": "goblin",
-      "c": 1,
-      "r": 6
-     },
-     {
-      "type": "goblin",
-      "c": 0,
-      "r": 6
+      "c": 2,
+      "r": 5
      },
      {
       "type": "goblin",
       "c": 2,
-      "r": 5
-     }
-    ],
-    [
+      "r": 2
+     },
      {
       "type": "goblin",
       "c": 6,
-      "r": 0
-     },
-     {
-      "type": "goblin",
-      "c": 4,
-      "r": 9
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 3574396546,
-   "budget": 10
-  },
-  {
-   "template": "room_07",
-   "waves": [
-    [
-     {
-      "type": "goblin",
-      "c": 7,
-      "r": 9
-     },
-     {
-      "type": "goblin",
-      "c": 1,
-      "r": 7
-     },
-     {
-      "type": "goblin",
-      "c": 0,
       "r": 7
      }
     ],
     [
      {
       "type": "goblin",
-      "c": 5,
-      "r": 4
+      "c": 2,
+      "r": 1
      },
      {
       "type": "goblin",
-      "c": 6,
-      "r": 4
+      "c": 3,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 2,
+      "r": 2
      }
     ]
    ],
    "boss": null,
-   "seed": 2676685517,
-   "budget": 11
+   "seed": 240118592,
+   "budget": 12
   }
  ],
  "stars": {
@@ -91,10 +96,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.94,
-  "expert": 0.995,
+  "moyen": 0.85,
+  "expert": 1,
   "band": "Chapitres 1–2",
   "ok": true,
-  "avgSeconds": 42
+  "avgSeconds": 52
  }
 }

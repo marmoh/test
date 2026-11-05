@@ -192,14 +192,19 @@ function round3(x: number): number {
 
 // ───────────────────────────── pouvoirs ─────────────────────────────
 
-/** Offre de 3 pouvoirs distincts (tirage à graine), sans pouvoir déjà au maximum. */
+/**
+ * Offre de 3 pouvoirs distincts (tirage à graine), sans pouvoir déjà au maximum. La première carte est toujours de la
+ * famille Fil tant qu'il en reste une à prendre : chaque choix oppose le fil (durée, découpe) au tir (DECISIONS #71).
+ */
 export function offerPowers(rng: Rng, owned: Partial<Record<PowerId, number>>, count = 3): PowerId[] {
   const offer: PowerId[] = [];
   const eligible = (id: PowerId) => !offer.includes(id) && (owned[id] ?? 0) < POWER_BY_ID[id].maxStacks;
   for (let k = 0; k < count; k++) {
     const r = rng.weighted([RARITY_WEIGHTS.common, RARITY_WEIGHTS.rare, RARITY_WEIGHTS.epic]);
     const rarity = (['common', 'rare', 'epic'] as const)[r];
-    let pool = POWERS.filter((p) => p.rarity === rarity && eligible(p.id));
+    const family = (p: (typeof POWERS)[number]) => k > 0 || p.family === 'thread';
+    let pool = POWERS.filter((p) => p.rarity === rarity && family(p) && eligible(p.id));
+    if (!pool.length && k === 0) pool = POWERS.filter((p) => family(p) && eligible(p.id));
     if (!pool.length) pool = POWERS.filter((p) => eligible(p.id));
     if (!pool.length) break;
     offer.push(rng.pick(pool).id);

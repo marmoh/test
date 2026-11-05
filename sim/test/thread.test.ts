@@ -123,7 +123,8 @@ describe('Ciseaux de lune', () => {
   });
 
   it('la charge du crabe-ciseaux tranche le fil', () => {
-    const snips = drawAndWait(setup({}, 'snipper', 4, 5), 170);
+    // fil long (3 cartes) : le crabe a le temps de charger avant que l'encre ne sèche
+    const snips = drawAndWait(setup({ longThread: 3 }, 'snipper', 4, 5), 170);
     expect(snips).toContain('snipper');
   });
 
@@ -133,7 +134,7 @@ describe('Ciseaux de lune', () => {
   });
 
   it('fil barbelé : un ennemi qui touche le fil se blesse', () => {
-    const w = setup({ barbedThread: 1 }, 'jelly', 4, 6);
+    const w = setup({ barbedThread: 1, longThread: 3 }, 'jelly', 4, 6);
     const jelly = w.enemies[0];
     const hp0 = jelly.hp;
     drawAndWait(w, 90);
@@ -144,7 +145,8 @@ describe('Ciseaux de lune', () => {
 
 describe('Ciseaux de lune — bots', () => {
   it('le bot trace des boucles autour des poursuivants et les découpe', () => {
-    const hero = newHero(NO_TALENTS);
+    // fil long (3 cartes) : assez de fil pour encercler des gelées qui poursuivent
+    const hero = newHero(NO_TALENTS, { longThread: 3 });
     const waves = [0, 1, 2].map((k) => [
       { type: 'jelly' as const, c: 2 + k, r: 3 },
       { type: 'jelly' as const, c: 6 - k, r: 6 },

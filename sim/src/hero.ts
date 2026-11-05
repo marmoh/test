@@ -1,5 +1,5 @@
 /** §4 Héros : statistiques effectives (base × talents × pouvoirs). */
-import { HERO, TALENTS, POWER_TUNING } from './constants.js';
+import { HERO, TALENTS, POWER_TUNING, LONG_THREAD_PER_STACK } from './constants.js';
 import type { PowerId } from './content.js';
 
 export interface Talents {
@@ -7,12 +7,14 @@ export interface Talents {
   strength: number;
   agility: number;
   fortune: number;
+  /** « Encre lente » : le fil dure plus longtemps (DECISIONS #71) */
+  ink: number;
 }
 
-export const NO_TALENTS: Talents = { vigor: 0, strength: 0, agility: 0, fortune: 0 };
+export const NO_TALENTS: Talents = { vigor: 0, strength: 0, agility: 0, fortune: 0, ink: 0 };
 
 export function talentsAtRank(rank: number): Talents {
-  return { vigor: rank, strength: rank, agility: rank, fortune: rank };
+  return { vigor: rank, strength: rank, agility: rank, fortune: rank, ink: rank };
 }
 
 export interface HeroStats {
@@ -82,7 +84,7 @@ export function computeStats(talents: Talents, powers: Partial<Record<PowerId, n
     dodge: n('dodge') > 0 ? 0.1 : 0,
     flashStep: n('flashStep') > 0,
     magnet: n('magnet') > 0,
-    threadLife: 1 + 0.5 * n('longThread'),
+    threadLife: (1 + TALENTS.inkPerRank * (talents.ink ?? 0)) * (1 + LONG_THREAD_PER_STACK * n('longThread')),
     steelThread: n('steelThread') > 0,
     barbedThread: n('barbedThread') > 0,
     cutMult: 1 + 0.3 * n('sharpScissors'),

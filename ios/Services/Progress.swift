@@ -3,7 +3,7 @@ import Observation
 
 /// Talents permanents (§4), achetés avec de l'or.
 enum TalentKind: String, CaseIterable, Identifiable {
-    case vigor, strength, agility, fortune
+    case vigor, strength, agility, fortune, ink
     var id: String { rawValue }
 
     var name: String {
@@ -12,6 +12,7 @@ enum TalentKind: String, CaseIterable, Identifiable {
         case .strength: String(localized: "Force", comment: "Talent permanent (dégâts)")
         case .agility: String(localized: "Agilité", comment: "Talent permanent (cadence)")
         case .fortune: String(localized: "Fortune", comment: "Talent permanent (or)")
+        case .ink: String(localized: "Encre lente", comment: "Talent permanent (durée du fil)")
         }
     }
 
@@ -21,6 +22,7 @@ enum TalentKind: String, CaseIterable, Identifiable {
         case .strength: String(localized: "+2 % dégâts", comment: "Talent Force, par rang")
         case .agility: String(localized: "+1,5 % cadence", comment: "Talent Agilité, par rang")
         case .fortune: String(localized: "+5 % or", comment: "Talent Fortune, par rang")
+        case .ink: String(localized: "+6 % durée du fil", comment: "Talent Encre lente, par rang")
         }
     }
 
@@ -30,6 +32,7 @@ enum TalentKind: String, CaseIterable, Identifiable {
         case .strength: "ui_star"
         case .agility: "ui_coin"
         case .fortune: "ui_chest"
+        case .ink: "power_longThread"
         }
     }
 
@@ -39,6 +42,7 @@ enum TalentKind: String, CaseIterable, Identifiable {
         case .strength: \.strength
         case .agility: \.agility
         case .fortune: \.fortune
+        case .ink: \.ink
         }
     }
 }

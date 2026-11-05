@@ -6,110 +6,116 @@
  "kind": "normal",
  "D": 6.34,
  "mult": 1,
- "budgetScale": 0.826,
- "seed": 15,
- "powerSeed": 2390362847,
+ "budgetScale": 0.909,
+ "seed": 3,
+ "powerSeed": 3032114265,
  "rooms": [
   {
-   "template": "room_21",
+   "template": "room_24",
    "waves": [
     [
      {
+      "type": "mushroom",
+      "c": 1,
+      "r": 3
+     },
+     {
+      "type": "snipper",
+      "c": 4,
+      "r": 3
+     },
+     {
       "type": "goblin",
-      "c": 2,
+      "c": 1,
+      "r": 0
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 7,
+      "r": 7
+     },
+     {
+      "type": "moth",
+      "c": 7,
       "r": 8
      },
      {
-      "type": "snipper",
-      "c": 5,
-      "r": 0
-     },
-     {
-      "type": "snipper",
+      "type": "bat",
       "c": 2,
-      "r": 9
+      "r": 5
      }
-    ],
+    ]
+   ],
+   "boss": null,
+   "seed": 3410030435,
+   "budget": 14
+  },
+  {
+   "template": "room_08",
+   "waves": [
     [
      {
-      "type": "wolf",
-      "c": 5,
+      "type": "bat",
+      "c": 4,
       "r": 1
      },
      {
-      "type": "goblin",
-      "c": 8,
-      "r": 9
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 3216671431,
-   "budget": 13
-  },
-  {
-   "template": "room_07",
-   "waves": [
-    [
-     {
       "type": "snipper",
-      "c": 4,
-      "r": 9
-     },
-     {
-      "type": "moth",
-      "c": 8,
+      "c": 5,
       "r": 2
      },
      {
-      "type": "bat",
-      "c": 1,
-      "r": 7
-     }
-    ],
-    [
-     {
-      "type": "moth",
+      "type": "wolf",
       "c": 6,
-      "r": 5
-     },
-     {
-      "type": "mushroom",
-      "c": 2,
-      "r": 2
-     },
-     {
-      "type": "jelly",
-      "c": 8,
-      "r": 9
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 231364264,
-   "budget": 15
-  },
-  {
-   "template": "room_01",
-   "waves": [
-    [
-     {
-      "type": "jelly",
-      "c": 4,
-      "r": 4
-     },
-     {
-      "type": "mushroom",
-      "c": 4,
-      "r": 3,
+      "r": 6,
       "elite": true
      }
     ],
     [
      {
-      "type": "wolf",
+      "type": "bat",
       "c": 4,
-      "r": 2
+      "r": 1
+     },
+     {
+      "type": "bat",
+      "c": 4,
+      "r": 8
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 920282892,
+   "budget": 17
+  },
+  {
+   "template": "room_06",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 0
+     },
+     {
+      "type": "jelly",
+      "c": 3,
+      "r": 9
+     },
+     {
+      "type": "mushroom",
+      "c": 4,
+      "r": 7,
+      "elite": true
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 8,
+      "r": 0
      },
      {
       "type": "mushroom",
@@ -119,46 +125,56 @@
     ]
    ],
    "boss": null,
-   "seed": 3217923101,
-   "budget": 17
+   "seed": 417837734,
+   "budget": 19
   },
   {
-   "template": "room_19",
+   "template": "room_03",
    "waves": [
     [
      {
-      "type": "snipper",
-      "c": 6,
+      "type": "mushroom",
+      "c": 4,
       "r": 2
      },
      {
-      "type": "wolf",
-      "c": 2,
-      "r": 5
+      "type": "bat",
+      "c": 3,
+      "r": 0,
+      "elite": true
      },
      {
       "type": "mushroom",
-      "c": 1,
-      "r": 6,
-      "elite": true
+      "c": 2,
+      "r": 2
+     },
+     {
+      "type": "snipper",
+      "c": 2,
+      "r": 6
      }
     ],
     [
      {
-      "type": "goblin",
-      "c": 4,
-      "r": 7
+      "type": "wolf",
+      "c": 7,
+      "r": 4
      },
      {
-      "type": "jelly",
+      "type": "moth",
       "c": 8,
-      "r": 5
+      "r": 9
+     },
+     {
+      "type": "bat",
+      "c": 2,
+      "r": 8
      }
     ]
    ],
    "boss": null,
-   "seed": 1562550702,
-   "budget": 19
+   "seed": 3408959616,
+   "budget": 21
   }
  ],
  "stars": {
@@ -167,10 +183,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.79,
-  "expert": 0.965,
+  "moyen": 0.75,
+  "expert": 0.99,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 136
+  "avgSeconds": 121
  }
 }

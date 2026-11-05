@@ -202,10 +202,13 @@ public enum LevelGen {
         var offer: [PowerID] = []
         func eligible(_ id: PowerID) -> Bool { !offer.contains(id) && (owned[id] ?? 0) < Powers.def(id).maxStacks }
         let rarities: [Rarity] = [.common, .rare, .epic]
-        for _ in 0..<count {
+        // 1re carte : famille Fil tant qu'il en reste une à prendre (DECISIONS #71)
+        for k in 0..<count {
             let r = rng.weighted([RarityWeights.common, RarityWeights.rare, RarityWeights.epic])
             let rarity = rarities[r]
-            var pool = Powers.all.filter { $0.rarity == rarity && eligible($0.id) }
+            func family(_ p: PowerDef) -> Bool { k > 0 || p.family == .thread }
+            var pool = Powers.all.filter { $0.rarity == rarity && family($0) && eligible($0.id) }
+            if pool.isEmpty && k == 0 { pool = Powers.all.filter { family($0) && eligible($0.id) } }
             if pool.isEmpty { pool = Powers.all.filter { eligible($0.id) } }
             if pool.isEmpty { break }
             offer.append(rng.pick(pool).id)
