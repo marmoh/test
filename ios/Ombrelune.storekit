@@ -165,7 +165,7 @@
   },
   "subscriptionGroups" : [
     {
-      "id" : "21566001",
+      "id" : "22548846",
       "localizations" : [
         {
           "description" : "Vies illimitées, 60 gemmes par semaine, Parure du Dragon, +25 % d’or.",
@@ -221,7 +221,7 @@
           "productID" : "ombrelune.dragon.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Ordre du Dragon annuel",
-          "subscriptionGroupID" : "21566001",
+          "subscriptionGroupID" : "22548846",
           "type" : "RecurringSubscription"
         },
         {
@@ -260,7 +260,7 @@
           "productID" : "ombrelune.dragon.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Ordre du Dragon mensuel",
-          "subscriptionGroupID" : "21566001",
+          "subscriptionGroupID" : "22548846",
           "type" : "RecurringSubscription"
         }
       ]

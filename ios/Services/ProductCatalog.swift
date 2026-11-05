@@ -13,9 +13,9 @@ enum ProductID: String, CaseIterable, Codable, Sendable {
     case dragonMonthly = "ombrelune.dragon.monthly"
     case dragonYearly = "ombrelune.dragon.yearly"
 
-    /// Groupe d'abonnement « Ordre du Dragon » (identifiant du groupe dans le fichier `.storekit`
-    /// et dans App Store Connect : à reporter ici après la création du groupe).
-    static let dragonGroupID = "21566001"
+    /// Groupe d'abonnement « Ordre du Dragon » : identifiant App Store Connect (créé par `fastlane dragon`),
+    /// repris tel quel dans `Ombrelune.storekit` pour que les tests locaux utilisent le même.
+    static let dragonGroupID = "22548846"
 
     enum Kind: Equatable, Sendable {
         /// Consommable : gemmes créditées une seule fois par transaction (crédit idempotent).

@@ -9,3 +9,6 @@ fastlane/.env
 fastlane/report.xml
 fastlane/README.md
 fastlane/build/
+
+# worktrees des agents Claude
+.claude/worktrees/
