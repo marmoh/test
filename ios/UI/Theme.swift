@@ -17,10 +17,10 @@ enum Theme {
     static let curtain = Color(hex: 0x2B1317)
     static let curtain2 = Color(hex: 0x4D2229)
 
-    /// Titres : IM Fell English SC (Igino Marini, OFL). Fichier `IMFellEnglishSC-Regular.ttf`
-    /// dans `Resources/Fonts`, déclaré dans `UIAppFonts` (phase Mac).
+    /// Titres : IM Fell English SC (Igino Marini, OFL). Fichier `Resources/Fonts/IMFellEnglishSC-Regular.ttf`
+    /// (déclaré dans `UIAppFonts`) ; son nom PostScript est `IM_FELL_English_SC`.
     static func display(_ size: CGFloat, relativeTo style: Font.TextStyle = .title2) -> Font {
-        .custom("IMFellEnglishSC-Regular", size: size, relativeTo: style)
+        .custom("IM_FELL_English_SC", size: size, relativeTo: style)
     }
 
     /// Texte : Alegreya Sans (Juan Pablo del Peral, OFL). `AlegreyaSans-Regular/Medium/Bold/ExtraBold/MediumItalic.ttf`.
@@ -76,7 +76,7 @@ struct InkButtonStyle: ButtonStyle {
             .padding(.vertical, 11)
             .padding(.horizontal, 18)
             .frame(maxWidth: .infinity)
-            .background(background)
+            .background(Rectangle().fill(background))  // vue, pas `Color` : ne déborde pas dans les marges de sécurité
             .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2.5))
             .background(Theme.ink.offset(x: pressed ? 1 : 4, y: pressed ? 1 : 4))
             .offset(x: pressed ? 3 : 0, y: pressed ? 3 : 0)

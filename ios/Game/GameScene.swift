@@ -699,7 +699,7 @@ final class BannerNode: SKNode {
         border.strokeColor = Ink.ink
         border.lineWidth = 2
         border.fillColor = .clear
-        title.fontName = "IMFellEnglishSC-Regular"
+        title.fontName = "IM_FELL_English_SC"
         title.fontSize = 30
         title.fontColor = Ink.ink
         title.verticalAlignmentMode = .baseline

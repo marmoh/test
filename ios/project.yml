@@ -32,6 +32,8 @@ targets:
       - path: Services
       - path: UI
       - path: Resources/Assets.xcassets
+      # Polices OFL (IM Fell English SC, Alegreya Sans) et leurs licences, déclarées dans UIAppFonts.
+      - { path: Resources/Fonts, buildPhase: resources }
       # Atlas SpriteKit (générés par `pnpm art:atlas`) : un dossier `.atlas` = un atlas compilé par Xcode.
       - { path: Resources/Atlases/Hero.atlas, type: file, buildPhase: resources }
       - { path: Resources/Atlases/Enemies.atlas, type: file, buildPhase: resources }
@@ -67,6 +69,13 @@ targets:
         UILaunchScreen:
           UIColorName: LaunchBackground
         UIStatusBarStyle: UIStatusBarStyleDarkContent
+        UIAppFonts:
+          - IMFellEnglishSC-Regular.ttf
+          - AlegreyaSans-Regular.ttf
+          - AlegreyaSans-Medium.ttf
+          - AlegreyaSans-Bold.ttf
+          - AlegreyaSans-ExtraBold.ttf
+          - AlegreyaSans-MediumItalic.ttf
         # ATT : demandé seulement quand le joueur active « Publicités personnalisées » (Réglages).
         NSUserTrackingUsageDescription: "Permet d’afficher des publicités adaptées quand tu choisis d’en regarder une pour gagner une vie."
         GKGameCenterBadgingDisabled: false
