@@ -335,9 +335,15 @@ platform :ios do
       end
     end
     targets.each do |pid, existing_path, type, relationships|
-      if asc(:get, existing_path)["data"]
-        UI.message("= #{pid} a déjà sa capture")
-        next
+      if (old = asc(:get, existing_path)["data"])
+        state = old.dig("attributes", "assetDeliveryState", "state")
+        if state == "COMPLETE"
+          UI.message("= #{pid} a déjà sa capture")
+          next
+        end
+        # capture reçue mais jamais traitée par Apple (reste en UPLOAD_COMPLETE, ou FAILED) : on la renvoie
+        asc(:delete, "/v1/#{type}/#{old['id']}")
+        UI.important("~ #{pid} : capture #{state} supprimée, nouvel envoi")
       end
       file = shot_for.(pid)
       bytes = File.binread(file)
