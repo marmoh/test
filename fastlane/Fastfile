@@ -281,7 +281,7 @@ platform :ios do
         referenceName: LEADERBOARD[:reference_name], vendorIdentifier: LEADERBOARD[:vendor_id],
         defaultFormatter: "INTEGER", submissionType: "BEST_SCORE", scoreSortType: "DESC",
         scoreRangeStart: LEADERBOARD[:range][0], scoreRangeEnd: LEADERBOARD[:range][1],
-        recurrenceStartDate: LEADERBOARD[:start], recurrenceDuration: "P7D", recurrenceRule: "FREQ=WEEKLY;INTERVAL=1"
+        recurrenceStartDate: LEADERBOARD[:start], recurrenceDuration: "PT168H", recurrenceRule: "FREQ=DAILY;INTERVAL=7"
       },
       relationships: { gameCenterDetail: rel("gameCenterDetails", detail["id"]) }
     })["data"]
