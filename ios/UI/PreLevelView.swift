@@ -13,7 +13,7 @@ struct PreLevelView: View {
         let info = Formulas.levelInfo(n)
         let boss = level?.bossRoom?.boss
         VStack(spacing: 0) {
-            SheetHeader(title: "Niveau \(n)", badge: info.kind == .boss ? "Boss" : info.kind == .hard ? "Difficile" : nil)
+            SheetHeader(title: "Niveau \(n)", badge: badge(info.kind))
             ScrollView {
                 VStack(spacing: 14) {
                     StarsRow(count: app.progress.stars(n), size: 34)
@@ -29,13 +29,13 @@ struct PreLevelView: View {
                                     Puppet(name: boss.archetype.rawValue, size: 84)
                                         .background(Circle().fill(KingdomTheme.of(kingdom: info.kingdom).lightColor))
                                         .overlay(Circle().strokeBorder(Theme.vermilion, lineWidth: 3))
-                                        .accessibilityLabel(Bosses.def(boss.archetype).name)
+                                        .accessibilityLabel(boss.archetype.title)
                                 }
                                 ForEach(level.enemyTypes, id: \.self) { t in
                                     Puppet(name: t.rawValue, size: 56)
                                         .background(Circle().fill(Theme.cut))
                                         .overlay(Circle().strokeBorder(Theme.ink, lineWidth: 2))
-                                        .accessibilityLabel(Bestiary.def(t).name)
+                                        .accessibilityLabel(t.title)
                                 }
                             }
                             .padding(.horizontal, 20)
@@ -65,10 +65,20 @@ struct PreLevelView: View {
         .toast(Binding(get: { app.toast }, set: { app.toast = $0 }))
     }
 
+    private func badge(_ kind: LevelKind) -> LocalizedStringKey? {
+        switch kind {
+        case .boss: "Boss"
+        case .hard: "Difficile"
+        default: nil
+        }
+    }
+
     private func objective(_ level: LevelDef, boss: BossSpec?) -> String {
-        var s = "Traverse \(level.rooms.count) salles"
-        if let boss { s += " et terrasse \(Bosses.def(boss.archetype).name)" }
-        return s + "."
+        if let boss {
+            return String(localized: "Traverse \(level.rooms.count) salles et terrasse \(boss.archetype.title).",
+                          comment: "Objectif d’un niveau de boss : nombre de salles, nom du boss")
+        }
+        return String(localized: "Traverse \(level.rooms.count) salles.", comment: "Objectif d’un niveau : nombre de salles")
     }
 
     private func bonusButton(_ b: BonusKind) -> some View {
@@ -81,8 +91,8 @@ struct PreLevelView: View {
         } label: {
             VStack(spacing: 2) {
                 InkIcon(name: b.iconName, size: 34)
-                Text(b.name).font(Theme.text(14, weight: .bold))
-                Text(b.blurb).font(Theme.note(11))
+                Text(b.title).font(Theme.text(14, weight: .bold))
+                Text(b.blurbText).font(Theme.note(11))
             }
             .foregroundStyle(Theme.ink)
             .frame(maxWidth: .infinity)
@@ -91,12 +101,12 @@ struct PreLevelView: View {
             .overlay(Rectangle().strokeBorder(on ? Theme.jade : Theme.ink, lineWidth: on ? 3 : 2))
             .overlay(alignment: .topTrailing) {
                 if count > 0 || on {
-                    Text("\(count)").font(Theme.text(12, weight: .heavy)).foregroundStyle(Theme.cut)
+                    Text(verbatim: "\(count)").font(Theme.text(12, weight: .heavy)).foregroundStyle(Theme.cut)
                         .frame(minWidth: 20, minHeight: 20).background(Circle().fill(Theme.ink)).offset(x: 6, y: -6)
                 } else {
                     HStack(spacing: 2) {
                         InkIcon(name: price.currency == .gold ? "ui_coin" : "ui_gem", size: 13)
-                        Text("\(price.amount)").font(Theme.text(12, weight: .heavy))
+                        Text(Fmt.int(price.amount)).font(Theme.text(12, weight: .heavy))
                     }
                     .foregroundStyle(Theme.ink)
                     .padding(.horizontal, 5).padding(.vertical, 1)
@@ -107,7 +117,9 @@ struct PreLevelView: View {
             }
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(b.name), \(b.blurb), " + (count > 0 ? "\(count) en stock" : "à acheter : \(price.amount) \(price.currency == .gold ? "or" : "gemmes")"))
+        .accessibilityLabel("\(b.title), \(b.blurbText), " + (count > 0 ? String(localized: "\(count) en stock", comment: "VoiceOver : bonus possédés")
+                                                                  : price.currency == .gold ? String(localized: "à acheter : \(price.amount) or", comment: "VoiceOver : prix d’un bonus en or")
+                                                                  : String(localized: "à acheter : \(price.amount) gemmes", comment: "VoiceOver : prix d’un bonus en gemmes")))
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 }

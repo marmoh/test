@@ -48,8 +48,8 @@ struct DragonView: View {
 
     private var kicker: String? {
         switch context {
-        case .lives: "Plus de vies ? Les membres de l’Ordre n’en manquent jamais."
-        case .defeat: "Réessaie autant que tu veux, sans perdre de vie."
+        case .lives: String(localized: "Plus de vies ? Les membres de l’Ordre n’en manquent jamais.")
+        case .defeat: String(localized: "Réessaie autant que tu veux, sans perdre de vie.")
         case .shop, .settings: nil
         }
     }
@@ -90,7 +90,7 @@ struct DragonView: View {
                         if wallet.weeklyGemsClaimable() {
                             Button("Réclamer") {
                                 let g = wallet.claimWeeklyGems()
-                                if g > 0 { toast = "+\(g) gemmes" }
+                                if g > 0 { toast = String(localized: "+\(g) gemmes", comment: "Gemmes reçues (toujours plusieurs)") }
                             }
                             .buttonStyle(InkButtonStyle(kind: .jade))
                             .fixedSize()
@@ -99,7 +99,7 @@ struct DragonView: View {
                         }
                     }
                     PerkRow(symbol: "crown.fill", title: "Parure du Dragon", detail: "Cornes et col d’or sur ton héros.") {
-                        Toggle("", isOn: Binding(get: { wallet.snapshot.dragonSkin }, set: { wallet.setDragonSkin($0) }))
+                        Toggle("Parure du Dragon", isOn: Binding(get: { wallet.snapshot.dragonSkin }, set: { wallet.setDragonSkin($0) }))
                             .toggleStyle(InkToggleStyle())
                             .labelsHidden()
                             .fixedSize()
@@ -124,7 +124,7 @@ struct DragonView: View {
         .manageSubscriptionsSheet(isPresented: $showManage)
         .overlay(alignment: .topTrailing) {
             Button { dismiss() } label: {
-                Text("×").font(Theme.text(24)).frame(width: 34, height: 34)
+                Text(verbatim: "×").font(Theme.text(24)).frame(width: 34, height: 34)
                     .background(Theme.paper)
                     .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2))
             }
@@ -144,16 +144,22 @@ struct DragonView: View {
     }
 
     private func statusLine(_ d: DragonStatus) -> String {
-        let plan = d.productID == .dragonYearly ? "annuelle" : "mensuelle"
-        let date = d.expiresAt?.formatted(.dateTime.day().month(.wide).locale(Locale(identifier: "fr_FR"))) ?? "—"
-        var line = "Formule \(plan) · "
-        if d.inTrial { line += "essai gratuit jusqu’au \(date)" + (d.willRenew ? "" : ", sans renouvellement") }
-        else if d.willRenew { line += "renouvellement le \(date)" }
-        else { line += "résilié · avantages jusqu’au \(date)" }
-        if let next = d.nextProductID, d.willRenew {
-            line += " · formule \(next == .dragonYearly ? "annuelle" : "mensuelle") à cette date"
+        let date = d.expiresAt.map(Fmt.dayMonth) ?? "—"
+        var parts = [d.productID == .dragonYearly ? String(localized: "Formule annuelle", comment: "Abonnement à l’année")
+                                                  : String(localized: "Formule mensuelle", comment: "Abonnement au mois")]
+        if d.inTrial {
+            parts.append(d.willRenew ? String(localized: "essai gratuit jusqu’au \(date)", comment: "Date au format jour + mois")
+                                     : String(localized: "essai gratuit jusqu’au \(date), sans renouvellement", comment: "Date au format jour + mois"))
+        } else if d.willRenew {
+            parts.append(String(localized: "renouvellement le \(date)", comment: "Date au format jour + mois"))
+        } else {
+            parts.append(String(localized: "résilié · avantages jusqu’au \(date)", comment: "Date au format jour + mois"))
         }
-        return line
+        if let next = d.nextProductID, d.willRenew {
+            parts.append(next == .dragonYearly ? String(localized: "formule annuelle à cette date", comment: "Changement de formule prévu à la date de renouvellement")
+                                               : String(localized: "formule mensuelle à cette date", comment: "Changement de formule prévu à la date de renouvellement"))
+        }
+        return parts.joined(separator: " · ")
     }
 }
 
@@ -176,7 +182,7 @@ struct DragonMarketing: View {
                 .overlay(alignment: .top) { Theme.goldLeaf.frame(height: 3) }
                 .overlay(alignment: .bottom) { Theme.goldLeaf.frame(height: 3) }
             if let kicker {
-                Text(kicker).font(Theme.note(16)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
+                Text(verbatim: kicker).font(Theme.note(16)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
             }
             VStack(spacing: 0) {
                 PerkRow(symbol: "heart.fill", title: "Vies illimitées", detail: "Une défaite ne coûte plus de vie.") { EmptyView() }
@@ -196,8 +202,8 @@ struct DragonMarketing: View {
 
 struct PerkRow<Trailing: View>: View {
     let symbol: String
-    let title: String
-    let detail: String
+    let title: LocalizedStringKey
+    let detail: LocalizedStringKey
     @ViewBuilder var trailing: () -> Trailing
 
     var body: some View {
@@ -220,7 +226,7 @@ struct PerkRow<Trailing: View>: View {
 }
 
 struct ActiveBadge: View {
-    var text = "actif"
+    var text: LocalizedStringKey = "actif"
     var body: some View {
         Text(text)
             .font(Theme.text(12, weight: .heavy))
@@ -238,14 +244,22 @@ struct PolicyText: View {
 
     var body: some View {
         ScrollView {
-            Text(kind == .terms
-                 ? "Conditions d’utilisation\n\nL’Ordre du Dragon est un abonnement auto-renouvelable (4,99 € par mois ou 39,99 € par an), avec un essai gratuit de 3 jours la première fois. Le paiement est débité sur ton identifiant Apple à la confirmation de l’achat ou à la fin de l’essai. L’abonnement se renouvelle automatiquement sauf résiliation au moins 24 h avant la fin de la période en cours, depuis les réglages de l’App Store."
-                 : "Politique de confidentialité\n\nTa progression est enregistrée sur ton appareil et dans ton iCloud. Aucun compte, aucun traçage. Si tu choisis de regarder une publicité pour gagner une vie, le réseau publicitaire peut traiter des données techniques ; elles ne servent à personnaliser les publicités que si tu l’autorises dans les Réglages du jeu et dans iOS.")
+            Text(kind == .terms ? Self.terms : Self.privacy)
                 .font(Theme.text(15))
                 .foregroundStyle(Theme.ink)
                 .padding(20)
         }
         .background(PaperBackground())
+    }
+
+    private static var terms: String {
+        String(localized: "Conditions d’utilisation\n\nL’Ordre du Dragon est un abonnement auto-renouvelable (\(Fmt.euros(4.99)) par mois ou \(Fmt.euros(39.99)) par an), avec un essai gratuit de \(DragonPerks.trialDays) jours la première fois. Le paiement est débité sur ton identifiant Apple à la confirmation de l’achat ou à la fin de l’essai. L’abonnement se renouvelle automatiquement sauf résiliation au moins 24 h avant la fin de la période en cours, depuis les réglages de l’App Store.",
+               comment: "Texte provisoire des conditions d’utilisation (prix mensuel, prix annuel, jours d’essai)")
+    }
+
+    private static var privacy: String {
+        String(localized: "Politique de confidentialité\n\nTa progression est enregistrée sur ton appareil et dans ton iCloud. Aucun compte, aucun traçage. Si tu choisis de regarder une publicité pour gagner une vie, le réseau publicitaire peut traiter des données techniques ; elles ne servent à personnaliser les publicités que si tu l’autorises dans les Réglages du jeu et dans iOS.",
+               comment: "Texte provisoire de la politique de confidentialité")
     }
 }
 

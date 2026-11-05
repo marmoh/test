@@ -13,6 +13,16 @@
           "description" : "100 gemmes.",
           "displayName" : "Poignée de gemmes",
           "locale" : "fr"
+        },
+        {
+          "description" : "100 gems.",
+          "displayName" : "Handful of Gems",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "100 gemas.",
+          "displayName" : "Puñado de gemas",
+          "locale" : "es_ES"
         }
       ],
       "productID" : "ombrelune.gems.handful",
@@ -28,6 +38,16 @@
           "description" : "550 gemmes.",
           "displayName" : "Bourse de gemmes",
           "locale" : "fr"
+        },
+        {
+          "description" : "550 gems.",
+          "displayName" : "Pouch of Gems",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "550 gemas.",
+          "displayName" : "Bolsa de gemas",
+          "locale" : "es_ES"
         }
       ],
       "productID" : "ombrelune.gems.pouch",
@@ -43,6 +63,16 @@
           "description" : "1 200 gemmes.",
           "displayName" : "Coffre de gemmes",
           "locale" : "fr"
+        },
+        {
+          "description" : "1,200 gems.",
+          "displayName" : "Chest of Gems",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "1200 gemas.",
+          "displayName" : "Cofre de gemas",
+          "locale" : "es_ES"
         }
       ],
       "productID" : "ombrelune.gems.chest",
@@ -58,6 +88,16 @@
           "description" : "300 gemmes, le Moine du vent et 5 bonus. Une fois.",
           "displayName" : "Offre de départ",
           "locale" : "fr"
+        },
+        {
+          "description" : "300 gems, the Wind Monk and 5 boosts. Once.",
+          "displayName" : "Starter Pack",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "300 gemas, el Monje del viento y 5 potenciadores.",
+          "displayName" : "Pack de inicio",
+          "locale" : "es_ES"
         }
       ],
       "productID" : "ombrelune.starter",
@@ -73,6 +113,16 @@
           "description" : "30 paliers premium : or, gemmes, bonus, apparences.",
           "displayName" : "Pass de saison 1",
           "locale" : "fr"
+        },
+        {
+          "description" : "30 premium tiers: gold, gems, boosts and looks.",
+          "displayName" : "Season Pass 1",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "30 escalones premium: oro, gemas y aspectos.",
+          "displayName" : "Pase de temporada 1",
+          "locale" : "es_ES"
         }
       ],
       "productID" : "ombrelune.pass.season1",
@@ -88,6 +138,16 @@
           "description" : "30 paliers premium : or, gemmes, bonus, apparences.",
           "displayName" : "Pass de saison 2",
           "locale" : "fr"
+        },
+        {
+          "description" : "30 premium tiers: gold, gems, boosts and looks.",
+          "displayName" : "Season Pass 2",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "30 escalones premium: oro, gemas y aspectos.",
+          "displayName" : "Pase de temporada 2",
+          "locale" : "es_ES"
         }
       ],
       "productID" : "ombrelune.pass.season2",
@@ -111,6 +171,16 @@
           "description" : "Vies illimitées, 60 gemmes par semaine, Parure du Dragon, +25 % d’or.",
           "displayName" : "Ordre du Dragon",
           "locale" : "fr"
+        },
+        {
+          "description" : "Unlimited lives, 60 gems/week, regalia, +25% gold.",
+          "displayName" : "Order of the Dragon",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "Vidas ilimitadas, 60 gemas/semana, atavío, +25 % oro.",
+          "displayName" : "Orden del Dragón",
+          "locale" : "es_ES"
         }
       ],
       "name" : "Ordre du Dragon",
@@ -136,6 +206,16 @@
               "description" : "Vies illimitées, 60 gemmes/semaine, +25 % d’or, parure",
               "displayName" : "Ordre du Dragon (annuel)",
               "locale" : "fr"
+            },
+            {
+              "description" : "Unlimited lives, 60 gems/week, +25% gold, regalia",
+              "displayName" : "Order of the Dragon (yearly)",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "Vidas ilimitadas, 60 gemas/semana, +25 % oro, atavío",
+              "displayName" : "Orden del Dragón (anual)",
+              "locale" : "es_ES"
             }
           ],
           "productID" : "ombrelune.dragon.yearly",
@@ -165,6 +245,16 @@
               "description" : "Vies illimitées, 60 gemmes/semaine, +25 % d’or, parure",
               "displayName" : "Ordre du Dragon (mensuel)",
               "locale" : "fr"
+            },
+            {
+              "description" : "Unlimited lives, 60 gems/week, +25% gold, regalia",
+              "displayName" : "Order of the Dragon (monthly)",
+              "locale" : "en_US"
+            },
+            {
+              "description" : "Vidas ilimitadas, 60 gemas/semana, +25 % oro, atavío",
+              "displayName" : "Orden del Dragón (mensual)",
+              "locale" : "es_ES"
             }
           ],
           "productID" : "ombrelune.dragon.monthly",

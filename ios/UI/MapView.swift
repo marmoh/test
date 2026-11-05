@@ -188,9 +188,9 @@ struct MapChunk: View {
                 ctx.fill(Path(r.offsetBy(dx: 4 * k, dy: 4 * k)), with: .color(Theme.ink))
                 ctx.fill(Path(r), with: .color(th.lightColor))
                 ctx.stroke(Path(r), with: .color(Theme.ink), lineWidth: 2.5 * k)
-                ctx.draw(Text(th.name).font(Theme.display(19 * k)).foregroundColor(Theme.ink), at: CGPoint(x: r.midX, y: r.minY + 18 * k))
+                ctx.draw(Text(verbatim: th.name).font(Theme.display(19 * k)).foregroundColor(Theme.ink), at: CGPoint(x: r.midX, y: r.minY + 18 * k))
                 let roman = ["I", "II", "III", "IV", "V"][info.kingdom - 1]
-                ctx.draw(Text("Royaume \(roman) · chapitres \(info.chapter) à \(info.chapter + 2)").font(Theme.note(11 * k)).foregroundColor(Theme.ink2),
+                ctx.draw(Text("Royaume \(roman) · chapitres \(info.chapter) à \(info.chapter + 2)", comment: "Bandeau de la carte : numéro romain du royaume, premier et dernier chapitre").font(Theme.note(11 * k)).foregroundColor(Theme.ink2),
                          at: CGPoint(x: r.midX, y: r.minY + 38 * k))
             } else {
                 let r = CGRect(x: (MapGeo.width / 2 - 54) * k, y: y - 11 * k, width: 108 * k, height: 22 * k)
@@ -317,7 +317,7 @@ struct MapNode: View {
                     if !locked {
                         Circle().strokeBorder(isCurrent ? Theme.cut : Theme.ink, lineWidth: 1).opacity(0.6).frame(width: (r - 5) * 2, height: (r - 5) * 2)
                     }
-                    Text("\(n)")
+                    Text(verbatim: "\(n)")
                         .font(Theme.display(17))
                         .foregroundStyle(locked ? Theme.ink3 : isCurrent ? Theme.cut : Theme.ink)
                     if info.kind == .hard {
@@ -340,7 +340,19 @@ struct MapNode: View {
         .buttonStyle(.plain)
         // pas `.disabled` : il grise le nœud et laisse voir le chemin à travers (le web le dessine plein)
         .allowsHitTesting(!locked)
-        .accessibilityLabel("Niveau \(n)\(isBoss ? ", boss" : info.kind == .hard ? ", difficile" : "")\(locked ? ", verrouillé" : ", \(stars) étoiles")")
+        .accessibilityLabel(nodeLabel(info.kind, locked: locked))
+    }
+}
+
+extension MapNode {
+    /// « Niveau 12, difficile, 2 étoiles » (VoiceOver).
+    func nodeLabel(_ kind: LevelKind, locked: Bool) -> String {
+        var parts = [String(localized: "Niveau \(n)")]
+        if kind == .boss { parts.append(String(localized: "boss", comment: "VoiceOver : nœud de boss sur la carte")) }
+        if kind == .hard { parts.append(String(localized: "difficile", comment: "VoiceOver : niveau difficile sur la carte")) }
+        parts.append(locked ? String(localized: "verrouillé", comment: "VoiceOver : niveau pas encore débloqué")
+                            : String(localized: "\(stars) étoiles", comment: "VoiceOver : étoiles obtenues sur un niveau"))
+        return parts.joined(separator: ", ")
     }
 }
 
@@ -380,14 +392,14 @@ struct TopBar: View {
             Chip(action: { app.audio.play(.tap); app.sheet = .lives }) {
                 InkIcon(name: "ui_heart", size: 20, fallback: "heart.fill")
                 if app.subscribed {
-                    Text("∞")
+                    Text(verbatim: "∞")
                 } else {
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         let s = app.lives.state
                         HStack(spacing: 4) {
-                            Text("\(s.lives)")
+                            Text(verbatim: "\(s.lives)")
                             if let left = app.lives.secondsToNextLife {
-                                Text(LivesView.clock(left)).font(Theme.text(11, weight: .bold)).foregroundStyle(Theme.ink2).monospacedDigit()
+                                Text(Fmt.clock(left)).font(Theme.text(11, weight: .bold)).foregroundStyle(Theme.ink2).monospacedDigit()
                             } else {
                                 Text("max").font(Theme.text(11, weight: .bold)).foregroundStyle(Theme.ink2)
                             }
@@ -398,17 +410,17 @@ struct TopBar: View {
             .accessibilityLabel("Vies")
             Chip {
                 InkIcon(name: "ui_star", size: 20, fallback: "star.fill")
-                Text("\(app.progress.totalStars)")
+                Text(Fmt.int(app.progress.totalStars))
             }
             Chip {
                 InkIcon(name: "ui_coin", size: 20, fallback: "circle.fill")
-                Text(verbatim: "\(app.wallet.gold)")
+                Text(Fmt.int(app.wallet.gold))
             }
             Spacer(minLength: 0)
             Chip(action: { app.audio.play(.tap); app.sheet = .shop }) {
                 InkIcon(name: "ui_gem", size: 20, fallback: "diamond.fill")
-                Text(verbatim: "\(app.wallet.gems)")
-                Text("+").foregroundStyle(Theme.vermilion)
+                Text(Fmt.int(app.wallet.gems))
+                Text(verbatim: "+").foregroundStyle(Theme.vermilion)
             }
             .accessibilityLabel("Gemmes, boutique")
         }
@@ -426,7 +438,7 @@ struct TributeTag: View {
             HStack(spacing: 6) {
                 InkIcon(name: "ui_gem", size: 20, fallback: "diamond.fill")
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("\(DragonPerks.weeklyGems)").font(Theme.text(16, weight: .heavy))
+                    Text(verbatim: "\(DragonPerks.weeklyGems)").font(Theme.text(16, weight: .heavy))
                     Text("Tribut de l’Ordre · réclamer").font(Theme.note(11))
                 }
             }
@@ -452,10 +464,10 @@ struct TournamentBanner: View {
                 InkIcon(name: "ui_trophy", size: 30, fallback: "trophy.fill")
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Tournoi de la semaine \(wk.week)").font(Theme.display(17))
-                    Text("Mêmes conditions pour tous · \(t.attempts) essai\(t.attempts > 1 ? "s" : "")").font(Theme.note(12))
+                    Text("Mêmes conditions pour tous · \(t.attempts) essais", comment: "Bandeau du tournoi sur la carte : essais restants").font(Theme.note(12))
                 }
                 Spacer()
-                Text("›").font(Theme.display(26)).foregroundStyle(Theme.vermilion)
+                Text(verbatim: "›").font(Theme.display(26)).foregroundStyle(Theme.vermilion)
             }
             .foregroundStyle(Theme.ink)
             .padding(.horizontal, 12).padding(.vertical, 6)
@@ -486,10 +498,10 @@ struct PassBanner: View {
                     .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1))
                 }
                 if claimable > 0 {
-                    Text("\(claimable)").font(Theme.text(13, weight: .heavy)).foregroundStyle(Theme.cut)
+                    Text(verbatim: "\(claimable)").font(Theme.text(13, weight: .heavy)).foregroundStyle(Theme.cut)
                         .frame(minWidth: 22, minHeight: 22).background(Circle().fill(Theme.vermilion))
                 }
-                Text("›").font(Theme.display(24)).foregroundStyle(Theme.vermilion)
+                Text(verbatim: "›").font(Theme.display(24)).foregroundStyle(Theme.vermilion)
             }
             .foregroundStyle(Theme.ink)
             .padding(.horizontal, 12).padding(.vertical, 6)
@@ -521,7 +533,7 @@ struct BottomNav: View {
         }
     }
 
-    private func item(_ title: String, _ icon: String, _ sys: String, on: Bool = false, action: @escaping () -> Void) -> some View {
+    private func item(_ title: LocalizedStringKey, _ icon: String, _ sys: String, on: Bool = false, action: @escaping () -> Void) -> some View {
         Button {
             app.audio.play(.tap)
             action()

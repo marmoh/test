@@ -1,0 +1,6649 @@
+{
+  "sourceLanguage" : "fr",
+  "strings" : {
+    "%@ gemmes" : {
+      "comment" : "Récompense : quantité de gemmes (toujours plusieurs)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ gems"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ gemas"
+          }
+        }
+      }
+    },
+    "%@ or" : {
+      "comment" : "Récompense : quantité d’or",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ gold"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de oro"
+          }
+        }
+      }
+    },
+    "%@ par rang" : {
+      "comment" : "Talent : gain par rang",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ per rank"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ por rango"
+          }
+        }
+      }
+    },
+    "%@ · version %@" : {
+      "comment" : "Réglages : nom de l’app et numéro de version",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · version %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · versión %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · version %2$@"
+          }
+        }
+      }
+    },
+    "%@/mois ou %@/an" : {
+      "comment" : "Ordre du Dragon : prix mensuel, prix annuel",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@/month or %2$@/year"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@/mes o %2$@/año"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@/mois ou %2$@/an"
+          }
+        }
+      }
+    },
+    "%d h %02d" : {
+      "comment" : "Compte à rebours de plus d'une heure : heures, minutes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dh %02dm"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d h %02d min"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d h %2$02d"
+          }
+        }
+      }
+    },
+    "%lld en stock" : {
+      "comment" : "VoiceOver : bonus possédés",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld in stock"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld en reserva"
+          }
+        }
+      }
+    },
+    "%lld essais par semaine pour tout le monde, non achetables." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld attempts per week for everyone. They can’t be bought."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld intentos por semana para todos; no se pueden comprar."
+          }
+        }
+      }
+    },
+    "%lld gemmes cette semaine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld gems this week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld gemas esta semana"
+          }
+        }
+      }
+    },
+    "%lld gemmes chaque semaine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld gems every week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld gemas cada semana"
+          }
+        }
+      }
+    },
+    "%lld gemmes · %@ · 5 bonus" : {
+      "comment" : "Contenu de l’offre de départ : gemmes, héros, bonus",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld gems · %2$@ · 5 boosts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld gemas · %2$@ · 5 potenciadores"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld gemmes · %2$@ · 5 bonus"
+          }
+        }
+      }
+    },
+    "%lld jours restants" : {
+      "comment" : "Pass : jours avant la fin de la saison",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day left"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days left"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Quedan %lld días"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Queda %lld día"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Quedan %lld días"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld jours restants"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld jour restant"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld jours restants"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld paliers · 3 apparences · piste premium %@" : {
+      "comment" : "Carte du pass dans la boutique : paliers, prix de la piste premium",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld tiers · 3 looks · premium track %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld escalones · 3 aspectos · camino premium %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld paliers · 3 apparences · piste premium %2$@"
+          }
+        }
+      }
+    },
+    "%lld parchemins" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld scrolls"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld pergaminos"
+          }
+        }
+      }
+    },
+    "%lld participants" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld participant"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld participants"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld participantes"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld participante"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld participantes"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld participants"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld participant"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld participants"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld potions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld potions"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld pociones"
+          }
+        }
+      }
+    },
+    "%lld restantes aujourd’hui" : {
+      "comment" : "Publicités (féminin) encore disponibles aujourd’hui",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld left today"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld left today"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Quedan %lld hoy"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Queda %lld hoy"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Quedan %lld hoy"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld restantes aujourd’hui"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld restante aujourd’hui"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld restantes aujourd’hui"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld s" : {
+      "comment" : "Durée en secondes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld s"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld s"
+          }
+        }
+      }
+    },
+    "%lld vies restantes" : {
+      "comment" : "VoiceOver : vies restantes",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld life left"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld lives left"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Te quedan %lld vidas"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Te queda %lld vida"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Te quedan %lld vidas"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld vies restantes"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld vie restante"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld vies restantes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld égides" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld aegises"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld égidas"
+          }
+        }
+      }
+    },
+    "%lld étoiles" : {
+      "comment" : "VoiceOver : étoiles obtenues sur un niveau",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld star"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld stars"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld estrellas"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld estrella"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld estrellas"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld étoiles"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld étoile"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld étoiles"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld étoiles sur 3" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld star out of 3"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld stars out of 3"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld estrellas de 3"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld estrella de 3"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld estrellas de 3"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld étoiles sur 3"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld étoile sur 3"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld étoiles sur 3"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld/%lld lunes vers le palier %lld" : {
+      "comment" : "Pass : lunes gagnées / lunes du palier, palier suivant",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld moons to tier %3$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld lunas hacia el escalón %3$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld lunes vers le palier %3$lld"
+          }
+        }
+      }
+    },
+    "+%lld gemmes" : {
+      "comment" : "Gemmes reçues (toujours plusieurs)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld gems"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld gemas"
+          }
+        }
+      }
+    },
+    "+%lld gemmes · tribut de l’Ordre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld gems · the Order’s tribute"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld gemas · tributo de la Orden"
+          }
+        }
+      }
+    },
+    "+1 aiguille, −40 % de dégâts par aiguille" : {
+      "comment" : "Description du pouvoir Multitir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+1 needle, −40% damage per needle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+1 aguja, −40 % de daño por aguja"
+          }
+        }
+      }
+    },
+    "+1 vie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+1 life"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+1 vida"
+          }
+        }
+      }
+    },
+    "+1,5 % cadence" : {
+      "comment" : "Talent Agilité, par rang",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+1.5% fire rate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+1,5 % de cadencia"
+          }
+        }
+      }
+    },
+    "+2 % PV" : {
+      "comment" : "Talent Vigueur, par rang",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+2% HP"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+2 % PV"
+          }
+        }
+      }
+    },
+    "+2 % dégâts" : {
+      "comment" : "Talent Force, par rang",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+2% damage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+2 % de daño"
+          }
+        }
+      }
+    },
+    "+20 % PV max et soigne d’autant" : {
+      "comment" : "Description du pouvoir PV max",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+20% max HP, healed at once"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+20 % de PV máx. y cura lo mismo"
+          }
+        }
+      }
+    },
+    "+20 % de dégâts (aiguilles et découpes)" : {
+      "comment" : "Description du pouvoir Dégâts",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+20% damage (needles and cuts)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+20 % de daño (agujas y cortes)"
+          }
+        }
+      }
+    },
+    "+25 % PV" : {
+      "comment" : "Effet de la Potion",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+25% HP"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+25 % PV"
+          }
+        }
+      }
+    },
+    "+25 % d’or" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+25% gold"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+25 % de oro"
+          }
+        }
+      }
+    },
+    "+30 % de dégâts de découpe" : {
+      "comment" : "Description du pouvoir Ciseaux affûtés",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+30% cut damage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+30 % de daño de corte"
+          }
+        }
+      }
+    },
+    "+5 % or" : {
+      "comment" : "Talent Fortune, par rang",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+5% gold"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+5 % de oro"
+          }
+        }
+      }
+    },
+    "+50 % contre élites et boss" : {
+      "comment" : "Description du pouvoir Tueur d’élites",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+50% against elites and bosses"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+50 % contra élites y jefes"
+          }
+        }
+      }
+    },
+    "1 bouclier" : {
+      "comment" : "Effet de l’Égide",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 shield"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 escudo"
+          }
+        }
+      }
+    },
+    "1 pouvoir" : {
+      "comment" : "Effet du Parchemin",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 power"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 poder"
+          }
+        }
+      }
+    },
+    "10 % de chances d’éviter un coup" : {
+      "comment" : "Description du pouvoir Esquive",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10% chance to avoid a hit"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 % de probabilidad de evitar un golpe"
+          }
+        }
+      }
+    },
+    "15 % de chances de doubler les dégâts" : {
+      "comment" : "Description du pouvoir Critique",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15% chance to deal double damage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 % de probabilidad de doblar el daño"
+          }
+        }
+      }
+    },
+    "2 continues possibles (60 puis 120 gemmes)" : {
+      "comment" : "Défaite : « continuer » contre des gemmes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 continues available (60, then 120 gems)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puedes continuar 2 veces (60 y luego 120 gemas)"
+          }
+        }
+      }
+    },
+    "3 apparences, %lld gemmes, or et bonus · récompenses déjà atteintes comprises" : {
+      "comment" : "Pass : contenu de la piste premium",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3 looks, %lld gems, gold and boosts · rewards already reached included"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3 aspectos, %lld gemas, oro y potenciadores · incluye las recompensas ya alcanzadas"
+          }
+        }
+      }
+    },
+    "4 salles · difficulté niveau 120" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4 rooms · level 120 difficulty"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4 salas · dificultad de nivel 120"
+          }
+        }
+      }
+    },
+    "5 vies" : {
+      "comment" : "Boutique : recharge des 5 vies\nRécompense : recharge complète des vies",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 lives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 vidas"
+          }
+        }
+      }
+    },
+    "Absorbe 1 coup toutes les 25 s" : {
+      "comment" : "Description du pouvoir Bouclier",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocks 1 hit every 25 s"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Absorbe 1 golpe cada 25 s"
+          }
+        }
+      }
+    },
+    "Achat en attente de validation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purchase awaiting approval"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compra pendiente de aprobación"
+          }
+        }
+      }
+    },
+    "Achat non vérifié" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purchase not verified"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compra no verificada"
+          }
+        }
+      }
+    },
+    "Achats" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purchases"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compras"
+          }
+        }
+      }
+    },
+    "Achats restaurés" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purchases restored"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compras restauradas"
+          }
+        }
+      }
+    },
+    "Acquise" : {
+      "comment" : "Offre de départ déjà achetée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Owned"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adquirida"
+          }
+        }
+      }
+    },
+    "Agilité" : {
+      "comment" : "Talent permanent (cadence)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agility"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agilidad"
+          }
+        }
+      }
+    },
+    "Aiguilles de lune. Aucune faiblesse, aucune fioriture." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moon needles. No weakness, no frills."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agujas de luna. Sin debilidades ni florituras."
+          }
+        }
+      }
+    },
+    "Ailes de papier" : {
+      "comment" : "Apparence du pass",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paper Wings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alas de papel"
+          }
+        }
+      }
+    },
+    "Annuler" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        }
+      }
+    },
+    "Apparence exclusive de l’Ordre du Dragon" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclusive look for the Order of the Dragon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aspecto exclusivo de la Orden del Dragón"
+          }
+        }
+      }
+    },
+    "Apparences" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aspectos"
+          }
+        }
+      }
+    },
+    "Arc sur 2 cibles (20 %)" : {
+      "comment" : "Description du pouvoir Foudre en chaîne",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arcs to 2 targets (20%)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salta a 2 objetivos (20 %)"
+          }
+        }
+      }
+    },
+    "Archer squelette" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skeleton Archer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquero esqueleto"
+          }
+        }
+      }
+    },
+    "Aucune" : {
+      "comment" : "Pas d’apparence (féminin : une apparence)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ninguno"
+          }
+        }
+      }
+    },
+    "Aucune apparence" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No look"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin aspecto"
+          }
+        }
+      }
+    },
+    "Avec tes gemmes et ton or" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With your gems and gold"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con tus gemas y tu oro"
+          }
+        }
+      }
+    },
+    "Bientôt" : {
+      "comment" : "Pass pas encore en vente",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pronto"
+          }
+        }
+      }
+    },
+    "Bloqué" : {
+      "comment" : "Combat : coup arrêté par le bouclier",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocked"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueado"
+          }
+        }
+      }
+    },
+    "Boss" : {
+      "comment" : "Bandeau d’entrée dans la salle du boss",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boss"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jefe"
+          }
+        }
+      }
+    },
+    "Bouclier" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shield"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escudo"
+          }
+        }
+      }
+    },
+    "Boutique" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shop"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tienda"
+          }
+        }
+      }
+    },
+    "Boutique indisponible. Réessaie plus tard." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shop unavailable. Try again later."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tienda no disponible. Inténtalo más tarde."
+          }
+        }
+      }
+    },
+    "Boîte à musique synthétisée en direct" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music box synthesized live"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caja de música sintetizada en directo"
+          }
+        }
+      }
+    },
+    "Braises. Commence avec Flamme." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Embers. Starts with Flame."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brasas. Empieza con Llama."
+          }
+        }
+      }
+    },
+    "Brûle : 20 %/s pendant 2 s" : {
+      "comment" : "Description du pouvoir Flamme",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Burns: 20%/s for 2 s"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quema: 20 %/s durante 2 s"
+          }
+        }
+      }
+    },
+    "Cadence +25 %" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fire Rate +25%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadencia +25 %"
+          }
+        }
+      }
+    },
+    "Carte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Map"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mapa"
+          }
+        }
+      }
+    },
+    "Champignon-spore" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spore Shroom"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seta de esporas"
+          }
+        }
+      }
+    },
+    "Changer de formule ou résilier se fait dans l’App Store ; les avantages restent jusqu’à la fin de la période payée." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch plans or cancel in the App Store; your perks stay until the end of the paid period."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puedes cambiar de plan o cancelar en el App Store; las ventajas se mantienen hasta el final del periodo pagado."
+          }
+        }
+      }
+    },
+    "Chapitre %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chapter %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capítulo %lld"
+          }
+        }
+      }
+    },
+    "Chaque découpe se répète 0,5 s après (50 %)" : {
+      "comment" : "Description du pouvoir Écho",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each cut strikes again 0.5 s later (50%)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada corte se repite 0,5 s después (50 %)"
+          }
+        }
+      }
+    },
+    "Chauve-souris" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bat"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Murciélago"
+          }
+        }
+      }
+    },
+    "Choisis un pouvoir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a power"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige un poder"
+          }
+        }
+      }
+    },
+    "Ciseaux affûtés" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sharp Scissors"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tijeras afiladas"
+          }
+        }
+      }
+    },
+    "Classement de la semaine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This week’s leaderboard"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clasificación de la semana"
+          }
+        }
+      }
+    },
+    "Coffre d’étoiles (%lld ★) : %@" : {
+      "comment" : "Victoire : coffre ouvert (étoiles totales) et son contenu",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Star Chest (%1$lld ★): %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofre de estrellas (%1$lld ★): %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coffre d’étoiles (%1$lld ★) : %2$@"
+          }
+        }
+      }
+    },
+    "Commun" : {
+      "comment" : "Rareté d’un pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Common"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Común"
+          }
+        }
+      }
+    },
+    "Conditions d’utilisation\n\nL’Ordre du Dragon est un abonnement auto-renouvelable (%@ par mois ou %@ par an), avec un essai gratuit de %lld jours la première fois. Le paiement est débité sur ton identifiant Apple à la confirmation de l’achat ou à la fin de l’essai. L’abonnement se renouvelle automatiquement sauf résiliation au moins 24 h avant la fin de la période en cours, depuis les réglages de l’App Store." : {
+      "comment" : "Texte provisoire des conditions d’utilisation (prix mensuel, prix annuel, jours d’essai)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of Use\n\nThe Order of the Dragon is an auto-renewable subscription (%1$@ per month or %2$@ per year), with a %3$lld-day free trial the first time. Payment is charged to your Apple Account when you confirm the purchase or when the trial ends. The subscription renews automatically unless it is canceled at least 24 hours before the end of the current period, from your App Store settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Condiciones de uso\n\nLa Orden del Dragón es una suscripción de renovación automática (%1$@ al mes o %2$@ al año), con una prueba gratis de %3$lld días la primera vez. El pago se carga en tu cuenta de Apple al confirmar la compra o al terminar la prueba. La suscripción se renueva automáticamente salvo que la canceles como mínimo 24 h antes del final del periodo en curso, desde los ajustes del App Store."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conditions d’utilisation\n\nL’Ordre du Dragon est un abonnement auto-renouvelable (%1$@ par mois ou %2$@ par an), avec un essai gratuit de %3$lld jours la première fois. Le paiement est débité sur ton identifiant Apple à la confirmation de l’achat ou à la fin de l’essai. L’abonnement se renouvelle automatiquement sauf résiliation au moins 24 h avant la fin de la période en cours, depuis les réglages de l’App Store."
+          }
+        }
+      }
+    },
+    "Confettis" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confetti"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confeti"
+          }
+        }
+      }
+    },
+    "Confidentialité" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacidad"
+          }
+        }
+      }
+    },
+    "Confirmation…" : {
+      "comment" : "Achat en cours",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirming…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirmando…"
+          }
+        }
+      }
+    },
+    "Connecte-toi à Game Center (Réglages iOS › Game Center) pour voir le classement. Tes scores sont gardés et envoyés dès la connexion." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to Game Center (iOS Settings › Game Center) to see the leaderboard. Your scores are kept and sent as soon as you sign in."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en Game Center (Ajustes de iOS › Game Center) para ver la clasificación. Tus puntuaciones se guardan y se envían en cuanto te conectes."
+          }
+        }
+      }
+    },
+    "Contenu introuvable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Content not found"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contenido no encontrado"
+          }
+        }
+      }
+    },
+    "Continuer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar"
+          }
+        }
+      }
+    },
+    "Cornes et col d’or sur ton héros." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horns and a golden collar on your hero."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuernos y cuello de oro para tu héroe."
+          }
+        }
+      }
+    },
+    "Cornes et col d’or, réservés à l’Ordre." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horns and a golden collar, for the Order only."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuernos y cuello de oro, solo para la Orden."
+          }
+        }
+      }
+    },
+    "Coupe secousses, arrêts sur image et animations décoratives" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turns off screen shake, freeze frames and decorative animations"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quita sacudidas, congelados de imagen y animaciones decorativas"
+          }
+        }
+      }
+    },
+    "Couronne de lune" : {
+      "comment" : "Apparence du pass",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moon Crown"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corona de luna"
+          }
+        }
+      }
+    },
+    "Crabe-ciseaux" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scissor Crab"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cangrejo tijera"
+          }
+        }
+      }
+    },
+    "Critique" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Critical"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crítico"
+          }
+        }
+      }
+    },
+    "Crédits" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credits"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créditos"
+          }
+        }
+      }
+    },
+    "C’est fait ✓" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done ✓"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Hecho! ✓"
+          }
+        }
+      }
+    },
+    "Dernier continue possible" : {
+      "comment" : "Défaite : « continuer » contre des gemmes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last continue available"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Última vez que puedes continuar"
+          }
+        }
+      }
+    },
+    "Deux aiguilles en diagonale" : {
+      "comment" : "Description du pouvoir Diagonales",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Two diagonal needles"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dos agujas en diagonal"
+          }
+        }
+      }
+    },
+    "Diagonales" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagonals"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagonales"
+          }
+        }
+      }
+    },
+    "Difficile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Difícil"
+          }
+        }
+      }
+    },
+    "Disponible" : {
+      "comment" : "Héros déjà débloqué",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disponible"
+          }
+        }
+      }
+    },
+    "Découpe" : {
+      "comment" : "Combat : ennemi découpé par la boucle du fil",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cut!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Corte!"
+          }
+        }
+      }
+    },
+    "Découpe ×%lld" : {
+      "comment" : "Combat : plusieurs ennemis découpés d’un coup",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cut ×%lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corte ×%lld"
+          }
+        }
+      }
+    },
+    "Découvrir" : {
+      "comment" : "Bouton : voir l’offre de l’Ordre du Dragon",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discover"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descubrir"
+          }
+        }
+      }
+    },
+    "Défaite" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defeat"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Derrota"
+          }
+        }
+      }
+    },
+    "Dégâts +20 %" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Damage +20%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daño +20 %"
+          }
+        }
+      }
+    },
+    "Déjà réclamées · les suivantes lundi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already claimed · next ones on Monday."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya reclamadas · las siguientes, el lunes."
+          }
+        }
+      }
+    },
+    "Déplacement 20 % plus rapide" : {
+      "comment" : "Description du pouvoir Vitesse",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move 20% faster"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te mueves un 20 % más rápido"
+          }
+        }
+      }
+    },
+    "Désactivé par défaut. L’activer ouvre la demande de suivi d’Apple." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off by default. Turning it on shows Apple’s tracking request."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado por defecto. Al activarlo se muestra la solicitud de rastreo de Apple."
+          }
+        }
+      }
+    },
+    "Désactivés en tournoi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turned off in the tournament."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivados en el torneo."
+          }
+        }
+      }
+    },
+    "Désert d’Ambre" : {
+      "comment" : "Royaume 3",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amber Desert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desierto de Ámbar"
+          }
+        }
+      }
+    },
+    "Effacer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erase"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar"
+          }
+        }
+      }
+    },
+    "Effacer la progression" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erase progress"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar el progreso"
+          }
+        }
+      }
+    },
+    "Effets sonores" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sound effects"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Efectos de sonido"
+          }
+        }
+      }
+    },
+    "Encercle-le pour le découper" : {
+      "comment" : "Aide du tutoriel : entourer l’ennemi avec le fil",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Circle it to cut it out"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rodéalo para recortarlo"
+          }
+        }
+      }
+    },
+    "Ennemis" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enemies"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enemigos"
+          }
+        }
+      }
+    },
+    "Entracte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intermission"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entreacto"
+          }
+        }
+      }
+    },
+    "Esquive" : {
+      "comment" : "Pouvoir ; aussi affiché en combat quand un coup est esquivé",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodge"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esquiva"
+          }
+        }
+      }
+    },
+    "Essai gratuit de %lld jours la première fois. Sans engagement : résiliable à tout moment, au plus tard 24 h avant la fin de la période." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld-day free trial the first time. No commitment: cancel anytime, at least 24 hours before the end of the period."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prueba gratis de %lld días la primera vez. Sin permanencia: cancela cuando quieras, como mínimo 24 h antes del final del periodo."
+          }
+        }
+      }
+    },
+    "Essai gratuit de %lld jours, puis %@/mois ou %@/an" : {
+      "comment" : "Ordre du Dragon : durée de l’essai, prix mensuel, prix annuel",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld-day free trial, then %2$@/month or %3$@/year"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prueba gratis de %1$lld días; luego, %2$@/mes o %3$@/año"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Essai gratuit de %1$lld jours, puis %2$@/mois ou %3$@/an"
+          }
+        }
+      }
+    },
+    "Essai gratuit jusqu’au %@" : {
+      "comment" : "Date au format jour + mois",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free trial until %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prueba gratis hasta el %@"
+          }
+        }
+      }
+    },
+    "Essai terminé" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attempt over"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intento terminado"
+          }
+        }
+      }
+    },
+    "Essais restants" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attempts left"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intentos restantes"
+          }
+        }
+      }
+    },
+    "Fermer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar"
+          }
+        }
+      }
+    },
+    "Fermer sans récompense" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close without reward"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar sin recompensa"
+          }
+        }
+      }
+    },
+    "Fil barbelé" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barbed Thread"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilo de espino"
+          }
+        }
+      }
+    },
+    "Fil coupé" : {
+      "comment" : "Combat : le fil a été coupé",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thread cut"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilo cortado"
+          }
+        }
+      }
+    },
+    "Fil d’acier" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steel Thread"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilo de acero"
+          }
+        }
+      }
+    },
+    "Fil grignoté" : {
+      "comment" : "Combat : une mite a mangé le fil",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thread nibbled"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilo mordisqueado"
+          }
+        }
+      }
+    },
+    "Fil long" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long Thread"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilo largo"
+          }
+        }
+      }
+    },
+    "Flamme" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flame"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Llama"
+          }
+        }
+      }
+    },
+    "Force" : {
+      "comment" : "Talent permanent (dégâts)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strength"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuerza"
+          }
+        }
+      }
+    },
+    "Formule annuelle" : {
+      "comment" : "Abonnement à l’année",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yearly plan"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan anual"
+          }
+        }
+      }
+    },
+    "Formule mensuelle" : {
+      "comment" : "Abonnement au mois",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly plan"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan mensual"
+          }
+        }
+      }
+    },
+    "Fortune" : {
+      "comment" : "Talent permanent (or)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortune"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortuna"
+          }
+        }
+      }
+    },
+    "Forêt d’Ombrelune" : {
+      "comment" : "Royaume 1",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ombrelune Forest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bosque de Ombrelune"
+          }
+        }
+      }
+    },
+    "Foudre en chaîne" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chain Lightning"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rayo en cadena"
+          }
+        }
+      }
+    },
+    "Gelée" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jelly"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelatina"
+          }
+        }
+      }
+    },
+    "Gemmes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gems"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gemas"
+          }
+        }
+      }
+    },
+    "Gemmes : boutique" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gems: shop"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gemas: tienda"
+          }
+        }
+      }
+    },
+    "Gemmes, boutique" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gems, shop"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gemas, tienda"
+          }
+        }
+      }
+    },
+    "Givre" : {
+      "comment" : "Pouvoir (ralentit)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frost"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escarcha"
+          }
+        }
+      }
+    },
+    "Gobelin frondeur" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slinger Goblin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goblin hondero"
+          }
+        }
+      }
+    },
+    "Gratuit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gratis"
+          }
+        }
+      }
+    },
+    "Gérer" : {
+      "comment" : "Bouton : gérer l’abonnement",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestionar"
+          }
+        }
+      }
+    },
+    "Gérer l’abonnement" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage Subscription"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestionar suscripción"
+          }
+        }
+      }
+    },
+    "Héros" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heroes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Héroes"
+          }
+        }
+      }
+    },
+    "Ici passera une courte vidéo d’un annonceur." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A short video from an advertiser will play here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí se mostrará un vídeo corto de un anunciante."
+          }
+        }
+      }
+    },
+    "Jeu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Game"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Juego"
+          }
+        }
+      }
+    },
+    "Jouer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jugar"
+          }
+        }
+      }
+    },
+    "Jouer (%lld essais)" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Play (%lld attempt)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Play (%lld attempts)"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Jugar (%lld intentos)"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Jugar (%lld intento)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Jugar (%lld intentos)"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Jouer (%lld essais)"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Jouer (%lld essai)"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Jouer (%lld essais)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "La Lune de papier" : {
+      "comment" : "Nom de la saison 1 du pass",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Paper Moon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Luna de papel"
+          }
+        }
+      }
+    },
+    "Le Trône de la Lune" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Moon Throne"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Trono de la Luna"
+          }
+        }
+      }
+    },
+    "Le fil blesse les ennemis qui le touchent" : {
+      "comment" : "Description du pouvoir Fil barbelé",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The thread hurts enemies that touch it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El hilo hiere a los enemigos que lo tocan"
+          }
+        }
+      }
+    },
+    "Le fil sèche 50 % moins vite" : {
+      "comment" : "Description du pouvoir Fil long",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The thread dries 50% slower"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El hilo se seca un 50 % más despacio"
+          }
+        }
+      }
+    },
+    "Les apparences se gagnent sur la piste premium du pass de saison. Purement cosmétiques." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looks are earned on the Season Pass premium track. Purely cosmetic."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los aspectos se ganan en el camino premium del pase de temporada. Puramente cosméticos."
+          }
+        }
+      }
+    },
+    "Les découpés éclatent sur leurs voisins (40 %)" : {
+      "comment" : "Description du pouvoir Confettis",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cut-out foes burst onto their neighbors (40%)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los recortados estallan sobre sus vecinos (40 %)"
+          }
+        }
+      }
+    },
+    "Les défaites ne coûtent plus de vie." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defeats no longer cost a life."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las derrotas ya no cuestan vidas."
+          }
+        }
+      }
+    },
+    "Les niveaux et les salles (`levels/`, `rooms/`) ne sont pas dans le paquet de l’app. Relancer `xcodegen generate` depuis `ios/`." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The levels and rooms (`levels/`, `rooms/`) are missing from the app bundle. Run `xcodegen generate` again from `ios/`."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los niveles y las salas (`levels/`, `rooms/`) no están en el paquete de la app. Vuelve a ejecutar `xcodegen generate` desde `ios/`."
+          }
+        }
+      }
+    },
+    "Lever le rideau" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raise the Curtain"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alzar el telón"
+          }
+        }
+      }
+    },
+    "Loup d’ombre" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shadow Wolf"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lobo de sombra"
+          }
+        }
+      }
+    },
+    "Lunes : +%lld par victoire, +%lld par étoile nouvelle." : {
+      "comment" : "Pass : lunes = points du pass",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moons: +%1$lld per win, +%2$lld per new star."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunas: +%1$lld por victoria, +%2$lld por estrella nueva."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunes : +%1$lld par victoire, +%2$lld par étoile nouvelle."
+          }
+        }
+      }
+    },
+    "L’Ordre du Dragon t’offre des vies illimitées. Aucune publicité." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Order of the Dragon gives you unlimited lives. No ads."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Orden del Dragón te da vidas ilimitadas. Sin anuncios."
+          }
+        }
+      }
+    },
+    "L’ombre t’a rattrapée…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The shadows caught up with you…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sombra te ha alcanzado…"
+          }
+        }
+      }
+    },
+    "L’Éclaireuse" : {
+      "comment" : "Héroïne de départ",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Scout"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Exploradora"
+          }
+        }
+      }
+    },
+    "Mage de braise" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ember Mage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mago de brasas"
+          }
+        }
+      }
+    },
+    "Marais des Lucioles" : {
+      "comment" : "Royaume 2",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firefly Swamp"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pantano de las Luciérnagas"
+          }
+        }
+      }
+    },
+    "Max" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máx."
+          }
+        }
+      }
+    },
+    "Meilleur score : %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best score: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejor puntuación: %@"
+          }
+        }
+      }
+    },
+    "Membre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Member"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Miembro"
+          }
+        }
+      }
+    },
+    "Merci ! Achat crédité ✓" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thank you! Purchase credited ✓"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Gracias! Compra abonada ✓"
+          }
+        }
+      }
+    },
+    "Merci ! Toutes les récompenses premium atteintes sont à toi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thank you! Every premium reward you’ve reached is yours."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Gracias! Todas las recompensas premium alcanzadas son tuyas."
+          }
+        }
+      }
+    },
+    "Merci d’avoir regardé." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thanks for watching."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gracias por verlo."
+          }
+        }
+      }
+    },
+    "Mite de papier" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paper Moth"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polilla de papel"
+          }
+        }
+      }
+    },
+    "Moine du vent" : {
+      "comment" : "Héros",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wind Monk"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monje del viento"
+          }
+        }
+      }
+    },
+    "Multitir" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multishot"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multidisparo"
+          }
+        }
+      }
+    },
+    "Musique" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Música"
+          }
+        }
+      }
+    },
+    "Même niveau, mêmes pouvoirs proposés et même héroïne pour tout le monde." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Same level, same power offers and same heroine for everyone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mismo nivel, mismos poderes ofrecidos y misma heroína para todos."
+          }
+        }
+      }
+    },
+    "Mêmes conditions pour tous · %lld essais" : {
+      "comment" : "Bandeau du tournoi sur la carte : essais restants",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Same rules for everyone · %lld attempt"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Same rules for everyone · %lld attempts"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mismas condiciones para todos · %lld intentos"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mismas condiciones para todos · %lld intento"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mismas condiciones para todos · %lld intentos"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mêmes conditions pour tous · %lld essais"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mêmes conditions pour tous · %lld essai"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Mêmes conditions pour tous · %lld essais"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Ni les mites ni les crabes ne coupent le fil" : {
+      "comment" : "Description du pouvoir Fil d’acier",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moths and crabs can’t cut the thread"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ni las polillas ni los cangrejos cortan el hilo"
+          }
+        }
+      }
+    },
+    "Niveau %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nivel %lld"
+          }
+        }
+      }
+    },
+    "Niveau suivant" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next level"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siguiente"
+          }
+        }
+      }
+    },
+    "Non membre" : {
+      "comment" : "Réglages : pas d’abonnement à l’Ordre du Dragon",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not a member"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No eres miembro"
+          }
+        }
+      }
+    },
+    "Nouveau meilleur score !" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New best score!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Nueva mejor puntuación!"
+          }
+        }
+      }
+    },
+    "Offre de départ" : {
+      "comment" : "Héros débloqué par l’offre de départ (boutique)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starter Pack"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pack de inicio"
+          }
+        }
+      }
+    },
+    "Offre de départ, pass de saison et Ordre du Dragon" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starter Pack, Season Pass and Order of the Dragon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pack de inicio, pase de temporada y Orden del Dragón"
+          }
+        }
+      }
+    },
+    "Or" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gold"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oro"
+          }
+        }
+      }
+    },
+    "Or disponible :" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gold available:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oro disponible:"
+          }
+        }
+      }
+    },
+    "Orbe gardien" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardian Orb"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orbe guardián"
+          }
+        }
+      }
+    },
+    "Ordre du Dragon" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Order of the Dragon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orden del Dragón"
+          }
+        }
+      }
+    },
+    "Ordre du Dragon : vies illimitées" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Order of the Dragon: unlimited lives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orden del Dragón: vidas ilimitadas"
+          }
+        }
+      }
+    },
+    "Ordre du Dragon · %@" : {
+      "comment" : "Réglages : état de l’abonnement",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Order of the Dragon · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orden del Dragón · %@"
+          }
+        }
+      }
+    },
+    "Oreilles de renard" : {
+      "comment" : "Apparence du pass",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fox Ears"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orejas de zorro"
+          }
+        }
+      }
+    },
+    "Ouvrir" : {
+      "comment" : "Bouton : ouvrir le pass",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir"
+          }
+        }
+      }
+    },
+    "Ouvrir le classement Game Center" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Game Center leaderboard"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir la clasificación de Game Center"
+          }
+        }
+      }
+    },
+    "PALIER" : {
+      "comment" : "Pass : case du palier atteint (capitales)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TIER"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ESCALÓN"
+          }
+        }
+      }
+    },
+    "PUBLICITÉ SIMULÉE" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SIMULATED AD"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ANUNCIO SIMULADO"
+          }
+        }
+      }
+    },
+    "PV max +20 %" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max HP +20%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PV máx. +20 %"
+          }
+        }
+      }
+    },
+    "PV restants" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HP left"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PV restantes"
+          }
+        }
+      }
+    },
+    "Paiement par l’App Store (non consommable, une fois par saison). Aucune récompense aléatoire ; rien du pass ne compte en tournoi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paid through the App Store (non-consumable, once per season). No random rewards; nothing from the pass counts in the tournament."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pago con el App Store (no consumible, una vez por temporada). Sin recompensas aleatorias; nada del pase cuenta en el torneo."
+          }
+        }
+      }
+    },
+    "Paiements sécurisés par l’App Store. Aucun objet aléatoire. Publicité seulement si tu la demandes, contre une vie." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secure payments through the App Store. No random items. Ads only when you ask for one, in exchange for a life."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagos seguros con el App Store. Sin objetos aleatorios. Anuncios solo si tú lo pides, a cambio de una vida."
+          }
+        }
+      }
+    },
+    "Palier %lld, gratuit : %@" : {
+      "comment" : "VoiceOver : case de la piste gratuite",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tier %1$lld, free: %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escalón %1$lld, gratis: %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palier %1$lld, gratuit : %2$@"
+          }
+        }
+      }
+    },
+    "Palier %lld, premium : %@" : {
+      "comment" : "VoiceOver : case de la piste premium",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tier %1$lld, premium: %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escalón %1$lld, premium: %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palier %1$lld, premium : %2$@"
+          }
+        }
+      }
+    },
+    "Parchemin" : {
+      "comment" : "Bonus d’avant niveau (pouvoir de départ)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scroll"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pergamino"
+          }
+        }
+      }
+    },
+    "Parchemin : pouvoir de départ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scroll: starting power"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pergamino: poder inicial"
+          }
+        }
+      }
+    },
+    "Parure du Dragon" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dragon Regalia"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atavío del Dragón"
+          }
+        }
+      }
+    },
+    "Parure du Dragon : apparence réservée aux membres de l’Ordre du Dragon." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dragon Regalia: a look reserved for members of the Order of the Dragon."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atavío del Dragón: aspecto reservado a los miembros de la Orden del Dragón."
+          }
+        }
+      }
+    },
+    "Pas assez de gemmes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough gems"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No tienes suficientes gemas"
+          }
+        }
+      }
+    },
+    "Pas assez d’or" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough gold"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No tienes suficiente oro"
+          }
+        }
+      }
+    },
+    "Pass" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pass"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pase"
+          }
+        }
+      }
+    },
+    "Pass de saison" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Season Pass"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pase de temporada"
+          }
+        }
+      }
+    },
+    "Pass de saison %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Season Pass %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pase de temporada %lld"
+          }
+        }
+      }
+    },
+    "Pass de saison : +%lld lunes" : {
+      "comment" : "Victoire : lunes gagnées",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Season Pass: +%lld moons"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pase de temporada: +%lld lunas"
+          }
+        }
+      }
+    },
+    "Pass de saison : +%lld lunes · palier %lld atteint !" : {
+      "comment" : "Victoire : lunes gagnées, nouveau palier",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Season Pass: +%1$lld moons · tier %2$lld reached!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pase de temporada: +%1$lld lunas · ¡escalón %2$lld alcanzado!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pass de saison : +%1$lld lunes · palier %2$lld atteint !"
+          }
+        }
+      }
+    },
+    "Pass de saison · palier %lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Season Pass · tier %1$lld/%2$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pase de temporada · escalón %1$lld/%2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pass de saison · palier %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Pass terminé" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pass complete"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pase completado"
+          }
+        }
+      }
+    },
+    "Pause" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa"
+          }
+        }
+      }
+    },
+    "Perforation" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pierce"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perforación"
+          }
+        }
+      }
+    },
+    "Personne n’a encore joué cette semaine. Sois la première ombre au tableau !" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nobody has played yet this week. Be the first shadow on the board!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nadie ha jugado aún esta semana. ¡Sé la primera sombra del tablero!"
+          }
+        }
+      }
+    },
+    "Petite gelée" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Little Jelly"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelatina pequeña"
+          }
+        }
+      }
+    },
+    "Pics de Givre" : {
+      "comment" : "Royaume 4",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frost Peaks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Picos de Escarcha"
+          }
+        }
+      }
+    },
+    "Piste premium" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium track"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camino premium"
+          }
+        }
+      }
+    },
+    "Piste premium bientôt disponible" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium track coming soon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camino premium disponible pronto"
+          }
+        }
+      }
+    },
+    "Piste premium débloquée" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium track unlocked"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camino premium desbloqueado"
+          }
+        }
+      }
+    },
+    "Piste premium débloquée · réclame tes récompenses" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium track unlocked · claim your rewards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camino premium desbloqueado · reclama tus recompensas"
+          }
+        }
+      }
+    },
+    "Piste premium débloquée ✓" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium track unlocked ✓"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camino premium desbloqueado ✓"
+          }
+        }
+      }
+    },
+    "Plus de vies" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Out of lives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin vidas"
+          }
+        }
+      }
+    },
+    "Plus de vies ? Les membres de l’Ordre n’en manquent jamais." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Out of lives? Members of the Order never run out."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Sin vidas? A los miembros de la Orden nunca les faltan."
+          }
+        }
+      }
+    },
+    "Plus d’essai cette semaine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No attempts left this week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No te quedan intentos esta semana"
+          }
+        }
+      }
+    },
+    "Poison" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poison"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veneno"
+          }
+        }
+      }
+    },
+    "Poison cumulable (1,5 %/s par dose)" : {
+      "comment" : "Description du pouvoir Poison",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stacking poison (1.5%/s per dose)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veneno acumulable (1,5 %/s por dosis)"
+          }
+        }
+      }
+    },
+    "Polices distribuées sous licence SIL Open Font License 1.1 (openfontlicense.org). Sons et musique synthétisés en direct, sans fichier sous licence." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fonts distributed under the SIL Open Font License 1.1 (openfontlicense.org). Sounds and music are synthesized live, with no licensed files."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuentes distribuidas con la licencia SIL Open Font License 1.1 (openfontlicense.org). Sonidos y música sintetizados en directo, sin archivos con licencia."
+          }
+        }
+      }
+    },
+    "Politique de confidentialité\n\nTa progression est enregistrée sur ton appareil et dans ton iCloud. Aucun compte, aucun traçage. Si tu choisis de regarder une publicité pour gagner une vie, le réseau publicitaire peut traiter des données techniques ; elles ne servent à personnaliser les publicités que si tu l’autorises dans les Réglages du jeu et dans iOS." : {
+      "comment" : "Texte provisoire de la politique de confidentialité",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy\n\nYour progress is saved on your device and in your iCloud. No account, no tracking. If you choose to watch an ad to earn a life, the ad network may process technical data; it is only used to personalize ads if you allow it in the game’s Settings and in iOS."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidad\n\nTu progreso se guarda en tu dispositivo y en tu iCloud. Sin cuenta y sin rastreo. Si eliges ver un anuncio para ganar una vida, la red publicitaria puede tratar datos técnicos; solo se usan para personalizar los anuncios si lo autorizas en los Ajustes del juego y en iOS."
+          }
+        }
+      }
+    },
+    "Potion" : {
+      "comment" : "Bonus d’avant niveau",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Potion"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poción"
+          }
+        }
+      }
+    },
+    "Potion de vie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health Potion"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poción de vida"
+          }
+        }
+      }
+    },
+    "Premium" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium"
+          }
+        }
+      }
+    },
+    "Prochaine dans %@" : {
+      "comment" : "Prochaine publicité (féminin) disponible dans…",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next one in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El próximo, en %@"
+          }
+        }
+      }
+    },
+    "Prochaine vie dans %@" : {
+      "comment" : "Compte à rebours « 4:09 » ou « 1 h 05 »",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next life in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próxima vida en %@"
+          }
+        }
+      }
+    },
+    "Produit introuvable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Product not found"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Producto no encontrado"
+          }
+        }
+      }
+    },
+    "Progression" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progress"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progreso"
+          }
+        }
+      }
+    },
+    "Progression effacée" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progress erased"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progreso borrado"
+          }
+        }
+      }
+    },
+    "Publicité factice : rien n’est diffusé ni collecté." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mock ad: nothing is shown or collected."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anuncio simulado: no se muestra ni se recopila nada."
+          }
+        }
+      }
+    },
+    "Publicité simulée" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simulated ad"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anuncio simulado"
+          }
+        }
+      }
+    },
+    "Publicités personnalisées" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalized ads"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anuncios personalizados"
+          }
+        }
+      }
+    },
+    "Publicités uniquement si tu le demandes, jamais pendant un niveau ni en tournoi. %lld par jour au plus, non personnalisées." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ads only when you ask, never during a level or in the tournament. %lld a day at most, non-personalized."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anuncios solo si tú lo pides, nunca durante un nivel ni en el torneo. %lld al día como máximo, sin personalizar."
+          }
+        }
+      }
+    },
+    "Publicités uniquement si tu le demandes, jamais pendant un niveau ni en tournoi. %lld par jour au plus." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ads only when you ask, never during a level or in the tournament. %lld a day at most."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anuncios solo si tú lo pides, nunca durante un nivel ni en el torneo. %lld al día como máximo."
+          }
+        }
+      }
+    },
+    "Quitter le niveau" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit level"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salir del nivel"
+          }
+        }
+      }
+    },
+    "Rafales d’air. Commence avec Vitesse +20 %." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gusts of wind. Starts with Speed +20%."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ráfagas de viento. Empieza con Velocidad +20 %."
+          }
+        }
+      }
+    },
+    "Ralentit de 40 % pendant 2 s" : {
+      "comment" : "Description du pouvoir Givre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slows by 40% for 2 s"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ralentiza un 40 % durante 2 s"
+          }
+        }
+      }
+    },
+    "Rare" : {
+      "comment" : "Rareté d’un pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rare"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raro"
+          }
+        }
+      }
+    },
+    "Rebondit sur un 2e ennemi (25 %)" : {
+      "comment" : "Description du pouvoir Ricochet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bounces to a 2nd enemy (25%)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rebota en un 2.º enemigo (25 %)"
+          }
+        }
+      }
+    },
+    "Regarder une courte pub" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch a short ad"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver un anuncio corto"
+          }
+        }
+      }
+    },
+    "Reine des marais" : {
+      "comment" : "Boss du royaume 2",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swamp Queen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reina del pantano"
+          }
+        }
+      }
+    },
+    "Rejouer (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play again (%lld)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otra vez (%lld)"
+          }
+        }
+      }
+    },
+    "Remplir les 5 vies" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refill all 5 lives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recargar las 5 vidas"
+          }
+        }
+      }
+    },
+    "Rend 50 % des PV et efface les projectiles." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restores 50% HP and clears all projectiles."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recupera el 50 % de los PV y borra los proyectiles."
+          }
+        }
+      }
+    },
+    "Renouvellement le %@" : {
+      "comment" : "Date au format jour + mois",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renews on %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se renueva el %@"
+          }
+        }
+      }
+    },
+    "Reprendre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reanudar"
+          }
+        }
+      }
+    },
+    "Restauration impossible" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t restore purchases"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se han podido restaurar"
+          }
+        }
+      }
+    },
+    "Restauration impossible pour le moment." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t restore purchases right now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pueden restaurar las compras ahora mismo."
+          }
+        }
+      }
+    },
+    "Restauration…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restoring…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurando…"
+          }
+        }
+      }
+    },
+    "Restaurer les achats" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore Purchases"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar compras"
+          }
+        }
+      }
+    },
+    "Reçu : %@" : {
+      "comment" : "Récompense du pass reçue",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Received: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recibido: %@"
+          }
+        }
+      }
+    },
+    "Ricochet" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ricochet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rebote"
+          }
+        }
+      }
+    },
+    "Royaume %@ · chapitres %lld à %lld" : {
+      "comment" : "Bandeau de la carte : numéro romain du royaume, premier et dernier chapitre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kingdom %1$@ · chapters %2$lld to %3$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reino %1$@ · capítulos %2$lld a %3$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Royaume %1$@ · chapitres %2$lld à %3$lld"
+          }
+        }
+      }
+    },
+    "Règles" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rules"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reglas"
+          }
+        }
+      }
+    },
+    "Réclamer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claim"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reclamar"
+          }
+        }
+      }
+    },
+    "Réclamer %lld gemmes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claim %lld gems"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reclamar %lld gemas"
+          }
+        }
+      }
+    },
+    "Récupérer ma vie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collect my life"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recoger mi vida"
+          }
+        }
+      }
+    },
+    "Réduire les animations" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reduce motion"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reducir animaciones"
+          }
+        }
+      }
+    },
+    "Réessaie autant que tu veux, sans perdre de vie." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again as often as you like, without losing a life."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reintenta todas las veces que quieras sin perder vidas."
+          }
+        }
+      }
+    },
+    "Réessayer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reintentar"
+          }
+        }
+      }
+    },
+    "Réglages" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes"
+          }
+        }
+      }
+    },
+    "Résilié · actif jusqu’au %@" : {
+      "comment" : "Date au format jour + mois",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canceled · active until %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelada · activa hasta el %@"
+          }
+        }
+      }
+    },
+    "Résultat inconnu" : {
+      "comment" : "Achat : réponse inattendue de l’App Store",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown result"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resultado desconocido"
+          }
+        }
+      }
+    },
+    "Saison %lld" : {
+      "comment" : "Pass : numéro de saison",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Season %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temporada %lld"
+          }
+        }
+      }
+    },
+    "Salle %lld" : {
+      "comment" : "Bandeau d’entrée dans une salle",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Room %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sala %lld"
+          }
+        }
+      }
+    },
+    "Salle %lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Room %1$lld/%2$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sala %1$lld/%2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salle %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "Salle nettoyée" : {
+      "comment" : "Combat : tous les ennemis de la salle sont vaincus",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Room cleared"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sala despejada"
+          }
+        }
+      }
+    },
+    "Score = ennemis × 100 + PV restants × 5 + (240 − secondes) × 40. Exemple : 42 ennemis, 380 PV, 150 s → %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Score = enemies × 100 + HP left × 5 + (240 − seconds) × 40. Example: 42 enemies, 380 HP, 150 s → %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puntuación = enemigos × 100 + PV restantes × 5 + (240 − segundos) × 40. Ejemplo: 42 enemigos, 380 PV, 150 s → %@."
+          }
+        }
+      }
+    },
+    "Score = ennemis × 100 + PV × 5 + (240 − secondes) × 40" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Score = enemies × 100 + HP × 5 + (240 − seconds) × 40"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puntuación = enemigos × 100 + PV × 5 + (240 − segundos) × 40"
+          }
+        }
+      }
+    },
+    "Scorpion d’ambre" : {
+      "comment" : "Boss du royaume 3",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amber Scorpion"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escorpión de ámbar"
+          }
+        }
+      }
+    },
+    "Seigneur des cendres" : {
+      "comment" : "Boss du royaume 5",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lord of Ashes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Señor de las cenizas"
+          }
+        }
+      }
+    },
+    "Semaine %lld · %@" : {
+      "comment" : "Distinction du tournoi : semaine ISO et palier",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week %1$lld · %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semana %1$lld · %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semaine %1$lld · %2$@"
+          }
+        }
+      }
+    },
+    "Soigne de 2 % des dégâts infligés" : {
+      "comment" : "Description du pouvoir Vol de vie",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heals 2% of damage dealt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cura el 2 % del daño infligido"
+          }
+        }
+      }
+    },
+    "Son" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sound"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonido"
+          }
+        }
+      }
+    },
+    "Sorcier de braise" : {
+      "comment" : "Héros",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ember Sorcerer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hechicero de brasas"
+          }
+        }
+      }
+    },
+    "Suivi refusé dans iOS : les publicités resteront non personnalisées (Réglages › Confidentialité › Suivi)." : {
+      "comment" : "Chemin des réglages iOS : utiliser les libellés exacts d’iOS dans chaque langue",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tracking declined in iOS: ads will stay non-personalized (Settings › Privacy & Security › Tracking)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seguimiento rechazado en iOS: los anuncios seguirán sin personalizar (Ajustes › Privacidad y seguridad › Rastreo)."
+          }
+        }
+      }
+    },
+    "Sur chaque victoire." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On every victory."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En cada victoria."
+          }
+        }
+      }
+    },
+    "Ta héroïne tire aussi en se déplaçant (toujours actif en tournoi)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your heroine also shoots while moving (always on in the tournament)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu heroína también dispara mientras se mueve (siempre activo en el torneo)"
+          }
+        }
+      }
+    },
+    "Ta progression reste sur ton appareil et dans ton iCloud. Aucun compte, aucun traçage. La seule publicité est celle que tu choisis de regarder pour gagner une vie : %lld par jour au plus, jamais pendant un niveau ni en tournoi, jamais pour les membres de l’Ordre. Sans ton accord, elle n’est pas personnalisée." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your progress stays on your device and in your iCloud. No account, no tracking. The only ads are the ones you choose to watch to earn a life: %lld a day at most, never during a level or in the tournament, never for members of the Order. Without your consent, they aren’t personalized."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu progreso se queda en tu dispositivo y en tu iCloud. Sin cuenta y sin rastreo. Los únicos anuncios son los que eliges ver para ganar una vida: %lld al día como máximo, nunca durante un nivel ni en el torneo, nunca para los miembros de la Orden. Sin tu permiso, no se personalizan."
+          }
+        }
+      }
+    },
+    "Ta vie arrive dans %lld s" : {
+      "comment" : "Publicité simulée : secondes restantes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your life arrives in %lld s"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu vida llega en %lld s"
+          }
+        }
+      }
+    },
+    "Talents permanents" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permanent talents"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talentos permanentes"
+          }
+        }
+      }
+    },
+    "Talents, bonus et « continuer » désactivés." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talents, boosts and “continue” are turned off."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talentos, potenciadores y «continuar» desactivados."
+          }
+        }
+      }
+    },
+    "Temps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo"
+          }
+        }
+      }
+    },
+    "Terminer le Marais (niv. 120)" : {
+      "comment" : "Condition de déblocage du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear the Swamp (lvl 120)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supera el Pantano (niv. 120)"
+          }
+        }
+      }
+    },
+    "Terres de Cendres" : {
+      "comment" : "Royaume 5",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ashlands"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tierras de Ceniza"
+          }
+        }
+      }
+    },
+    "Tes distinctions" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your honors"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus distinciones"
+          }
+        }
+      }
+    },
+    "Tes vies sont au maximum." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your lives are already full."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya tienes todas tus vidas."
+          }
+        }
+      }
+    },
+    "Tir automatique" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-fire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disparo automático"
+          }
+        }
+      }
+    },
+    "Tire 25 % plus vite" : {
+      "comment" : "Description du pouvoir Cadence",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shoots 25% faster"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispara un 25 % más rápido"
+          }
+        }
+      }
+    },
+    "Ton meilleur essai compte. Récompenses cosmétiques : top 1 %, 10 %, 50 % et participation." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your best attempt counts. Cosmetic rewards: top 1%, 10%, 50% and participation."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuenta tu mejor intento. Recompensas cosméticas: top 1 %, 10 %, 50 % y participación."
+          }
+        }
+      }
+    },
+    "Ton meilleur score" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your best score"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu mejor puntuación"
+          }
+        }
+      }
+    },
+    "Ton tribut t’attend." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your tribute awaits."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu tributo te espera."
+          }
+        }
+      }
+    },
+    "Totem runique" : {
+      "comment" : "Ennemi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rune Totem"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tótem rúnico"
+          }
+        }
+      }
+    },
+    "Tournoi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tournament"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torneo"
+          }
+        }
+      }
+    },
+    "Tournoi de la semaine %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekly Tournament · Week %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torneo semanal · semana %lld"
+          }
+        }
+      }
+    },
+    "Tournoi terminé" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tournament complete"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torneo completado"
+          }
+        }
+      }
+    },
+    "Tournoi · semaine %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tournament · Week %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torneo · semana %lld"
+          }
+        }
+      }
+    },
+    "Tout effacer ? " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erase everything? "
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Borrarlo todo? "
+          }
+        }
+      }
+    },
+    "Tout réclamer (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claim all (%lld)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reclamar todo (%lld)"
+          }
+        }
+      }
+    },
+    "Traverse %lld salles et terrasse %@." : {
+      "comment" : "Objectif d’un niveau de boss : nombre de salles, nom du boss",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get through %1$lld rooms and defeat the %2$@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atraviesa %1$lld salas y derrota al jefe: %2$@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traverse %1$lld salles et terrasse %2$@."
+          }
+        }
+      }
+    },
+    "Traverse %lld salles." : {
+      "comment" : "Objectif d’un niveau : nombre de salles",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get through %lld rooms."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atraviesa %lld salas."
+          }
+        }
+      }
+    },
+    "Traverse les ennemis (−15 % dégâts)" : {
+      "comment" : "Description du pouvoir Perforation",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passes through enemies (−15% damage)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atraviesa a los enemigos (−15 % de daño)"
+          }
+        }
+      }
+    },
+    "Treant colossal" : {
+      "comment" : "Boss du royaume 1",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colossal Treant"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Treant colosal"
+          }
+        }
+      }
+    },
+    "Tribut de l’Ordre · réclamer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Order’s tribute · claim"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tributo de la Orden · reclamar"
+          }
+        }
+      }
+    },
+    "Tu as vu les %lld publicités du jour. Reviens demain." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You’ve watched today’s %lld ads. Come back tomorrow."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya has visto los %lld anuncios de hoy. Vuelve mañana."
+          }
+        }
+      }
+    },
+    "Tu es membre de l’Ordre." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You’re a member of the Order."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eres miembro de la Orden."
+          }
+        }
+      }
+    },
+    "Tueur d’élites" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elite Slayer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cazaélites"
+          }
+        }
+      }
+    },
+    "Un héros, un doigt, trois cents niveaux.\nBouge pour esquiver ; ta héroïne tire toute seule." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One hero, one finger, three hundred levels.\nMove to dodge; your heroine shoots on her own."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una heroína, un dedo, trescientos niveles.\nMuévete para esquivar; tu heroína dispara sola."
+          }
+        }
+      }
+    },
+    "Un orbe tourne et inflige 80 dégâts" : {
+      "comment" : "Description du pouvoir Orbe gardien",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A circling orb deals 80 damage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un orbe gira e inflige 80 de daño"
+          }
+        }
+      }
+    },
+    "Une défaite ne coûte plus de vie." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A defeat no longer costs a life."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una derrota ya no cuesta vidas."
+          }
+        }
+      }
+    },
+    "Une seule fois" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One time only"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo una vez"
+          }
+        }
+      }
+    },
+    "Une vie n’est retirée qu’en cas de défaite." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You only lose a life if you’re defeated."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo pierdes una vida si te derrotan."
+          }
+        }
+      }
+    },
+    "Vague %lld" : {
+      "comment" : "Bandeau : nouvelle vague d’ennemis",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wave %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oleada %lld"
+          }
+        }
+      }
+    },
+    "Vibrations" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vibration"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vibración"
+          }
+        }
+      }
+    },
+    "Victoire !" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Victory!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Victoria!"
+          }
+        }
+      }
+    },
+    "Vies" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vidas"
+          }
+        }
+      }
+    },
+    "Vies au maximum." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lives are full."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vidas al máximo."
+          }
+        }
+      }
+    },
+    "Vies illimitées" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited lives"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vidas ilimitadas"
+          }
+        }
+      }
+    },
+    "Vies illimitées · %lld gemmes/semaine · +25 %% or · apparence exclusive" : {
+      "comment" : "Avantages de l’Ordre du Dragon (carte de la boutique)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited lives · %lld gems/week · +25%% gold · exclusive look"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vidas ilimitadas · %lld gemas/semana · +25 %% de oro · aspecto exclusivo"
+          }
+        }
+      }
+    },
+    "Vies remplies" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lives refilled"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vidas recargadas"
+          }
+        }
+      }
+    },
+    "Vies remplies ✓" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lives refilled ✓"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vidas recargadas ✓"
+          }
+        }
+      }
+    },
+    "Vigueur" : {
+      "comment" : "Talent permanent (PV)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vigor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vigor"
+          }
+        }
+      }
+    },
+    "Vitesse +20 %" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speed +20%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velocidad +20 %"
+          }
+        }
+      }
+    },
+    "Voir" : {
+      "comment" : "Bouton : voir le pass",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver"
+          }
+        }
+      }
+    },
+    "Vol de vie" : {
+      "comment" : "Pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lifesteal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Robo de vida"
+          }
+        }
+      }
+    },
+    "Wyverne de givre" : {
+      "comment" : "Boss du royaume 4",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frost Wyvern"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guiverno de escarcha"
+          }
+        }
+      }
+    },
+    "actif" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "active"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "activo"
+          }
+        }
+      }
+    },
+    "activé" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "on"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "activado"
+          }
+        }
+      }
+    },
+    "boss" : {
+      "comment" : "VoiceOver : nœud de boss sur la carte",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "boss"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "jefe"
+          }
+        }
+      }
+    },
+    "choisi" : {
+      "comment" : "VoiceOver : héros sélectionné",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "selected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "elegido"
+          }
+        }
+      }
+    },
+    "difficile" : {
+      "comment" : "VoiceOver : niveau difficile sur la carte",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hard"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "difícil"
+          }
+        }
+      }
+    },
+    "dont +25 % de l’Ordre du Dragon" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "incl. +25% from the Order of the Dragon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "incluye +25 % de la Orden del Dragón"
+          }
+        }
+      }
+    },
+    "désactivé" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "off"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "desactivado"
+          }
+        }
+      }
+    },
+    "essai gratuit jusqu’au %@" : {
+      "comment" : "Date au format jour + mois",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "free trial until %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "prueba gratis hasta el %@"
+          }
+        }
+      }
+    },
+    "essai gratuit jusqu’au %@, sans renouvellement" : {
+      "comment" : "Date au format jour + mois",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "free trial until %@, won’t renew"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "prueba gratis hasta el %@, sin renovación"
+          }
+        }
+      }
+    },
+    "formule annuelle à cette date" : {
+      "comment" : "Changement de formule prévu à la date de renouvellement",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yearly plan from that date"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "plan anual a partir de esa fecha"
+          }
+        }
+      }
+    },
+    "formule mensuelle à cette date" : {
+      "comment" : "Changement de formule prévu à la date de renouvellement",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "monthly plan from that date"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "plan mensual a partir de esa fecha"
+          }
+        }
+      }
+    },
+    "max" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "max"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "máx."
+          }
+        }
+      }
+    },
+    "participation" : {
+      "comment" : "Distinction du tournoi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "participation"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "participación"
+          }
+        }
+      }
+    },
+    "renouvellement le %@" : {
+      "comment" : "Date au format jour + mois",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "renews on %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "se renueva el %@"
+          }
+        }
+      }
+    },
+    "reçu" : {
+      "comment" : "VoiceOver : récompense du pass déjà reçue",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "received"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "recibido"
+          }
+        }
+      }
+    },
+    "reçues" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "received"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "recibidas"
+          }
+        }
+      }
+    },
+    "résilié · avantages jusqu’au %@" : {
+      "comment" : "Date au format jour + mois",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "canceled · perks until %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cancelada · ventajas hasta el %@"
+          }
+        }
+      }
+    },
+    "top 1 %" : {
+      "comment" : "Distinction du tournoi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "top 1%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "top 1 %"
+          }
+        }
+      }
+    },
+    "top 10 %" : {
+      "comment" : "Distinction du tournoi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "top 10%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "top 10 %"
+          }
+        }
+      }
+    },
+    "top 50 %" : {
+      "comment" : "Distinction du tournoi",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "top 50%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "top 50 %"
+          }
+        }
+      }
+    },
+    "verrouillé" : {
+      "comment" : "VoiceOver : héros pas encore débloqué\nVoiceOver : niveau pas encore débloqué",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "locked"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bloqueado"
+          }
+        }
+      }
+    },
+    "À réclamer sur la carte, chaque lundi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claim them on the map every Monday."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recógelas en el mapa cada lunes."
+          }
+        }
+      }
+    },
+    "Écho" : {
+      "comment" : "Pouvoir ; aussi affiché en combat quand une découpe se répète",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Echo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eco"
+          }
+        }
+      }
+    },
+    "Égide" : {
+      "comment" : "Bonus d’avant niveau (bouclier)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aegis"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Égida"
+          }
+        }
+      }
+    },
+    "Épique" : {
+      "comment" : "Rareté d’un pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epic"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Épico"
+          }
+        }
+      }
+    },
+    "Étoiles, niveaux, or, gemmes, talents et bonus seront perdus. Tes achats (offre de départ, pass, Ordre du Dragon) restent récupérables avec « Restaurer les achats »." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stars, levels, gold, gems, talents and boosts will be lost. Your purchases (Starter Pack, pass, Order of the Dragon) can still be recovered with “Restore Purchases”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se perderán estrellas, niveles, oro, gemas, talentos y potenciadores. Tus compras (pack de inicio, pase, Orden del Dragón) se pueden recuperar con «Restaurar compras»."
+          }
+        }
+      }
+    },
+    "à acheter : %lld gemmes" : {
+      "comment" : "VoiceOver : prix d’un bonus en gemmes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to buy: %lld gems"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "por comprar: %lld gemas"
+          }
+        }
+      }
+    },
+    "à acheter : %lld or" : {
+      "comment" : "VoiceOver : prix d’un bonus en or",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "to buy: %lld gold"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "por comprar: %lld de oro"
+          }
+        }
+      }
+    },
+    "à gagner dans le pass" : {
+      "comment" : "VoiceOver : apparence pas encore gagnée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "earned in the pass"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "se gana en el pase"
+          }
+        }
+      }
+    },
+    "à réclamer" : {
+      "comment" : "VoiceOver : récompense du pass disponible",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ready to claim"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "por reclamar"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

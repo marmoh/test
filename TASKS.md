@@ -63,6 +63,7 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [ ] Réseau publicitaire réel (AdMob ou AppLovin MAX) derrière `AdService`, consentement UMP/CMP, `NSUserTrackingUsageDescription` (voir `docs/MONETISATION.md`)
 - [x] Polices OFL embarquées (`Resources/Fonts`, `UIAppFonts`) et icône d'app 1024 × 1024 (`tools/app-icon.swift`)
 - [x] Pass de saison 2 déclaré dans l'app (`ProductID.seasonPass2`, `.storekit`) ; reste sa création dans App Store Connect (`docs/MAC_PHASE.md` §14.4)
+- [x] App en français, anglais et espagnol : `Resources/Localizable.xcstrings` (370 chaînes, pluriels), `InfoPlist.xcstrings` (ATT), localisations `.storekit`, fiche App Store `fastlane/metadata/` (fr-FR, en-US, es-ES), captures `docs/screens/ios/en|es/` (DECISIONS #70)
 
 ## M7 — Parité et qualité
 - [x] Traces de rejeu TS (entrée → état) et tests XCTest de parité

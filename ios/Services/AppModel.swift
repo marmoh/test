@@ -133,6 +133,7 @@ final class AppModel {
 
     var weekKey: String { Formulas.weekKey(Date()) }
 
+    /// Message bref (déjà traduit : `String(localized:)`).
     func show(_ message: String) { toast = message }
 
     // MARK: niveaux
@@ -205,7 +206,10 @@ final class AppModel {
         let bonus = DragonPerks.goldBonus(fortuneRank: progress.talents.fortune, subscribed: subscribed)
         let gold = Formulas.goldReward(n, firstThreeStars: rec.firstThree, goldBonus: bonus)
         wallet.addGold(gold)
-        let chests = rec.chests.map { "Coffre d’étoiles (\($0.index * StarChest.every) ★) : " + Reward.summary($0.rewards) }
+        let chests = rec.chests.map {
+            String(localized: "Coffre d’étoiles (\($0.index * StarChest.every) ★) : \(Reward.summaryText($0.rewards))",
+                   comment: "Victoire : coffre ouvert (étoiles totales) et son contenu")
+        }
         return VictoryInfo(level: n, stars: r.stars, gold: gold, kills: r.kills, seconds: r.seconds, dragonBonus: subscribed,
                            passPoints: rec.passPoints, newTier: rec.tierAfter > rec.tierBefore ? rec.tierAfter : nil,
                            chests: chests, isLast: n >= K.levelCount)
@@ -224,7 +228,7 @@ final class AppModel {
             audio.play(.star)
             s.resolveDefeat(.revive)
         } else {
-            show("Pas assez de gemmes")
+            show(String(localized: "Pas assez de gemmes"))
         }
     }
 
@@ -266,7 +270,7 @@ final class AppModel {
         guard let content else { return }
         let week = weekKey
         guard progress.startTournamentAttempt(week: week) else {
-            show("Plus d’essai cette semaine")
+            show(String(localized: "Plus d’essai cette semaine"))
             return
         }
         sheet = nil
@@ -308,6 +312,7 @@ final class AppModel {
     func checkTournamentHonors() async {
         guard let standing = await gameCenter.previousWeekStanding() else { return }
         let prev = Formulas.isoWeek(Date().addingTimeInterval(-7 * 86_400))
+        // « Semaine 45 · top 10 % » : enregistré en français (format de la sauvegarde), traduit à l'affichage (`HonorText`)
         progress.addHonor("Semaine \(prev.week) · \(GameCenterService.honorTier(rank: standing.rank, total: standing.total))")
     }
 
@@ -317,7 +322,7 @@ final class AppModel {
         let g = wallet.claimWeeklyGems()
         if g > 0 {
             audio.play(.star)
-            show("+\(g) gemmes · tribut de l’Ordre")
+            show(String(localized: "+\(g) gemmes · tribut de l’Ordre"))
         }
     }
 
@@ -334,13 +339,13 @@ final class AppModel {
     }
 
     func buyPassPremium() async {
-        guard let id = passProduct else { return show("Piste premium bientôt disponible") }
+        guard let id = passProduct else { return show(String(localized: "Piste premium bientôt disponible")) }
         switch await store.purchase(id) {
         case .purchased:
             progress.unlockPremium()
             audio.play(.win)
-            show("Piste premium débloquée ✓")
-        case .pending: show("Achat en attente de validation")
+            show(String(localized: "Piste premium débloquée ✓"))
+        case .pending: show(String(localized: "Achat en attente de validation"))
         case .cancelled: break
         case .failed(let m): show(m)
         }
@@ -349,7 +354,7 @@ final class AppModel {
     func claimPass(tier t: Int, premium: Bool) {
         if let r = progress.claimPass(tier: t, premium: premium, wallet: wallet, lives: lives) {
             audio.play(.star)
-            show("Reçu : \(r.label)")
+            show(String(localized: "Reçu : \(r.text)", comment: "Récompense du pass reçue"))
         }
     }
 
@@ -357,7 +362,7 @@ final class AppModel {
         let rs = progress.claimAllPass(wallet: wallet, lives: lives)
         guard !rs.isEmpty else { return }
         audio.play(.star)
-        show(Reward.summary(rs))
+        show(Reward.summaryText(rs))
     }
 
     /// Achète un bonus d'avant niveau (Potion, Parchemin, Égide).
@@ -367,7 +372,7 @@ final class AppModel {
             audio.play(.tap)
             return true
         }
-        show(ShopPrices.bonus(k).currency == .gold ? "Pas assez d’or" : "Pas assez de gemmes")
+        show(ShopPrices.bonus(k).currency == .gold ? String(localized: "Pas assez d’or") : String(localized: "Pas assez de gemmes"))
         return false
     }
 

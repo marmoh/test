@@ -38,7 +38,7 @@ struct HeroesView: View {
                     ForEach(TalentKind.allCases) { talentRow($0) }
                     HStack(spacing: 4) {
                         Text("Or disponible :").font(Theme.note(14))
-                        Text(verbatim: "\(app.wallet.gold)").font(Theme.text(16, weight: .heavy))
+                        Text(Fmt.int(app.wallet.gold)).font(Theme.text(16, weight: .heavy))
                         InkIcon(name: "ui_coin", size: 18, fallback: "circle.fill")
                     }
                     .foregroundStyle(Theme.ink)
@@ -65,7 +65,7 @@ struct HeroesView: View {
         let selected = app.currentHero == id
         return Button {
             app.audio.play(.tap)
-            if owned { app.progress.select(id) } else { app.show(HeroUnlock.label(id)) }
+            if owned { app.progress.select(id) } else { app.show(id.unlockText) }
         } label: {
             VStack(spacing: 4) {
                 Puppet(name: id.rawValue, size: 84)
@@ -73,8 +73,8 @@ struct HeroesView: View {
                     .overlay(alignment: .bottomTrailing) {
                         if !owned { InkIcon(name: "ui_lock", size: 22, fallback: "lock.fill") }
                     }
-                Text(Heroes.def(id).name).font(Theme.display(14)).multilineTextAlignment(.center)
-                Text(owned ? HeroUnlock.blurb(id) : HeroUnlock.label(id))
+                Text(id.title).font(Theme.display(14)).multilineTextAlignment(.center)
+                Text(owned ? id.blurbText : id.unlockText)
                     .font(Theme.note(10.5)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -85,7 +85,10 @@ struct HeroesView: View {
             .overlay(Rectangle().strokeBorder(selected ? Theme.jade : Theme.ink, lineWidth: selected ? 3 : 2))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(Heroes.def(id).name)\(owned ? "" : ", verrouillé")\(selected ? ", choisi" : "")")
+        .accessibilityLabel([id.title,
+                             owned ? nil : String(localized: "verrouillé", comment: "VoiceOver : héros pas encore débloqué"),
+                             selected ? String(localized: "choisi", comment: "VoiceOver : héros sélectionné") : nil]
+            .compactMap { $0 }.joined(separator: ", "))
     }
 
     private func talentRow(_ k: TalentKind) -> some View {
@@ -97,7 +100,7 @@ struct HeroesView: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack {
                     Text(k.name).font(Theme.text(16, weight: .bold))
-                    Text("\(k.perRank) par rang").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+                    Text("\(k.perRank) par rang", comment: "Talent : gain par rang").font(Theme.note(12)).foregroundStyle(Theme.ink2)
                 }
                 HStack(spacing: 3) {
                     ForEach(0..<TalentK.maxRank, id: \.self) { i in
@@ -113,7 +116,7 @@ struct HeroesView: View {
                 if maxed { Text("Max") } else {
                     HStack(spacing: 3) {
                         InkIcon(name: "ui_coin", size: 16, fallback: "circle.fill")
-                        Text("\(cost)")
+                        Text(Fmt.int(cost))
                     }
                 }
             }
@@ -137,7 +140,7 @@ struct HeroesView: View {
         } label: {
             VStack(spacing: 4) {
                 InkIcon(name: s == nil ? "ui_starEmpty" : "ui_crown", size: 26, fallback: "sparkles")
-                Text(s?.name ?? "Aucune").font(Theme.text(11, weight: .bold)).lineLimit(2).multilineTextAlignment(.center).minimumScaleFactor(0.7)
+                Text(s?.title ?? String(localized: "Aucune", comment: "Pas d’apparence (féminin : une apparence)")).font(Theme.text(11, weight: .bold)).lineLimit(2).multilineTextAlignment(.center).minimumScaleFactor(0.7)
             }
             .foregroundStyle(Theme.ink)
             .padding(6)
@@ -148,6 +151,7 @@ struct HeroesView: View {
         }
         .buttonStyle(.plain)
         .disabled(!owned)
-        .accessibilityLabel((s?.name ?? "Aucune apparence") + (owned ? "" : ", à gagner dans le pass"))
+        .accessibilityLabel((s?.title ?? String(localized: "Aucune apparence"))
+                            + (owned ? "" : ", " + String(localized: "à gagner dans le pass", comment: "VoiceOver : apparence pas encore gagnée")))
     }
 }

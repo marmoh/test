@@ -268,7 +268,8 @@ final class GameScene: SKScene {
         dotAcc.removeAll()
         portalOpen = 0
         let isBoss = room.boss != nil
-        banner.show(isBoss ? "Boss" : "Salle \(i + 1)", sub: isBoss ? Bosses.def(room.boss!.archetype).name : theme.name)
+        banner.show(isBoss ? String(localized: "Boss", comment: "Bandeau d’entrée dans la salle du boss") : String(localized: "Salle \(i + 1)", comment: "Bandeau d’entrée dans une salle"),
+                    sub: isBoss ? room.boss!.archetype.title : theme.name)
         transition = -1
         if isBoss { audio?.play(.boss) }
         hooks?.roomChanged(i)
@@ -492,12 +493,12 @@ final class GameScene: SKScene {
                 if config.haptics { haptics?.hurt() }
                 audio?.play(.hurt)
             case .dodge:
-                fx.text(w.hero.pos.x, w.hero.pos.y - 30, "Esquive", color: Ink.ink, size: 14)
+                fx.text(w.hero.pos.x, w.hero.pos.y - 30, String(localized: "Esquive", comment: "Pouvoir ; aussi affiché en combat quand un coup est esquivé"), color: Ink.ink, size: 14)
             case .shield:
                 fx.ring(w.hero.pos.x, w.hero.pos.y, color: Ink.jade, size: 40, life: 0.4)
-                fx.text(w.hero.pos.x, w.hero.pos.y - 30, "Bloqué", color: Ink.jade, size: 14)
+                fx.text(w.hero.pos.x, w.hero.pos.y - 30, String(localized: "Bloqué", comment: "Combat : coup arrêté par le bouclier"), color: Ink.jade, size: 14)
             case let .wave(index):
-                if index > 0 { banner.show("Vague \(index + 1)", sub: "", startAt: 0.25) }
+                if index > 0 { banner.show(String(localized: "Vague \(index + 1)", comment: "Bandeau : nouvelle vague d’ennemis"), sub: "", startAt: 0.25) }
             case let .cut(poly, n, echo):
                 threadNode.addCut(poly: poly, echo: echo, t: time, paper: theme.paper)
                 var cx = 0.0, cy = 0.0
@@ -505,7 +506,7 @@ final class GameScene: SKScene {
                 cx /= Double(max(1, poly.count))
                 cy /= Double(max(1, poly.count))
                 if n > 0 {
-                    fx.text(cx, cy - 8, echo ? "Écho" : n > 1 ? "Découpe ×\(n)" : "Découpe", color: n > 1 ? Ink.danger : Ink.ink, size: n > 1 ? 22 : 18)
+                    fx.text(cx, cy - 8, echo ? PowerID.echoCut.title : n > 1 ? String(localized: "Découpe ×\(n)", comment: "Combat : plusieurs ennemis découpés d’un coup") : String(localized: "Découpe", comment: "Combat : ennemi découpé par la boucle du fil"), color: n > 1 ? Ink.danger : Ink.ink, size: n > 1 ? 22 : 18)
                     fx.shake(min(0.6, 0.15 + 0.12 * Double(n)))
                     fx.hitStop(min(0.12, 0.03 * Double(n)))
                 }
@@ -517,12 +518,12 @@ final class GameScene: SKScene {
                 fx.vfx("snip_spark", x, y, duration: 0.3)
                 fx.burst(x, y, color: Ink.ink, 5, speed: 90, kind: .spark, size: 1.8, life: 0.3)
                 if time - lastSnipText > 1.2 {
-                    fx.text(x, y - 12, by == "moth" ? "Fil grignoté" : "Fil coupé", color: Ink.ink2, size: 12)
+                    fx.text(x, y - 12, by == "moth" ? String(localized: "Fil grignoté", comment: "Combat : une mite a mangé le fil") : String(localized: "Fil coupé", comment: "Combat : le fil a été coupé"), color: Ink.ink2, size: 12)
                     lastSnipText = time
                 }
                 audio?.play(.snip)
             case .cleared:
-                fx.text(K.arenaW / 2, K.arenaH * 0.42, "Salle nettoyée", color: Ink.ink, size: 22)
+                fx.text(K.arenaW / 2, K.arenaH * 0.42, String(localized: "Salle nettoyée", comment: "Combat : tous les ennemis de la salle sont vaincus"), color: Ink.ink, size: 22)
                 fx.scraps(K.arenaW / 2, 14, 14)
                 audio?.play(.clear)
             }

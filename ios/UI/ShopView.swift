@@ -22,14 +22,14 @@ struct ShopView: View {
                         ForEach(Array(ProductID.gemPacks.enumerated()), id: \.offset) { i, id in gemPack(id, rank: i + 1) }
                     }
                     SectionTitle(text: "Avec tes gemmes et ton or")
-                    spendRow(icon: "ui_heart", title: "5 vies", priceIcon: "ui_gem", price: ShopPrices.livesRefillGems) {
-                        if app.lives.lives >= LivesState.max { return app.show("Tes vies sont au maximum") }
-                        app.show(app.lives.refill(using: app.wallet) ? "Vies remplies ✓" : "Pas assez de gemmes")
+                    spendRow(icon: "ui_heart", title: Text("5 vies", comment: "Boutique : recharge des 5 vies"), priceIcon: "ui_gem", price: ShopPrices.livesRefillGems) {
+                        if app.lives.lives >= LivesState.max { return app.show(String(localized: "Tes vies sont au maximum.")) }
+                        app.show(app.lives.refill(using: app.wallet) ? String(localized: "Vies remplies ✓") : String(localized: "Pas assez de gemmes"))
                     }
                     ForEach(BonusKind.allCases, id: \.self) { k in
                         let price = ShopPrices.bonus(k)
-                        spendRow(icon: k.iconName, title: "\(k.name) (\(app.wallet.bonusCount(k)))", priceIcon: price.currency == .gold ? "ui_coin" : "ui_gem", price: price.amount) {
-                            if app.buyBonus(k) { app.show("C’est fait ✓") }
+                        spendRow(icon: k.iconName, title: Text(verbatim: "\(k.title) (\(app.wallet.bonusCount(k)))"), priceIcon: price.currency == .gold ? "ui_coin" : "ui_gem", price: price.amount) {
+                            if app.buyBonus(k) { app.show(String(localized: "C’est fait ✓")) }
                         }
                     }
                     Text("Paiements sécurisés par l’App Store. Aucun objet aléatoire. Publicité seulement si tu la demandes, contre une vie.")
@@ -37,7 +37,7 @@ struct ShopView: View {
                     Button("Restaurer les achats") {
                         Task {
                             let ok = await app.store.restore()
-                            app.show(ok ? "Achats restaurés" : (app.store.lastError ?? "Restauration impossible"))
+                            app.show(ok ? String(localized: "Achats restaurés") : (app.store.lastError ?? String(localized: "Restauration impossible")))
                         }
                     }
                     .font(Theme.text(14, weight: .bold))
@@ -55,8 +55,9 @@ struct ShopView: View {
         }
     }
 
-    private func price(_ id: ProductID, fallback: String) -> String {
-        app.store.product(id)?.displayPrice ?? fallback
+    /// Prix de l'App Store, ou prix de repli en euros tant que les produits ne sont pas chargés.
+    private func price(_ id: ProductID, fallback: Decimal) -> String {
+        app.store.product(id)?.displayPrice ?? Fmt.euros(fallback)
     }
 
     private func buy(_ id: ProductID) {
@@ -68,8 +69,8 @@ struct ShopView: View {
             switch r {
             case .purchased:
                 app.audio.play(.star)
-                app.show("Merci ! Achat crédité ✓")
-            case .pending: app.show("Achat en attente de validation")
+                app.show(String(localized: "Merci ! Achat crédité ✓"))
+            case .pending: app.show(String(localized: "Achat en attente de validation"))
             case .cancelled: break
             case .failed(let m): app.show(m)
             }
@@ -82,10 +83,11 @@ struct ShopView: View {
             Puppet(name: "windMonk", size: 64)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Offre de départ").font(Theme.display(18))
-                Text("\(StarterPack.gems) gemmes · Moine du vent · 5 bonus").font(Theme.text(12.5)).foregroundStyle(Theme.ink2)
+                Text("\(StarterPack.gems) gemmes · \(HeroID.windMonk.title) · 5 bonus", comment: "Contenu de l’offre de départ : gemmes, héros, bonus").font(Theme.text(12.5)).foregroundStyle(Theme.ink2)
             }
+            .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 4)
-            Button(owned ? "Acquise" : price(.starterPack, fallback: "2,99 €")) { buy(.starterPack) }
+            Button(owned ? String(localized: "Acquise", comment: "Offre de départ déjà achetée") : price(.starterPack, fallback: 2.99)) { buy(.starterPack) }
                 .buttonStyle(InkButtonStyle(kind: .primary, compact: true))
                 .fixedSize()
                 .disabled(owned || busy != nil)
@@ -125,19 +127,35 @@ struct ShopView: View {
             .frame(width: 42, height: 42)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Ordre du Dragon").font(Theme.display(18)).foregroundStyle(Theme.paper)
-                Text("Vies illimitées · \(DragonPerks.weeklyGems) gemmes/semaine · +25 % or · apparence exclusive")
+                Text("Vies illimitées · \(DragonPerks.weeklyGems) gemmes/semaine · +25 % or · apparence exclusive", comment: "Avantages de l’Ordre du Dragon (carte de la boutique)")
                     .font(Theme.text(12.5)).foregroundStyle(Theme.paper3)
-                Text(app.subscribed ? "Tu es membre de l’Ordre." : app.store.trialEligible ? "Essai gratuit de 3 jours, puis 4,99 €/mois ou 39,99 €/an" : "4,99 €/mois ou 39,99 €/an")
+                Text(dragonPriceLine)
                     .font(Theme.note(12.5)).foregroundStyle(Theme.goldLeaf)
                     .padding(.top, 3)
             }
+            // textes sur plusieurs lignes (l'anglais et l'espagnol sont plus longs) : sans ça, SwiftUI les tronque
+            .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 4)
-            Button(app.subscribed ? "Gérer" : "Découvrir") { showDragon = true }
+            Button(app.subscribed ? String(localized: "Gérer", comment: "Bouton : gérer l’abonnement") : String(localized: "Découvrir", comment: "Bouton : voir l’offre de l’Ordre du Dragon")) { showDragon = true }
                 .buttonStyle(InkButtonStyle(kind: .primary, compact: true))
                 .fixedSize()
         }
         .padding(12)
         .paperCard(fill: Theme.ink)
+    }
+
+    /// « Essai gratuit de 3 jours, puis 4,99 €/mois ou 39,99 €/an » (prix de l'App Store dès qu'ils sont chargés).
+    private var dragonPriceLine: String {
+        if app.subscribed { return String(localized: "Tu es membre de l’Ordre.") }
+        // les deux prix de l'App Store, ou les deux prix de repli : jamais deux monnaies sur la même ligne
+        let both = app.store.product(.dragonMonthly) != nil && app.store.product(.dragonYearly) != nil
+        let month = both ? price(.dragonMonthly, fallback: 4.99) : Fmt.euros(4.99)
+        let year = both ? price(.dragonYearly, fallback: 39.99) : Fmt.euros(39.99)
+        if app.store.trialEligible {
+            return String(localized: "Essai gratuit de \(DragonPerks.trialDays) jours, puis \(month)/mois ou \(year)/an",
+                          comment: "Ordre du Dragon : durée de l’essai, prix mensuel, prix annuel")
+        }
+        return String(localized: "\(month)/mois ou \(year)/an", comment: "Ordre du Dragon : prix mensuel, prix annuel")
     }
 
     /// Pass de la saison en cours (`.offer.pass-offer` du web) : ouvre l'écran du pass.
@@ -147,11 +165,13 @@ struct ShopView: View {
             InkIcon(name: "ui_chest", size: 42, fallback: "gift.fill")
             VStack(alignment: .leading, spacing: 2) {
                 Text("Pass de saison \(app.currentSeason.number)").font(Theme.display(18))
-                Text(premium ? "Piste premium débloquée · réclame tes récompenses" : "30 paliers · 3 apparences · piste premium \(app.passProduct.flatMap { app.store.product($0)?.displayPrice } ?? "4,99 €")")
+                Text(premium ? String(localized: "Piste premium débloquée · réclame tes récompenses")
+                             : String(localized: "\(SeasonPass.tiers) paliers · 3 apparences · piste premium \(app.passProduct.flatMap { app.store.product($0)?.displayPrice } ?? Fmt.euros(4.99))",
+                                      comment: "Carte du pass dans la boutique : paliers, prix de la piste premium"))
                     .font(Theme.text(12.5)).foregroundStyle(Theme.ink2)
             }
             Spacer(minLength: 4)
-            Button(premium ? "Ouvrir" : "Voir") {
+            Button(premium ? String(localized: "Ouvrir", comment: "Bouton : ouvrir le pass") : String(localized: "Voir", comment: "Bouton : voir le pass")) {
                 app.audio.play(.tap)
                 app.sheet = .pass
             }
@@ -163,12 +183,6 @@ struct ShopView: View {
         .paperCard(fill: Theme.cut)
     }
 
-    /// 1 200 → « 1 200 » avec une espace insécable ordinaire (l'espace fine de `formatted()` est trop large en
-    /// Alegreya Sans grasse).
-    static func grouped(_ n: Int) -> String {
-        n.formatted(.number.grouping(.automatic).locale(Locale(identifier: "fr_FR"))).replacingOccurrences(of: "\u{202F}", with: "\u{00A0}")
-    }
-
     private func gemPack(_ id: ProductID, rank: Int) -> some View {
         let gems: Int = { if case .gems(let n) = id.kind { return n } else { return 0 } }()
         return Button { buy(id) } label: {
@@ -177,8 +191,8 @@ struct ShopView: View {
                     ForEach(0..<rank, id: \.self) { _ in InkIcon(name: "ui_gem", size: 28, fallback: "diamond.fill") }
                 }
                 .frame(height: 30)
-                Text(verbatim: "\(Self.grouped(gems)) gemmes").font(Theme.text(14, weight: .heavy))
-                Text(price(id, fallback: ["0,99 €", "4,99 €", "9,99 €"][rank - 1]))
+                Text(Reward.gems(gems).text).font(Theme.text(14, weight: .heavy))
+                Text(price(id, fallback: [0.99, 4.99, 9.99][rank - 1]))
                     .font(Theme.text(13, weight: .bold))
                     .foregroundStyle(Theme.cut)
                     .padding(.horizontal, 8).padding(.vertical, 2)
@@ -195,18 +209,18 @@ struct ShopView: View {
         .disabled(busy != nil)
     }
 
-    private func spendRow(icon: String, title: String, priceIcon: String, price: Int, action: @escaping () -> Void) -> some View {
+    private func spendRow(icon: String, title: Text, priceIcon: String, price: Int, action: @escaping () -> Void) -> some View {
         Button {
             app.audio.play(.tap)
             action()
         } label: {
             HStack {
                 InkIcon(name: icon, size: 26)
-                Text(title)
+                title
                 Spacer()
                 HStack(spacing: 3) {
                     InkIcon(name: priceIcon, size: 18)
-                    Text("\(price)").font(Theme.text(17, weight: .heavy))
+                    Text(Fmt.int(price)).font(Theme.text(17, weight: .heavy))
                 }
                 .padding(.horizontal, 8)
                 .background(Theme.cut)

@@ -20,15 +20,15 @@ struct SeasonPassView: View {
                 // cartouche d'encre de la saison et case du palier (`passSheet` du web)
                 HStack(spacing: 8) {
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Saison \(season.number) · \(daysLeft) jours restants").font(Theme.note(11.5)).foregroundStyle(Theme.paper3)
-                        Text(SeasonPass.name).font(Theme.display(21)).foregroundStyle(Theme.paper)
+                        Text(String(localized: "Saison \(season.number)", comment: "Pass : numéro de saison") + " · " + String(localized: "\(daysLeft) jours restants", comment: "Pass : jours avant la fin de la saison")).font(Theme.note(11.5)).foregroundStyle(Theme.paper3)
+                        Text(SeasonPass.title).font(Theme.display(21)).foregroundStyle(Theme.paper)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 12).padding(.vertical, 8)
                     .background(Theme.ink)
                     .background(Theme.ink.offset(x: 3, y: 3))
                     VStack(spacing: 0) {
-                        Text("PALIER").font(Theme.text(10, weight: .heavy)).tracking(1)
+                        Text("PALIER", comment: "Pass : case du palier atteint (capitales)").font(Theme.text(10, weight: .heavy)).tracking(1)
                         Text(verbatim: "\(pass.tier)/\(SeasonPass.tiers)").font(Theme.display(24))
                     }
                     .frame(width: 76)
@@ -39,7 +39,9 @@ struct SeasonPassView: View {
                     ZStack(alignment: .leading) {
                         Rectangle().fill(Theme.paper3)
                         Rectangle().fill(Theme.goldLeaf).frame(width: g.size.width * CGFloat(SeasonPass.progress(pass.points)))
-                        Text(pass.tier >= SeasonPass.tiers ? "Pass terminé" : "\(pass.points % SeasonPass.pointsPerTier)/\(SeasonPass.pointsPerTier) lunes vers le palier \(pass.tier + 1)")
+                        Text(pass.tier >= SeasonPass.tiers ? String(localized: "Pass terminé")
+                             : String(localized: "\(pass.points % SeasonPass.pointsPerTier)/\(SeasonPass.pointsPerTier) lunes vers le palier \(pass.tier + 1)",
+                                      comment: "Pass : lunes gagnées / lunes du palier, palier suivant"))
                             .font(Theme.text(11, weight: .bold))
                             .frame(maxWidth: .infinity)
                     }
@@ -47,7 +49,7 @@ struct SeasonPassView: View {
                 .frame(height: 16)
                 .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5))
                 .accessibilityElement(children: .combine)
-                Text("Lunes : +\(SeasonPass.pointsPerWin) par victoire, +\(SeasonPass.pointsPerNewStar) par étoile nouvelle.")
+                Text("Lunes : +\(SeasonPass.pointsPerWin) par victoire, +\(SeasonPass.pointsPerNewStar) par étoile nouvelle.", comment: "Pass : lunes = points du pass")
                     .font(Theme.note(12)).foregroundStyle(Theme.ink2)
                 premiumBox(pass)
                 if ready > 0 {
@@ -60,7 +62,7 @@ struct SeasonPassView: View {
             .padding(.bottom, 8)
             HStack {
                 Text("Gratuit").frame(maxWidth: .infinity)
-                Text("").frame(width: 46)
+                Color.clear.frame(width: 46, height: 1)
                 Text("Premium").frame(maxWidth: .infinity)
             }
             .font(Theme.text(12, weight: .heavy))
@@ -103,12 +105,12 @@ struct SeasonPassView: View {
                     Text("Merci ! Toutes les récompenses premium atteintes sont à toi.").font(Theme.text(12)).foregroundStyle(Theme.paper3)
                 } else {
                     Text("Piste premium").font(Theme.display(18)).foregroundStyle(Theme.paper)
-                    Text("3 apparences, \(premiumGems) gemmes, or et bonus · récompenses déjà atteintes comprises").font(Theme.text(12)).foregroundStyle(Theme.paper3)
+                    Text("3 apparences, \(premiumGems) gemmes, or et bonus · récompenses déjà atteintes comprises", comment: "Pass : contenu de la piste premium").font(Theme.text(12)).foregroundStyle(Theme.paper3)
                 }
             }
             Spacer(minLength: 0)
             if !pass.premium {
-                Button(buying ? "Confirmation…" : priceText) {
+                Button(buying ? String(localized: "Confirmation…", comment: "Achat en cours") : priceText) {
                     guard !buying else { return }
                     buying = true
                     Task {
@@ -127,7 +129,7 @@ struct SeasonPassView: View {
 
     private var priceText: String {
         if let id = app.passProduct, let p = app.store.product(id) { return p.displayPrice }
-        return app.passProduct == nil ? "Bientôt" : "4,99 €"
+        return app.passProduct == nil ? String(localized: "Bientôt", comment: "Pass pas encore en vente") : Fmt.euros(4.99)
     }
 
     private var premiumGems: Int {
@@ -138,7 +140,7 @@ struct SeasonPassView: View {
         let reached = t <= pass.tier
         return HStack(spacing: 6) {
             cell(t, premium: false, pass: pass, reached: reached)
-            Text("\(t)")
+            Text(verbatim: "\(t)")
                 .font(Theme.display(17))
                 .frame(width: 40, height: 40)
                 .background(Circle().fill(reached ? Theme.goldLeaf : Theme.paper3))
@@ -158,7 +160,7 @@ struct SeasonPassView: View {
         } label: {
             HStack(spacing: 6) {
                 InkIcon(name: reward.iconName, size: 24)
-                Text(reward.label).font(Theme.text(12.5, weight: .bold)).lineLimit(2).minimumScaleFactor(0.8)
+                Text(reward.text).font(Theme.text(12.5, weight: .bold)).lineLimit(2).minimumScaleFactor(0.8)
                 Spacer(minLength: 0)
                 if claimed {
                     Image(systemName: "checkmark").font(.system(size: 13, weight: .heavy)).foregroundStyle(Theme.jade)
@@ -174,6 +176,15 @@ struct SeasonPassView: View {
         }
         .buttonStyle(.plain)
         .disabled(!can)
-        .accessibilityLabel("Palier \(t), \(premium ? "premium" : "gratuit") : \(reward.label)\(claimed ? ", reçu" : can ? ", à réclamer" : "")")
+        .accessibilityLabel(cellLabel(t, premium: premium, reward: reward, claimed: claimed, can: can))
+    }
+
+    /// « Palier 4, premium : 40 gemmes, à réclamer » (VoiceOver).
+    private func cellLabel(_ t: Int, premium: Bool, reward: Reward, claimed: Bool, can: Bool) -> String {
+        var s = premium ? String(localized: "Palier \(t), premium : \(reward.text)", comment: "VoiceOver : case de la piste premium")
+                        : String(localized: "Palier \(t), gratuit : \(reward.text)", comment: "VoiceOver : case de la piste gratuite")
+        if claimed { s += ", " + String(localized: "reçu", comment: "VoiceOver : récompense du pass déjà reçue") }
+        else if can { s += ", " + String(localized: "à réclamer", comment: "VoiceOver : récompense du pass disponible") }
+        return s
     }
 }

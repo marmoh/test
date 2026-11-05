@@ -107,7 +107,7 @@ final class CombatSession: Identifiable {
         var cfg = config
         if cfg.scrollPending {
             let offer = LevelGen.scrollOffer(level)
-            cfg.scroll = await ask(offer, owned: [:], title: "Parchemin : pouvoir de départ")
+            cfg.scroll = await ask(offer, owned: [:], title: String(localized: "Parchemin : pouvoir de départ"))
             cfg.scrollPending = false
         }
         let s = GameScene(config: cfg, audio: app?.audio, haptics: app?.haptics)
@@ -159,7 +159,7 @@ final class CombatSession: Identifiable {
 
 extension CombatSession: CombatHooks {
     func choosePower(_ offer: [PowerID], hero: HeroState, room: Int) async -> PowerID {
-        await ask(offer, owned: hero.powers, title: "Choisis un pouvoir")
+        await ask(offer, owned: hero.powers, title: String(localized: "Choisis un pouvoir"))
     }
 
     func defeat(continuesUsed: Int) async -> DefeatChoice {

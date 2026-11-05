@@ -122,6 +122,7 @@ struct Chip<Content: View>: View {
 /// Message bref en bas de l'écran.
 @MainActor
 struct ToastModifier: ViewModifier {
+    /// Texte déjà traduit (`String(localized:)`).
     @Binding var text: String?
 
     func body(content: Content) -> some View {
@@ -155,8 +156,8 @@ extension View {
 /// En-tête de feuille : titre en petites capitales et bouton de fermeture.
 @MainActor
 struct SheetHeader: View {
-    let title: String
-    var badge: String?
+    let title: LocalizedStringKey
+    var badge: LocalizedStringKey?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -172,7 +173,7 @@ struct SheetHeader: View {
             }
             Spacer()
             Button { dismiss() } label: {
-                Text("×").font(Theme.text(24)).frame(width: 34, height: 34)
+                Text(verbatim: "×").font(Theme.text(24)).frame(width: 34, height: 34)
                     .background(Theme.paper)
                     .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2))
             }
@@ -199,7 +200,7 @@ struct StarsRow: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(count) étoile\(count > 1 ? "s" : "") sur 3")
+        .accessibilityLabel("\(count) étoiles sur 3")
     }
 }
 
@@ -228,9 +229,9 @@ extension BonusKind {
 extension Rarity {
     var label: String {
         switch self {
-        case .common: "Commun"
-        case .rare: "Rare"
-        case .epic: "Épique"
+        case .common: String(localized: "Commun", comment: "Rareté d’un pouvoir")
+        case .rare: String(localized: "Rare", comment: "Rareté d’un pouvoir")
+        case .epic: String(localized: "Épique", comment: "Rareté d’un pouvoir")
         }
     }
 
