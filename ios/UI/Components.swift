@@ -19,6 +19,38 @@ enum AtlasImages {
 
     static func icon(_ name: String) -> UIImage? { image(TextureBank.shared.icons, name) }
 
+    /// Variante claire d'une icône pour les fonds d'encre (`PAPER_UI` du web, barre de navigation) :
+    /// l'encre devient papier, le papier et les teintes d'accent deviennent encre.
+    static func paperIcon(_ name: String) -> UIImage? {
+        let key = "paper/\(name)"
+        if let i = cache[key] { return i }
+        guard let src = icon(name), let cg = src.cgImage else { return nil }
+        let w = cg.width, h = cg.height
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        let space = CGColorSpaceCreateDeviceRGB()
+        let info = CGImageAlphaInfo.premultipliedLast.rawValue
+        let out: CGImage? = px.withUnsafeMutableBytes { buf -> CGImage? in
+            guard let ctx = CGContext(data: buf.baseAddress, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                      space: space, bitmapInfo: info) else { return nil }
+            ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+            let p = buf.bindMemory(to: UInt8.self)
+            // papier #efe3c6, encre #1b1418 (prémultipliés par l'alpha du pixel)
+            for i in stride(from: 0, to: w * h * 4, by: 4) {
+                let a = Int(p[i + 3])
+                guard a > 0 else { continue }
+                // luminance (×1000, prémultipliée) < 0,3 → pixel d'encre
+                let dark = 299 * Int(p[i]) + 587 * Int(p[i + 1]) + 114 * Int(p[i + 2]) < 300 * a
+                let (r, g, b) = dark ? (0xEF, 0xE3, 0xC6) : (0x1B, 0x14, 0x18)
+                p[i] = UInt8(r * a / 255); p[i + 1] = UInt8(g * a / 255); p[i + 2] = UInt8(b * a / 255)
+            }
+            return ctx.makeImage()
+        }
+        guard let out else { return nil }
+        let img = UIImage(cgImage: out, scale: src.scale, orientation: .up)
+        cache[key] = img
+        return img
+    }
+
     /// Portrait d'un personnage (première image de repos).
     static func portrait(_ name: String) -> UIImage? {
         let b = TextureBank.shared

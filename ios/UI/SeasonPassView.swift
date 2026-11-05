@@ -17,16 +17,23 @@ struct SeasonPassView: View {
         VStack(spacing: 0) {
             SheetHeader(title: "Pass de saison")
             VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .bottom) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("Saison \(season.number) · \(daysLeft) jours restants").font(Theme.note(12)).foregroundStyle(Theme.ink2)
-                        Text(SeasonPass.name).font(Theme.display(22))
+                // cartouche d'encre de la saison et case du palier (`passSheet` du web)
+                HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Saison \(season.number) · \(daysLeft) jours restants").font(Theme.note(11.5)).foregroundStyle(Theme.paper3)
+                        Text(SeasonPass.name).font(Theme.display(21)).foregroundStyle(Theme.paper)
                     }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 0) {
-                        Text("Palier").font(Theme.note(12)).foregroundStyle(Theme.ink2)
-                        Text("\(pass.tier)/\(SeasonPass.tiers)").font(Theme.display(24))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12).padding(.vertical, 8)
+                    .background(Theme.ink)
+                    .background(Theme.ink.offset(x: 3, y: 3))
+                    VStack(spacing: 0) {
+                        Text("PALIER").font(Theme.text(10, weight: .heavy)).tracking(1)
+                        Text(verbatim: "\(pass.tier)/\(SeasonPass.tiers)").font(Theme.display(24))
                     }
+                    .frame(width: 76)
+                    .padding(.vertical, 6)
+                    .paperCard(shadow: 3)
                 }
                 GeometryReader { g in
                     ZStack(alignment: .leading) {
@@ -73,7 +80,9 @@ struct SeasonPassView: View {
             }
             Text("Paiement par l’App Store (non consommable, une fois par saison). Aucune récompense aléatoire ; rien du pass ne compte en tournoi.")
                 .font(Theme.note(11)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
-                .padding(.horizontal, 20).padding(.bottom, 8)
+                .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 4)
+                .frame(maxWidth: .infinity)
+                .overlay(alignment: .top) { Rectangle().fill(Theme.ink).frame(height: 1.5).padding(.horizontal, 20) }
         }
         .background(PaperBackground())
         .toast(Binding(get: { app.toast }, set: { app.toast = $0 }))
@@ -83,14 +92,18 @@ struct SeasonPassView: View {
     @ViewBuilder
     private func premiumBox(_ pass: SeasonPassState) -> some View {
         HStack(spacing: 10) {
-            InkIcon(name: "ui_crown", size: 32, fallback: "crown.fill")
+            Group {
+                if let img = AtlasImages.paperIcon("ui_crown") { Image(uiImage: img).resizable().scaledToFit() }
+                else { Image(systemName: "crown.fill").resizable().scaledToFit().foregroundStyle(Theme.paper) }
+            }
+            .frame(width: 34, height: 34)
             VStack(alignment: .leading, spacing: 2) {
                 if pass.premium {
-                    Text("Piste premium débloquée").font(Theme.text(15, weight: .heavy))
-                    Text("Merci ! Toutes les récompenses premium atteintes sont à toi.").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+                    Text("Piste premium débloquée").font(Theme.display(18)).foregroundStyle(Theme.paper)
+                    Text("Merci ! Toutes les récompenses premium atteintes sont à toi.").font(Theme.text(12)).foregroundStyle(Theme.paper3)
                 } else {
-                    Text("Piste premium").font(Theme.text(15, weight: .heavy))
-                    Text("3 apparences, \(premiumGems) gemmes, or et bonus · récompenses déjà atteintes comprises").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+                    Text("Piste premium").font(Theme.display(18)).foregroundStyle(Theme.paper)
+                    Text("3 apparences, \(premiumGems) gemmes, or et bonus · récompenses déjà atteintes comprises").font(Theme.text(12)).foregroundStyle(Theme.paper3)
                 }
             }
             Spacer(minLength: 0)
@@ -103,13 +116,13 @@ struct SeasonPassView: View {
                         buying = false
                     }
                 }
-                .buttonStyle(InkButtonStyle(kind: .primary))
+                .buttonStyle(InkButtonStyle(kind: .primary, compact: true))
                 .fixedSize()
                 .disabled(buying || app.passProduct == nil)
             }
         }
-        .padding(10)
-        .paperCard(fill: pass.premium ? Theme.goldLeaf.opacity(0.15) : Theme.cut, border: Theme.goldLeaf, shadow: 3)
+        .padding(12)
+        .paperCard(fill: Theme.ink, border: pass.premium ? Theme.goldLeaf : Theme.ink, shadow: 3)
     }
 
     private var priceText: String {

@@ -38,7 +38,7 @@ struct HeroesView: View {
                     ForEach(TalentKind.allCases) { talentRow($0) }
                     HStack(spacing: 4) {
                         Text("Or disponible :").font(Theme.note(14))
-                        Text("\(app.wallet.gold)").font(Theme.text(16, weight: .heavy))
+                        Text(verbatim: "\(app.wallet.gold)").font(Theme.text(16, weight: .heavy))
                         InkIcon(name: "ui_coin", size: 18, fallback: "circle.fill")
                     }
                     .foregroundStyle(Theme.ink)

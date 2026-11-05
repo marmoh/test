@@ -338,7 +338,8 @@ struct MapNode: View {
             .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .disabled(locked)
+        // pas `.disabled` : il grise le nœud et laisse voir le chemin à travers (le web le dessine plein)
+        .allowsHitTesting(!locked)
         .accessibilityLabel("Niveau \(n)\(isBoss ? ", boss" : info.kind == .hard ? ", difficile" : "")\(locked ? ", verrouillé" : ", \(stars) étoiles")")
     }
 }
@@ -352,13 +353,13 @@ struct MapAvatar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .top) {
-                Puppet(name: heroId.rawValue, size: 60)
-                if crown { InkIcon(name: "ui_crown", size: 18).foregroundStyle(Theme.goldLeaf).offset(y: -6) }
-            }
-            Rectangle().fill(Theme.ink).frame(width: 2, height: 24)
+        // la baguette part de sous la marionnette (l'image a une marge transparente sous les pieds)
+        ZStack(alignment: .top) {
+            Rectangle().fill(Theme.ink).frame(width: 2, height: 22).offset(y: 58)
+            Puppet(name: heroId.rawValue, size: 76)
+            if crown { InkIcon(name: "ui_crown", size: 20).foregroundStyle(Theme.goldLeaf).offset(y: 2) }
         }
+        .frame(height: 88, alignment: .top)
         .offset(y: bob ? -4 : 2)
         .onAppear {
             guard !reduceMotion else { return }
@@ -401,12 +402,12 @@ struct TopBar: View {
             }
             Chip {
                 InkIcon(name: "ui_coin", size: 20, fallback: "circle.fill")
-                Text("\(app.wallet.gold)")
+                Text(verbatim: "\(app.wallet.gold)")
             }
             Spacer(minLength: 0)
             Chip(action: { app.audio.play(.tap); app.sheet = .shop }) {
                 InkIcon(name: "ui_gem", size: 20, fallback: "diamond.fill")
-                Text("\(app.wallet.gems)")
+                Text(verbatim: "\(app.wallet.gems)")
                 Text("+").foregroundStyle(Theme.vermilion)
             }
             .accessibilityLabel("Gemmes, boutique")
@@ -512,8 +513,12 @@ struct BottomNav: View {
             item("Réglages", "ui_scroll", "gearshape.fill") { app.sheet = .settings }
         }
         .padding(.top, 6)
-        .padding(.bottom, 2)
-        .background(Theme.ink.ignoresSafeArea(edges: .bottom))
+        .padding(.horizontal, 4)
+        .background(alignment: .top) {
+            // encre jusqu'au bas de l'écran, filet d'or au-dessus (`.bottom-nav` du web)
+            Theme.ink.ignoresSafeArea(edges: .bottom)
+                .overlay(alignment: .top) { Theme.goldLeaf.frame(height: 3) }
+        }
     }
 
     private func item(_ title: String, _ icon: String, _ sys: String, on: Bool = false, action: @escaping () -> Void) -> some View {
@@ -522,14 +527,21 @@ struct BottomNav: View {
             action()
         } label: {
             VStack(spacing: 2) {
-                InkIcon(name: icon, size: 24, fallback: sys)
-                    .colorInvert()
-                Text(title).font(Theme.text(11, weight: .bold))
+                Group {
+                    if let img = AtlasImages.paperIcon(icon) {
+                        Image(uiImage: img).resizable().interpolation(.high).scaledToFit()
+                    } else {
+                        Image(systemName: sys).resizable().scaledToFit().padding(3)
+                    }
+                }
+                .frame(width: 28, height: 28)
+                .offset(y: on ? -2 : 0)
+                Text(title).font(Theme.text(12, weight: .bold))
+                Rectangle().fill(on ? Theme.vermilion : Color.clear).frame(width: 18, height: 3).padding(.top, 1)
             }
-            .foregroundStyle(on ? Theme.goldLeaf : Theme.paper)
+            .foregroundStyle(on ? Theme.paper : Theme.paper3)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
-            .background(on ? Theme.ink2 : Color.clear)
+            .padding(.top, 4)
         }
         .buttonStyle(.plain)
     }

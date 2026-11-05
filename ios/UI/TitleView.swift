@@ -13,66 +13,152 @@ struct TitleView: View {
 
     var body: some View {
         let th = KingdomTheme.of(kingdom: 1)
-        GeometryReader { geo in
-            ZStack {
-                Theme.curtain.ignoresSafeArea()
-                // écran de papier éclairé, lune découpée, forêt d'encre
-                ZStack {
-                    LinearGradient(colors: [th.skyTop, th.lightColor], startPoint: .top, endPoint: .bottom)
-                    Circle().fill(Theme.cut).frame(width: 120, height: 120)
-                        .overlay(Circle().fill(Theme.ink).frame(width: 104, height: 104).offset(x: 34, y: -22))
-                        .offset(y: -geo.size.height * 0.2)
-                    VStack {
-                        Spacer()
-                        ForestSilhouette(far: th.farColor).frame(height: 160)
-                    }
-                    Puppet(name: "scout", size: 170)
-                        .rotationEffect(.degrees(bob ? 2 : -2))
-                        .offset(y: geo.size.height * 0.12 + (bob ? -4 : 4))
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 60)
-                .clipped()
+        GeometryReader { outer in
+          let insets = outer.safeAreaInsets
+          GeometryReader { geo in
+            let safeTop = insets.top
+            let safeBottom = insets.bottom
+            let full = geo.size.height
+            let stageTop = 64 + safeTop
+            let stageBottom = full * 0.37
+            ZStack(alignment: .top) {
+                Theme.curtain
 
-                // rideaux
-                HStack(spacing: 0) {
-                    Curtain().frame(width: geo.size.width / 2).offset(x: opening ? -geo.size.width / 2 : 0)
-                    Curtain().frame(width: geo.size.width / 2).offset(x: opening ? geo.size.width / 2 : 0)
-                }
-                .ignoresSafeArea()
-                .opacity(opening ? 0 : 0.92)
-
-                VStack(spacing: 14) {
-                    Spacer()
-                    Text(K.appName)
-                        .font(Theme.display(56))
-                        .foregroundStyle(Theme.cut)
-                        .shadow(color: Theme.ink, radius: 0, x: 3, y: 3)
-                    Text("Un héros, un doigt, trois cents niveaux.\nBouge pour esquiver ; ta héroïne tire toute seule.")
-                        .font(Theme.note(17))
-                        .foregroundStyle(Theme.paper)
-                        .multilineTextAlignment(.center)
-                    Button("Lever le rideau") {
-                        app.audio.play(.tap)
-                        withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .easeInOut(duration: 0.65)) { opening = true }
-                        Task {
-                            try? await Task.sleep(for: .milliseconds(reduceMotion ? 200 : 650))
-                            app.progress.markTitleSeen()
-                            onStart()
+                // écran de papier éclairé par derrière (même mise en page que `.stage` / `.screen-paper` du web)
+                ZStack(alignment: .top) {
+                    RadialGradient(
+                        stops: [.init(color: th.lightColor, location: 0), .init(color: th.paperColor, location: 0.6),
+                                .init(color: th.edgeColor, location: 1.3)],
+                        center: UnitPoint(x: 0.5, y: 0.38), startRadius: 0, endRadius: geo.size.width * 0.62)
+                    GeometryReader { paper in
+                        // lune découpée
+                        ZStack {
+                            Circle().fill(Theme.cut)
+                            Circle().fill(Theme.ink).frame(width: 84, height: 84).offset(x: 30, y: -18)
                         }
+                        .frame(width: 92, height: 92)
+                        .clipShape(Circle())
+                        .overlay(Circle().strokeBorder(Theme.ink, lineWidth: 4))
+                        .position(x: paper.size.width / 2, y: paper.size.height * 0.09 + 46)
+
+                        ForestSilhouette(far: th.farColor)
+                            .frame(width: paper.size.width, height: paper.size.height * 0.38)
+                            .position(x: paper.size.width / 2, y: paper.size.height * 0.81)
+
+                        // marionnette au bout de sa baguette
+                        Rectangle().fill(Theme.ink).frame(width: 2, height: 300)
+                            .rotationEffect(.degrees(8), anchor: .top)
+                            .position(x: paper.size.width / 2, y: paper.size.height * 0.96 - 170 * 0.28 + 150)
+                        Puppet(name: "scout", size: 170)
+                            .rotationEffect(.degrees(bob ? 2 : -2))
+                            .position(x: paper.size.width / 2, y: paper.size.height * 0.96 - 85 + (bob ? -10 : 0))
                     }
-                    .buttonStyle(InkButtonStyle(kind: .primary))
-                    .frame(maxWidth: 280)
-                    .padding(.bottom, 50)
                 }
-                .padding(.horizontal, 24)
-                .opacity(opening ? 0 : 1)
+                .frame(width: geo.size.width * 0.82, height: max(0, full - stageTop - stageBottom))
+                .clipped()
+                .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 6))
+                .padding(.top, stageTop)
+
+                // rideaux latéraux, qui s'écartent au lever
+                HStack(spacing: 0) {
+                    Curtain()
+                        .clipShape(CurtainShape(left: true))
+                        .frame(width: geo.size.width * 0.22, height: full * 0.7)
+                        .offset(x: opening ? -geo.size.width * 0.22 : 0)
+                    Spacer(minLength: 0)
+                    Curtain()
+                        .clipShape(CurtainShape(left: false))
+                        .frame(width: geo.size.width * 0.22, height: full * 0.7)
+                        .offset(x: opening ? geo.size.width * 0.22 : 0)
+                }
+
+                // lambrequin festonné
+                Valance().fill(Theme.ink, style: FillStyle(eoFill: true)).frame(height: 58 + safeTop).clipped()
+
+                // bandeau d'encre du titre (filet d'or)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                    VStack(spacing: 0) {
+                        Rectangle().fill(Theme.goldLeaf).frame(height: 3)
+                        VStack(spacing: 0) {
+                            Text(K.appName)
+                                .font(Theme.display(58))
+                                .foregroundStyle(Theme.paper)
+                                .tracking(1)
+                            Text("Un héros, un doigt, trois cents niveaux.\nBouge pour esquiver ; ta héroïne tire toute seule.")
+                                .font(Theme.note(16))
+                                .foregroundStyle(Theme.paper3)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(3)
+                                .padding(.top, 10)
+                                .padding(.bottom, 18)
+                            Button("Lever le rideau") {
+                                app.audio.play(.tap)
+                                withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .timingCurve(0.6, 0, 0.3, 1, duration: 0.65)) { opening = true }
+                                Task {
+                                    try? await Task.sleep(for: .milliseconds(reduceMotion ? 200 : 650))
+                                    app.progress.markTitleSeen()
+                                    onStart()
+                                }
+                            }
+                            .buttonStyle(InkButtonStyle(kind: .primary))
+                            .frame(maxWidth: 320)
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 18)
+                        .padding(.bottom, 28 + safeBottom)
+                        .frame(maxWidth: .infinity)
+                        .background(Theme.ink)
+                    }
+                }
+                .frame(height: full)
             }
+            .frame(width: geo.size.width, height: full)
+          }
+          .ignoresSafeArea()
         }
         .onAppear {
             guard !reduceMotion else { return }
-            withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) { bob = true }
+            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { bob = true }
         }
+    }
+}
+
+/// Bas arrondi du rideau, côté scène (`border-bottom-*-radius: 70% 20%` du web).
+struct CurtainShape: Shape {
+    let left: Bool
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        let rx = r.width * 0.7, ry = r.height * 0.2
+        if left {
+            p.move(to: CGPoint(x: r.minX, y: r.minY))
+            p.addLine(to: CGPoint(x: r.maxX, y: r.minY))
+            p.addLine(to: CGPoint(x: r.maxX, y: r.maxY - ry))
+            p.addQuadCurve(to: CGPoint(x: r.maxX - rx, y: r.maxY), control: CGPoint(x: r.maxX, y: r.maxY))
+            p.addLine(to: CGPoint(x: r.minX, y: r.maxY))
+        } else {
+            p.move(to: CGPoint(x: r.maxX, y: r.minY))
+            p.addLine(to: CGPoint(x: r.minX, y: r.minY))
+            p.addLine(to: CGPoint(x: r.minX, y: r.maxY - ry))
+            p.addQuadCurve(to: CGPoint(x: r.minX + rx, y: r.maxY), control: CGPoint(x: r.minX, y: r.maxY))
+            p.addLine(to: CGPoint(x: r.maxX, y: r.maxY))
+        }
+        p.closeSubpath()
+        return p
+    }
+}
+
+/// Lambrequin : bande d'encre festonnée de demi-cercles (pas de 28 pt).
+struct Valance: Shape {
+    func path(in r: CGRect) -> Path {
+        var p = Path()
+        p.addRect(r)
+        var x: CGFloat = 0
+        while x < r.width {
+            p.addEllipse(in: CGRect(x: x + 1, y: r.maxY - 13, width: 26, height: 26))
+            x += 28
+        }
+        return p
     }
 }
 
@@ -81,14 +167,13 @@ struct TitleView: View {
 struct Curtain: View {
     var body: some View {
         Canvas { ctx, size in
+            // `repeating-linear-gradient(90deg, curtain 0 9px, curtain-2 9px 16px, #1d0b0e 16px 19px)` du web
             ctx.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Theme.curtain))
             var x: CGFloat = 0
-            var i = 0
             while x < size.width {
-                let w: CGFloat = 22
-                ctx.fill(Path(CGRect(x: x, y: 0, width: w * 0.45, height: size.height)), with: .color(i % 2 == 0 ? Theme.curtain2 : Theme.curtain2.opacity(0.6)))
-                x += w
-                i += 1
+                ctx.fill(Path(CGRect(x: x + 9, y: 0, width: 7, height: size.height)), with: .color(Theme.curtain2))
+                ctx.fill(Path(CGRect(x: x + 16, y: 0, width: 3, height: size.height)), with: .color(Color(hex: 0x1D0B0E)))
+                x += 19
             }
         }
     }

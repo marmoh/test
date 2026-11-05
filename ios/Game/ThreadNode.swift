@@ -104,7 +104,11 @@ final class ThreadNode: SKNode {
             hint.position = p(e.pos.x, e.pos.y)
             hint.zRotation = CGFloat(-t * 0.8)
             hintLabel.isHidden = false
-            hintLabel.position = p(e.pos.x, e.pos.y + 76)
+            // l'étiquette reste dans l'arène quand l'ennemi longe un mur
+            let half = Double(hintLabel.frame.width) / 2 + 6
+            let lx = min(max(e.pos.x, half), K.arenaW - half)
+            let ly = e.pos.y + 76 > K.arenaH - 12 ? e.pos.y - 70 : e.pos.y + 76
+            hintLabel.position = p(lx, ly)
         } else {
             hint.isHidden = true
             hintLabel.isHidden = true

@@ -93,7 +93,34 @@ final class AppModel {
         await store.load()
         syncPassPremium()
         await ads.load()
+        #if DEBUG
+        openDebugScreen()
+        #endif
     }
+
+    #if DEBUG
+    /// Recette et captures (Debug seulement, comme `?screen=` du web) : `xcrun simctl launch <sim> com.marmoh.ombrelune
+    /// -screen shop` ouvre directement un écran : map, heroes, shop, pass, tournament, settings, lives, dragon,
+    /// prelevel, combat (`-level N`, niveau 1 par défaut).
+    private func openDebugScreen() {
+        let d = UserDefaults.standard
+        guard let screen = d.string(forKey: "screen") else { return }
+        showTitle = false
+        let n = max(1, d.integer(forKey: "level"))
+        switch screen {
+        case "heroes": sheet = .heroes
+        case "shop": sheet = .shop
+        case "pass": sheet = .pass
+        case "tournament": sheet = .tournament
+        case "settings": sheet = .settings
+        case "lives": sheet = .lives
+        case "dragon": sheet = .dragon(.shop)
+        case "prelevel": sheet = .preLevel(n)
+        case "combat": if let content { startSaga(content.level(n), bonuses: []) }
+        default: break
+        }
+    }
+    #endif
 
     // MARK: état dérivé
 

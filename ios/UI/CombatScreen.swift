@@ -22,6 +22,8 @@ struct CombatScreen: View {
         }
         .animation(.easeOut(duration: 0.25), value: session.overlay)
         .persistentSystemOverlays(.hidden)
+        // un plein écran présenté a sa propre barre d'état : celle de la racine ne s'applique pas ici
+        .statusBarHidden(true)
     }
 
     private var hud: some View {

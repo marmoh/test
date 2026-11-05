@@ -12,7 +12,6 @@ struct SettingsView: View {
     /// Efface la progression de la sauvegarde (étoiles, niveaux, talents…) ; les achats restent.
     var onEraseProgress: () -> Void = {}
 
-    @Environment(\.dismiss) private var dismiss
     @State private var showDragon = false
     @State private var confirmErase = false
     @State private var restoring = false
@@ -20,7 +19,8 @@ struct SettingsView: View {
     @State private var attNote: String?
 
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            SheetHeader(title: "Réglages")
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     SectionTitle(text: "Son")
@@ -63,18 +63,8 @@ struct SettingsView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 30)
             }
-            .background(PaperBackground())
-            .navigationTitle("Réglages")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Réglages").font(Theme.display(26)).foregroundStyle(Theme.ink)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Fermer") { dismiss() }.font(Theme.text(16, weight: .bold)).tint(Theme.ink)
-                }
-            }
         }
+        .background(PaperBackground())
         .sheet(isPresented: $showDragon) {
             DragonView(context: .settings, store: store, wallet: wallet)
         }

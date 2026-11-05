@@ -57,6 +57,7 @@ extension KingdomTheme {
     var lightColor: Color { Color(uiColor: light) }
     var paperColor: Color { Color(uiColor: paper) }
     var farColor: Color { Color(uiColor: far) }
+    var edgeColor: Color { Color(uiColor: edge) }
     var skyTop: Color { Color(uiColor: sky.0) }
     var skyBottom: Color { Color(uiColor: sky.1) }
 }

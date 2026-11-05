@@ -67,14 +67,16 @@ extension View {
 struct InkButtonStyle: ButtonStyle {
     enum Kind { case primary, ghost, jade, danger }
     var kind: Kind = .primary
+    /// Petit bouton des cartes d'offre (`.btn.small` du web).
+    var compact = false
 
     func makeBody(configuration: Configuration) -> some View {
         let pressed = configuration.isPressed
         configuration.label
-            .font(Theme.display(19, relativeTo: .headline))
+            .font(Theme.display(compact ? 16 : 19, relativeTo: .headline))
             .foregroundStyle(kind == .ghost ? Theme.ink : Theme.cut)
-            .padding(.vertical, 11)
-            .padding(.horizontal, 18)
+            .padding(.vertical, compact ? 7 : 11)
+            .padding(.horizontal, compact ? 12 : 18)
             .frame(maxWidth: .infinity)
             .background(Rectangle().fill(background))  // vue, pas `Color` : ne déborde pas dans les marges de sécurité
             .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2.5))
