@@ -3,3 +3,9 @@ dist/
 .DS_Store
 *.log
 content/reports/*.tmp.json
+
+# fastlane
+fastlane/.env
+fastlane/report.xml
+fastlane/README.md
+fastlane/build/

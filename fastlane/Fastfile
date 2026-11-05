@@ -1,0 +1,309 @@
+# App Store Connect pour Ombrelune (modèle : fastlane/Fastfile de « A qui le tour ? »).
+# Identifiants : fastlane/.env (ASC_KEY_ID, ASC_ISSUER_ID, ignoré par git) et
+# ~/.appstoreconnect/private_keys/AuthKey_<ID>.p8 (jamais copié ni lu ailleurs que par fastlane).
+# Lancer : LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane <lane>
+#
+#   status       lecture seule : app, builds, achats intégrés, abonnements, classements
+#   products     crée les achats intégrés (consommables, non consommables) du .storekit
+#   dragon       crée le groupe « Ordre du Dragon », ses abonnements et l'essai gratuit
+#   leaderboard  crée le classement récurrent du tournoi (Game Center)
+#   beta         archive Release, export App Store et envoi sur TestFlight
+#
+# Toutes les lanes de création sont idempotentes : ce qui existe déjà (même identifiant) est laissé tel quel.
+# Les identifiants, prix et textes des produits viennent de ios/Ombrelune.storekit (une seule source).
+
+require "json"
+require "net/http"
+
+APP_IDENTIFIER = "com.marmoh.ombrelune"
+LOCALE = "fr-FR"
+BASE_TERRITORY = "FRA"
+FASTLANE_DIR = File.expand_path(FastlaneCore::FastlaneFolder.path)
+ROOT = File.expand_path("..", FASTLANE_DIR)
+STOREKIT = JSON.parse(File.read(File.join(ROOT, "ios", "Ombrelune.storekit")))
+
+LEADERBOARD = {
+  vendor_id: "ombrelune.tournament.weekly",
+  reference_name: "Tournoi de la semaine",
+  name: "Tournoi de la semaine",
+  start: "2026-11-09T00:00:00Z", # un lundi, 00:00 UTC
+  range: %w[0 100000]
+}.freeze
+
+# Notes pour la vérification d'Apple (≤ 4000 caractères, sans « ★ »).
+REVIEW_NOTES = {
+  "ombrelune.gems.handful" => "Gemmes créditées une seule fois par transaction ; elles servent à continuer un niveau, recharger les vies et acheter des bonus.",
+  "ombrelune.gems.pouch" => "Gemmes créditées une seule fois par transaction ; elles servent à continuer un niveau, recharger les vies et acheter des bonus.",
+  "ombrelune.gems.chest" => "Gemmes créditées une seule fois par transaction ; elles servent à continuer un niveau, recharger les vies et acheter des bonus.",
+  "ombrelune.starter" => "Achat unique : 300 gemmes, le héros Moine du vent et 5 bonus. Restauré par « Restaurer les achats ».",
+  "ombrelune.pass.season1" => "Piste premium du pass de la saison 1 (2 novembre au 14 décembre 2026). Les récompenses se débloquent en jouant ; aucune n'est aléatoire.",
+  "ombrelune.pass.season2" => "Piste premium du pass de la saison 2 (14 décembre 2026 au 25 janvier 2027). Les récompenses se débloquent en jouant ; aucune n'est aléatoire.",
+  "dragon" => "Ordre du Dragon : vies illimitées, 60 gemmes par semaine à réclamer sur la carte, apparence Parure du Dragon, +25 % d'or. Essai gratuit de 3 jours. Proposé dans la boutique, après une panne de vies et après une défaite ; jamais pendant un niveau."
+}.freeze
+
+# ───────────────────────────── API App Store Connect ─────────────────────────────
+
+def asc(method, path, body = nil)
+  token = Spaceship::ConnectAPI.token
+  token.refresh! if token.expired?
+  uri = URI(path.start_with?("http") ? path : "https://api.appstoreconnect.apple.com#{path}")
+  req = Net::HTTP.const_get(method.to_s.capitalize).new(uri)
+  req["Authorization"] = "Bearer #{token.text}"
+  req["Content-Type"] = "application/json"
+  req.body = JSON.generate(body) if body
+  res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |http| http.request(req) }
+  data = res.body.to_s.empty? ? {} : JSON.parse(res.body)
+  unless res.code.to_i.between?(200, 299)
+    detail = (data["errors"] || []).map { |e| "#{e['title']} — #{e['detail']}" }.join(" | ")
+    UI.user_error!("#{method.upcase} #{uri.path} → #{res.code} #{detail}")
+  end
+  data
+end
+
+# GET avec pagination (suit links.next).
+def asc_all(path)
+  out = []
+  url = path
+  while url
+    page = asc(:get, url)
+    out.concat(page["data"] || [])
+    url = page.dig("links", "next")
+  end
+  out
+end
+
+def rel(type, id)
+  { data: { type: type, id: id } }
+end
+
+def app_id
+  @app_id ||= begin
+    app = asc(:get, "/v1/apps?filter[bundleId]=#{APP_IDENTIFIER}")["data"].first
+    UI.user_error!("Aucune app #{APP_IDENTIFIER} dans App Store Connect : créer d'abord la fiche sur le site") unless app
+    app["id"]
+  end
+end
+
+def territories
+  @territories ||= asc_all("/v1/territories?limit=200").map { |t| { type: "territories", id: t["id"] } }
+end
+
+# Point de prix du pays de référence dont le prix client vaut `price` (« 4.99 »).
+def price_point(path, price)
+  points = asc_all("#{path}?filter[territory]=#{BASE_TERRITORY}&limit=200")
+  point = points.find { |p| p.dig("attributes", "customerPrice").to_f == price.to_f }
+  UI.user_error!("Pas de prix #{price} € (#{BASE_TERRITORY}) dans #{path}") unless point
+  point["id"]
+end
+
+def products
+  STOREKIT["products"]
+end
+
+def subscriptions
+  STOREKIT["subscriptionGroups"].flat_map { |g| g["subscriptions"] }
+end
+
+def fr(item)
+  item["localizations"].find { |l| l["locale"].start_with?("fr") }
+end
+
+# ───────────────────────────── lanes ─────────────────────────────
+
+default_platform(:ios)
+
+platform :ios do
+  before_all do
+    app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_#{ENV.fetch('ASC_KEY_ID')}.p8")
+    )
+  end
+
+  desc "Lecture seule : app, builds, achats intégrés, abonnements et classements"
+  lane :status do
+    apps = asc(:get, "/v1/apps?filter[bundleId]=#{APP_IDENTIFIER}")["data"]
+    if apps.empty?
+      UI.important("App #{APP_IDENTIFIER} : absente d'App Store Connect (fiche à créer sur le site)")
+      next
+    end
+    a = apps.first
+    UI.message("App : #{a.dig('attributes', 'name')} (id #{a['id']}, langue #{a.dig('attributes', 'primaryLocale')}, SKU #{a.dig('attributes', 'sku')})")
+    builds = asc(:get, "/v1/builds?filter[app]=#{a['id']}&sort=-uploadedDate&limit=5")["data"]
+    UI.message("Builds : #{builds.empty? ? 'aucun' : builds.map { |b| "#{b.dig('attributes', 'version')} (#{b.dig('attributes', 'processingState')})" }.join(', ')}")
+    asc_all("/v1/apps/#{a['id']}/inAppPurchasesV2?limit=200").each do |p|
+      UI.message("Achat intégré : #{p.dig('attributes', 'productId')} — #{p.dig('attributes', 'inAppPurchaseType')} — #{p.dig('attributes', 'state')}")
+    end
+    asc_all("/v1/apps/#{a['id']}/subscriptionGroups?limit=200").each do |g|
+      UI.message("Groupe d'abonnements : #{g.dig('attributes', 'referenceName')} (id #{g['id']})")
+      asc_all("/v1/subscriptionGroups/#{g['id']}/subscriptions?limit=200").each do |s|
+        UI.message("  #{s.dig('attributes', 'productId')} — #{s.dig('attributes', 'subscriptionPeriod')} — #{s.dig('attributes', 'state')}")
+      end
+    end
+    detail = asc(:get, "/v1/apps/#{a['id']}/gameCenterDetail")["data"] rescue nil
+    if detail
+      asc_all("/v1/gameCenterDetails/#{detail['id']}/gameCenterLeaderboards?limit=200").each do |l|
+        UI.message("Classement : #{l.dig('attributes', 'vendorIdentifier')} — #{l.dig('attributes', 'referenceName')}")
+      end
+    else
+      UI.message("Game Center : pas encore activé pour l'app")
+    end
+  end
+
+  desc "Crée les achats intégrés du .storekit (prix France, tous les pays, texte français)"
+  lane :products do
+    existing = asc_all("/v1/apps/#{app_id}/inAppPurchasesV2?limit=200").map { |p| p.dig("attributes", "productId") }
+    products.each do |p|
+      pid = p["productID"]
+      if existing.include?(pid)
+        UI.message("= #{pid} existe déjà")
+        next
+      end
+      type = { "Consumable" => "CONSUMABLE", "NonConsumable" => "NON_CONSUMABLE" }.fetch(p["type"])
+      iap = asc(:post, "/v2/inAppPurchases", data: {
+        type: "inAppPurchases",
+        attributes: { name: p["referenceName"], productId: pid, inAppPurchaseType: type,
+                      familySharable: p["familyShareable"], reviewNote: REVIEW_NOTES[pid] },
+        relationships: { app: rel("apps", app_id) }
+      })["data"]
+      l = fr(p)
+      asc(:post, "/v1/inAppPurchaseLocalizations", data: {
+        type: "inAppPurchaseLocalizations",
+        attributes: { locale: LOCALE, name: l["displayName"], description: l["description"] },
+        relationships: { inAppPurchaseV2: rel("inAppPurchases", iap["id"]) }
+      })
+      point = price_point("/v2/inAppPurchases/#{iap['id']}/pricePoints", p["displayPrice"])
+      asc(:post, "/v1/inAppPurchasePriceSchedules", data: {
+        type: "inAppPurchasePriceSchedules",
+        relationships: {
+          inAppPurchase: rel("inAppPurchases", iap["id"]),
+          baseTerritory: rel("territories", BASE_TERRITORY),
+          manualPrices: { data: [{ type: "inAppPurchasePrices", id: "${price}" }] }
+        }
+      }, included: [{
+        type: "inAppPurchasePrices", id: "${price}",
+        attributes: { startDate: nil },
+        relationships: { inAppPurchasePricePoint: rel("inAppPurchasePricePoints", point) }
+      }])
+      asc(:post, "/v1/inAppPurchaseAvailabilities", data: {
+        type: "inAppPurchaseAvailabilities",
+        attributes: { availableInNewTerritories: true },
+        relationships: { inAppPurchase: rel("inAppPurchases", iap["id"]), availableTerritories: { data: territories } }
+      })
+      UI.success("+ #{pid} (#{type}, #{p['displayPrice']} €)")
+    end
+  end
+
+  desc "Crée le groupe « Ordre du Dragon », ses abonnements, leurs prix et l'essai gratuit de 3 jours"
+  lane :dragon do
+    sk_group = STOREKIT["subscriptionGroups"].first
+    group = asc_all("/v1/apps/#{app_id}/subscriptionGroups?limit=200").find { |g| g.dig("attributes", "referenceName") == sk_group["name"] }
+    unless group
+      group = asc(:post, "/v1/subscriptionGroups", data: {
+        type: "subscriptionGroups",
+        attributes: { referenceName: sk_group["name"] },
+        relationships: { app: rel("apps", app_id) }
+      })["data"]
+      asc(:post, "/v1/subscriptionGroupLocalizations", data: {
+        type: "subscriptionGroupLocalizations",
+        attributes: { locale: LOCALE, name: fr(sk_group)["displayName"] },
+        relationships: { subscriptionGroup: rel("subscriptionGroups", group["id"]) }
+      })
+      UI.success("+ groupe #{sk_group['name']}")
+    end
+    existing = asc_all("/v1/subscriptionGroups/#{group['id']}/subscriptions?limit=200").map { |s| s.dig("attributes", "productId") }
+    period = { "P1M" => "ONE_MONTH", "P1Y" => "ONE_YEAR" }
+    trial = { "P3D" => "THREE_DAYS", "P1W" => "ONE_WEEK" }
+    sk_group["subscriptions"].each do |s|
+      pid = s["productID"]
+      if existing.include?(pid)
+        UI.message("= #{pid} existe déjà")
+        next
+      end
+      sub = asc(:post, "/v1/subscriptions", data: {
+        type: "subscriptions",
+        attributes: { name: s["referenceName"], productId: pid, subscriptionPeriod: period.fetch(s["recurringSubscriptionPeriod"]),
+                      familySharable: s["familyShareable"], groupLevel: s["groupNumber"], reviewNote: REVIEW_NOTES["dragon"] },
+        relationships: { group: rel("subscriptionGroups", group["id"]) }
+      })["data"]
+      l = fr(s)
+      asc(:post, "/v1/subscriptionLocalizations", data: {
+        type: "subscriptionLocalizations",
+        attributes: { locale: LOCALE, name: l["displayName"], description: l["description"] },
+        relationships: { subscription: rel("subscriptions", sub["id"]) }
+      })
+      asc(:post, "/v1/subscriptionAvailabilities", data: {
+        type: "subscriptionAvailabilities",
+        attributes: { availableInNewTerritories: true },
+        relationships: { subscription: rel("subscriptions", sub["id"]), availableTerritories: { data: territories } }
+      })
+      # prix : France, puis les équivalents calculés par Apple pour les autres pays
+      base = price_point("/v1/subscriptions/#{sub['id']}/pricePoints", s["displayPrice"])
+      points = [base] + asc_all("/v1/subscriptionPricePoints/#{base}/equalizations?limit=200").map { |p| p["id"] }
+      points.each do |pp|
+        asc(:post, "/v1/subscriptionPrices", data: {
+          type: "subscriptionPrices",
+          attributes: { startDate: nil, preserveCurrentPrice: false },
+          relationships: { subscription: rel("subscriptions", sub["id"]), subscriptionPricePoint: rel("subscriptionPricePoints", pp) }
+        })
+      end
+      # essai gratuit, pays par pays
+      if (offer = s["introductoryOffer"]) && offer["paymentMode"] == "free"
+        territories.each do |t|
+          asc(:post, "/v1/subscriptionIntroductoryOffers", data: {
+            type: "subscriptionIntroductoryOffers",
+            attributes: { duration: trial.fetch(offer["subscriptionPeriod"]), offerMode: "FREE_TRIAL", numberOfPeriods: 1 },
+            relationships: { subscription: rel("subscriptions", sub["id"]), territory: rel("territories", t[:id]) }
+          })
+        end
+      end
+      UI.success("+ #{pid} (#{s['displayPrice']} €, #{points.size} pays, essai #{offer && offer['subscriptionPeriod']})")
+    end
+    UI.important("Identifiant du groupe « #{sk_group['name']} » : #{group['id']} → ProductID.dragonGroupID")
+  end
+
+  desc "Active Game Center et crée le classement récurrent du tournoi"
+  lane :leaderboard do
+    detail = (asc(:get, "/v1/apps/#{app_id}/gameCenterDetail")["data"] rescue nil)
+    detail ||= asc(:post, "/v1/gameCenterDetails", data: {
+      type: "gameCenterDetails",
+      relationships: { app: rel("apps", app_id) }
+    })["data"]
+    existing = asc_all("/v1/gameCenterDetails/#{detail['id']}/gameCenterLeaderboards?limit=200")
+    if existing.any? { |l| l.dig("attributes", "vendorIdentifier") == LEADERBOARD[:vendor_id] }
+      UI.message("= #{LEADERBOARD[:vendor_id]} existe déjà")
+      next
+    end
+    board = asc(:post, "/v1/gameCenterLeaderboards", data: {
+      type: "gameCenterLeaderboards",
+      attributes: {
+        referenceName: LEADERBOARD[:reference_name], vendorIdentifier: LEADERBOARD[:vendor_id],
+        defaultFormatter: "INTEGER", submissionType: "BEST_SCORE", scoreSortType: "DESC",
+        scoreRangeStart: LEADERBOARD[:range][0], scoreRangeEnd: LEADERBOARD[:range][1],
+        recurrenceStartDate: LEADERBOARD[:start], recurrenceDuration: "P7D", recurrenceRule: "FREQ=WEEKLY;INTERVAL=1"
+      },
+      relationships: { gameCenterDetail: rel("gameCenterDetails", detail["id"]) }
+    })["data"]
+    asc(:post, "/v1/gameCenterLeaderboardLocalizations", data: {
+      type: "gameCenterLeaderboardLocalizations",
+      attributes: { locale: LOCALE, name: LEADERBOARD[:name], formatterSuffix: " points", formatterSuffixSingular: " point" },
+      relationships: { gameCenterLeaderboard: rel("gameCenterLeaderboards", board["id"]) }
+    })
+    UI.success("+ classement #{LEADERBOARD[:vendor_id]} (hebdomadaire depuis #{LEADERBOARD[:start]})")
+  end
+
+  desc "Archive Release, export App Store et envoi sur TestFlight (sans soumission à la vérification)"
+  lane :beta do
+    ipa = build_app(
+      project: File.join(ROOT, "ios", "Ombrelune.xcodeproj"),
+      scheme: "Ombrelune",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: File.join(FASTLANE_DIR, "build"),
+      xcargs: "-allowProvisioningUpdates",
+      export_xcargs: "-allowProvisioningUpdates"
+    )
+    upload_to_testflight(ipa: ipa, skip_waiting_for_build_processing: true, skip_submission: true)
+  end
+end
