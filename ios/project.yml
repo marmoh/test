@@ -32,6 +32,9 @@ targets:
       - path: Services
       - path: UI
       - path: Resources/Assets.xcassets
+      # Textes de l'app (source fr, traductions en et es) et de l'Info.plist (demande de suivi ATT).
+      - { path: Resources/Localizable.xcstrings, buildPhase: resources }
+      - { path: Resources/InfoPlist.xcstrings, buildPhase: resources }
       # Polices OFL (IM Fell English SC, Alegreya Sans) et leurs licences, déclarées dans UIAppFonts.
       - { path: Resources/Fonts, buildPhase: resources }
       # Atlas SpriteKit (générés par `pnpm art:atlas`) : un dossier `.atlas` = un atlas compilé par Xcode.
@@ -59,6 +62,8 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleDevelopmentRegion: fr
+        # Langues de l'app (DECISIONS #70) : français (développement), anglais, espagnol.
+        CFBundleLocalizations: [fr, en, es]
         LSRequiresIPhoneOS: true
         ITSAppUsesNonExemptEncryption: false
         UIRequiresFullScreen: true
@@ -77,6 +82,7 @@ targets:
           - AlegreyaSans-ExtraBold.ttf
           - AlegreyaSans-MediumItalic.ttf
         # ATT : demandé seulement quand le joueur active « Publicités personnalisées » (Réglages).
+        # Texte français ici ; traductions dans Resources/InfoPlist.xcstrings.
         NSUserTrackingUsageDescription: "Permet d’afficher des publicités adaptées quand tu choisis d’en regarder une pour gagner une vie."
         GKGameCenterBadgingDisabled: false
     entitlements:
@@ -96,6 +102,9 @@ targets:
         # refuse le cadre et découpe Bosses/Enemies/VFX en plusieurs pages). Tous les iPhone sous iOS 17 lisent 4096.
         TEXTURE_ATLAS_MAXIMUM_SIZE: 4096x4096
         SUPPORTS_MACCATALYST: NO
+        # Catalogues de chaînes : extraction des `String(localized:)` et `LocalizedStringKey` à la compilation.
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
 
   OmbreluneTests:
     type: bundle.unit-test

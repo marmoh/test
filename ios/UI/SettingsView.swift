@@ -33,8 +33,9 @@ struct SettingsView: View {
                     row("Réduire les animations", hint: "Coupe secousses, arrêts sur image et animations décoratives", isOn: $settings.reduceMotion)
 
                     SectionTitle(text: "Achats")
-                    linkRow("Gérer l’abonnement", hint: "Ordre du Dragon · \(dragonSummary)") { showDragon = true }
-                    linkRow("Restaurer les achats", hint: restoring ? "Restauration…" : "Offre de départ, pass de saison et Ordre du Dragon") {
+                    linkRow("Gérer l’abonnement", hint: String(localized: "Ordre du Dragon · \(dragonSummary)", comment: "Réglages : état de l’abonnement")) { showDragon = true }
+                    linkRow("Restaurer les achats", hint: restoring ? String(localized: "Restauration…")
+                                                                    : String(localized: "Offre de départ, pass de saison et Ordre du Dragon")) {
                         Task { await restore() }
                     }
 
@@ -54,7 +55,7 @@ struct SettingsView: View {
                     SectionTitle(text: "Progression")
                     erase
 
-                    Text("\(AppInfo.name) · version \(AppInfo.version)")
+                    Text("\(AppInfo.name) · version \(AppInfo.version)", comment: "Réglages : nom de l’app et numéro de version")
                         .font(Theme.note())
                         .foregroundStyle(Theme.ink2)
                         .frame(maxWidth: .infinity)
@@ -74,7 +75,8 @@ struct SettingsView: View {
                 let granted = await AdPrivacy.requestPersonalizedAds()
                 if !granted {
                     settings.personalizedAds = false
-                    attNote = "Suivi refusé dans iOS : les publicités resteront non personnalisées (Réglages › Confidentialité › Suivi)."
+                    attNote = String(localized: "Suivi refusé dans iOS : les publicités resteront non personnalisées (Réglages › Confidentialité › Suivi).",
+                                     comment: "Chemin des réglages iOS : utiliser les libellés exacts d’iOS dans chaque langue")
                 }
             }
         }
@@ -97,7 +99,7 @@ struct SettingsView: View {
 
     // MARK: lignes
 
-    private func row(_ title: String, hint: String? = nil, isOn: Binding<Bool>) -> some View {
+    private func row(_ title: LocalizedStringKey, hint: LocalizedStringKey? = nil, isOn: Binding<Bool>) -> some View {
         Toggle(isOn: isOn) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(Theme.text(16, weight: .bold)).foregroundStyle(Theme.ink)
@@ -109,7 +111,7 @@ struct SettingsView: View {
         .overlay(alignment: .bottom) { DashedRule() }
     }
 
-    private func linkRow(_ title: String, hint: String, action: @escaping () -> Void) -> some View {
+    private func linkRow(_ title: LocalizedStringKey, hint: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -117,7 +119,7 @@ struct SettingsView: View {
                     Text(hint).font(Theme.note(12)).foregroundStyle(Theme.ink2)
                 }
                 Spacer()
-                Text("›").font(Theme.display(26)).foregroundStyle(Theme.vermilion)
+                Text(verbatim: "›").font(Theme.display(26)).foregroundStyle(Theme.vermilion)
             }
             .padding(.vertical, 12)
             .contentShape(Rectangle())
@@ -128,16 +130,17 @@ struct SettingsView: View {
 
     private var dragonSummary: String {
         let d = store.entitlements.dragon
-        guard d.isActive else { return "Non membre" }
-        let date = d.expiresAt?.formatted(.dateTime.day().month(.wide).locale(Locale(identifier: "fr_FR"))) ?? "—"
-        if d.inTrial { return "Essai gratuit jusqu’au \(date)" }
-        return d.willRenew ? "Renouvellement le \(date)" : "Résilié · actif jusqu’au \(date)"
+        guard d.isActive else { return String(localized: "Non membre", comment: "Réglages : pas d’abonnement à l’Ordre du Dragon") }
+        let date = d.expiresAt.map(Fmt.dayMonth) ?? "—"
+        if d.inTrial { return String(localized: "Essai gratuit jusqu’au \(date)", comment: "Date au format jour + mois") }
+        return d.willRenew ? String(localized: "Renouvellement le \(date)", comment: "Date au format jour + mois")
+                           : String(localized: "Résilié · actif jusqu’au \(date)", comment: "Date au format jour + mois")
     }
 
     private var credits: some View {
         VStack(alignment: .leading, spacing: 8) {
-            (Text("IM Fell English SC").font(Theme.display(17)) + Text(" — Igino Marini. Copyright © 2010, Igino Marini.").font(Theme.text(14)))
-            (Text("Alegreya Sans").font(Theme.text(14, weight: .bold)) + Text(" — Juan Pablo del Peral (Huerta Tipográfica). Copyright © 2013, The Alegreya Sans Project Authors.").font(Theme.text(14)))
+            (Text(verbatim: "IM Fell English SC").font(Theme.display(17)) + Text(verbatim: " — Igino Marini. Copyright © 2010, Igino Marini.").font(Theme.text(14)))
+            (Text(verbatim: "Alegreya Sans").font(Theme.text(14, weight: .bold)) + Text(verbatim: " — Juan Pablo del Peral (Huerta Tipográfica). Copyright © 2013, The Alegreya Sans Project Authors.").font(Theme.text(14)))
             Text("Polices distribuées sous licence SIL Open Font License 1.1 (openfontlicense.org). Sons et musique synthétisés en direct, sans fichier sous licence.")
                 .font(Theme.note())
                 .foregroundStyle(Theme.ink2)
@@ -159,7 +162,7 @@ struct SettingsView: View {
                         lives.reset()
                         onEraseProgress()
                         confirmErase = false
-                        message = "Progression effacée"
+                        message = String(localized: "Progression effacée")
                     }
                     .buttonStyle(InkButtonStyle(kind: .danger))
                 }
@@ -179,7 +182,7 @@ struct SettingsView: View {
         restoring = true
         let ok = await store.restore()
         restoring = false
-        message = ok ? "Achats restaurés" : (store.lastError ?? "Restauration impossible")
+        message = ok ? String(localized: "Achats restaurés") : (store.lastError ?? String(localized: "Restauration impossible"))
     }
 }
 

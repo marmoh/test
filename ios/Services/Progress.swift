@@ -8,19 +8,19 @@ enum TalentKind: String, CaseIterable, Identifiable {
 
     var name: String {
         switch self {
-        case .vigor: "Vigueur"
-        case .strength: "Force"
-        case .agility: "Agilité"
-        case .fortune: "Fortune"
+        case .vigor: String(localized: "Vigueur", comment: "Talent permanent (PV)")
+        case .strength: String(localized: "Force", comment: "Talent permanent (dégâts)")
+        case .agility: String(localized: "Agilité", comment: "Talent permanent (cadence)")
+        case .fortune: String(localized: "Fortune", comment: "Talent permanent (or)")
         }
     }
 
     var perRank: String {
         switch self {
-        case .vigor: "+2 % PV"
-        case .strength: "+2 % dégâts"
-        case .agility: "+1,5 % cadence"
-        case .fortune: "+5 % or"
+        case .vigor: String(localized: "+2 % PV", comment: "Talent Vigueur, par rang")
+        case .strength: String(localized: "+2 % dégâts", comment: "Talent Force, par rang")
+        case .agility: String(localized: "+1,5 % cadence", comment: "Talent Agilité, par rang")
+        case .fortune: String(localized: "+5 % or", comment: "Talent Fortune, par rang")
         }
     }
 

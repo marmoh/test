@@ -1,0 +1,30 @@
+{
+  "sourceLanguage" : "fr",
+  "strings" : {
+    "NSUserTrackingUsageDescription" : {
+      "comment" : "Info.plist : demande de suivi (ATT)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lets us show ads that suit you when you choose to watch one to earn a life."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permite mostrarte anuncios adaptados cuando eliges ver uno para ganar una vida."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permet d’afficher des publicités adaptées quand tu choisis d’en regarder une pour gagner une vie."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

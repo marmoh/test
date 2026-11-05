@@ -39,7 +39,7 @@ struct LivesView: View {
         let state = lives.state
         let ad = lives.adStatus(subscribed: dragon)
         VStack(spacing: 12) {
-            Text(dragon ? "Vies illimitées" : state.lives == 0 ? "Plus de vies" : "Vies")
+            Text(dragon ? "Vies illimitées" : state.lives == 0 ? "Plus de vies" : "Vies" as LocalizedStringKey)
                 .font(Theme.display(34))
                 .foregroundStyle(Theme.ink)
             HStack(spacing: 6) {
@@ -48,10 +48,10 @@ struct LivesView: View {
                         .font(.system(size: 34))
                         .foregroundStyle(dragon || i < state.lives ? Theme.vermilion : Theme.ink3.opacity(0.3))
                 }
-                if dragon { Text("∞").font(Theme.display(40)).foregroundStyle(Theme.ink) }
+                if dragon { Text(verbatim: "∞").font(Theme.display(40)).foregroundStyle(Theme.ink) }
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(dragon ? "Vies illimitées" : "\(state.lives) vies sur \(LivesState.max)")
+            .accessibilityLabel(dragon ? String(localized: "Vies illimitées") : String(localized: "\(state.lives) vies restantes", comment: "VoiceOver : vies restantes"))
 
             if dragon {
                 Text("L’Ordre du Dragon t’offre des vies illimitées. Aucune publicité.")
@@ -67,7 +67,7 @@ struct LivesView: View {
                         HStack {
                             Text("Regarder une courte pub")
                             Spacer()
-                            Text("+1 ♥").font(Theme.text(17, weight: .heavy))
+                            Text(verbatim: "+1 ♥").font(Theme.text(17, weight: .heavy))
                                 .foregroundStyle(Theme.ink)
                                 .padding(.horizontal, 10)
                                 .background(Theme.cut)
@@ -81,12 +81,12 @@ struct LivesView: View {
                 .opacity(ad.ok ? 1 : 0.55)
 
                 Button {
-                    toast = lives.refill(using: wallet) ? "Vies remplies" : "Pas assez de gemmes"
+                    toast = lives.refill(using: wallet) ? String(localized: "Vies remplies") : String(localized: "Pas assez de gemmes")
                 } label: {
                     HStack {
                         Text("Remplir les 5 vies")
                         Spacer()
-                        Label("90", systemImage: "diamond.fill")
+                        Label(Fmt.int(ShopPrices.livesRefillGems), systemImage: "diamond.fill")
                             .font(Theme.text(17, weight: .heavy))
                             .padding(.horizontal, 10)
                             .background(Theme.cut)
@@ -96,23 +96,25 @@ struct LivesView: View {
                 .buttonStyle(InkButtonStyle(kind: .ghost))
                 .disabled(state.lives >= LivesState.max)
 
-                Text("Publicités uniquement si tu le demandes, jamais pendant un niveau ni en tournoi. \(RewardedAdPolicy.perDay) par jour au plus\(settings.personalizedAds ? "" : ", non personnalisées").")
+                Text(settings.personalizedAds
+                     ? String(localized: "Publicités uniquement si tu le demandes, jamais pendant un niveau ni en tournoi. \(RewardedAdPolicy.perDay) par jour au plus.")
+                     : String(localized: "Publicités uniquement si tu le demandes, jamais pendant un niveau ni en tournoi. \(RewardedAdPolicy.perDay) par jour au plus, non personnalisées."))
                     .font(Theme.note(13)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
             }
         }
     }
 
     private var nextLifeText: String {
-        guard let s = lives.secondsToNextLife else { return "Vies au maximum." }
-        return "Prochaine vie dans \(Self.clock(s))"
+        guard let s = lives.secondsToNextLife else { return String(localized: "Vies au maximum.") }
+        return String(localized: "Prochaine vie dans \(Fmt.clock(s))", comment: "Compte à rebours « 4:09 » ou « 1 h 05 »")
     }
 
     private func adLabel(_ ad: RewardedAdPolicy.Status) -> String {
-        if ad.ok { return "\(ad.left) restante\(ad.left > 1 ? "s" : "") aujourd’hui" }
+        if ad.ok { return String(localized: "\(ad.left) restantes aujourd’hui", comment: "Publicités (féminin) encore disponibles aujourd’hui") }
         switch ad.reason {
-        case .cooldown: return "Prochaine dans \(Self.clock(ad.wait))"
-        case .daily: return "Tu as vu les \(RewardedAdPolicy.perDay) publicités du jour. Reviens demain."
-        case .full: return "Tes vies sont au maximum."
+        case .cooldown: return String(localized: "Prochaine dans \(Fmt.clock(ad.wait))", comment: "Prochaine publicité (féminin) disponible dans…")
+        case .daily: return String(localized: "Tu as vu les \(RewardedAdPolicy.perDay) publicités du jour. Reviens demain.")
+        case .full: return String(localized: "Tes vies sont au maximum.")
         case .subscriber, .none: return ""
         }
     }
@@ -122,15 +124,10 @@ struct LivesView: View {
         busy = true
         defer { busy = false }
         if await ads.presentRewarded() == .rewarded, lives.rewardAd(subscribed: store.isDragon) {
-            toast = "+1 vie"
+            toast = String(localized: "+1 vie")
         }
     }
 
-    static func clock(_ seconds: TimeInterval) -> String {
-        let s = max(0, Int(seconds.rounded(.up)))
-        let h = s / 3600, m = (s % 3600) / 60, r = s % 60
-        return h > 0 ? String(format: "%d h %02d", h, m) : String(format: "%d:%02d", m, r)
-    }
 }
 
 // MARK: - publicité factice
@@ -192,12 +189,13 @@ struct MockAdView: View {
                         Circle().trim(from: elapsed / MockAdService.duration, to: 1)
                             .stroke(Theme.ink, style: StrokeStyle(lineWidth: 5))
                             .rotationEffect(.degrees(-90))
-                        Text(done ? "✓" : "\(Int((MockAdService.duration - elapsed).rounded(.up)))")
+                        Text(verbatim: done ? "✓" : "\(Int((MockAdService.duration - elapsed).rounded(.up)))")
                             .font(Theme.display(22))
                     }
                     .frame(width: 56, height: 56)
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(done ? "Merci d’avoir regardé." : "Ta vie arrive dans \(Int((MockAdService.duration - elapsed).rounded(.up))) s")
+                        Text(done ? String(localized: "Merci d’avoir regardé.")
+                                  : String(localized: "Ta vie arrive dans \(Int((MockAdService.duration - elapsed).rounded(.up))) s", comment: "Publicité simulée : secondes restantes"))
                             .font(Theme.text(15, weight: .bold))
                         if done {
                             Button("Récupérer ma vie") { service.finish(.rewarded) }

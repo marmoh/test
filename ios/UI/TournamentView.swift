@@ -24,12 +24,12 @@ struct TournamentView: View {
                     }
                     HStack(spacing: 10) {
                         statBox("Essais restants", "\(t.attempts)/\(TournamentState.attemptsPerWeek)")
-                        statBox("Ton meilleur score", t.best > 0 ? "\(t.best)" : "—")
+                        statBox("Ton meilleur score", t.best > 0 ? Fmt.int(t.best) : "—")
                     }
                     SectionTitle(text: "Règles")
                     rule("Talents, bonus et « continuer » désactivés.")
                     rule("\(TournamentState.attemptsPerWeek) essais par semaine pour tout le monde, non achetables.")
-                    rule("Score = ennemis × 100 + PV restants × 5 + (240 − secondes) × 40. Exemple : 42 ennemis, 380 PV, 150 s → \(example).")
+                    rule("Score = ennemis × 100 + PV restants × 5 + (240 − secondes) × 40. Exemple : 42 ennemis, 380 PV, 150 s → \(Fmt.int(example)).")
                     rule("Ton meilleur essai compte. Récompenses cosmétiques : top 1 %, 10 %, 50 % et participation.")
 
                     SectionTitle(text: "Classement de la semaine")
@@ -39,11 +39,11 @@ struct TournamentView: View {
                         ForEach(app.progress.data.honors, id: \.self) { h in
                             HStack(spacing: 6) {
                                 InkIcon(name: "ui_trophy", size: 18, fallback: "rosette")
-                                Text(h).font(Theme.text(14, weight: .bold))
+                                Text(HonorText.display(h)).font(Theme.text(14, weight: .bold))
                             }
                         }
                     }
-                    Button("Jouer (\(t.attempts) essai\(t.attempts > 1 ? "s" : ""))") {
+                    Button("Jouer (\(t.attempts) essais)") {
                         app.audio.play(.tap)
                         app.playTournament()
                     }
@@ -80,11 +80,11 @@ struct TournamentView: View {
             VStack(spacing: 0) {
                 ForEach(gc.entries) { e in entryRow(e) }
                 if let me = gc.localEntry, !gc.entries.contains(where: { $0.isLocal }) {
-                    Text("…").font(Theme.text(14))
+                    Text(verbatim: "…").font(Theme.text(14))
                     entryRow(me)
                 }
             }
-            Text("\(gc.totalPlayers) participant\(gc.totalPlayers > 1 ? "s" : "")").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+            Text("\(gc.totalPlayers) participants").font(Theme.note(12)).foregroundStyle(Theme.ink2)
         }
         if gc.isAuthenticated {
             Button("Ouvrir le classement Game Center") { showBoard = true }
@@ -96,10 +96,10 @@ struct TournamentView: View {
 
     private func entryRow(_ e: GameCenterService.Entry) -> some View {
         HStack {
-            Text("\(e.rank)").font(Theme.display(16)).frame(width: 36, alignment: .leading)
+            Text(verbatim: "\(e.rank)").font(Theme.display(16)).frame(width: 36, alignment: .leading)
             Text(e.name).font(Theme.text(15, weight: e.isLocal ? .heavy : .regular)).lineLimit(1)
             Spacer()
-            Text("\(e.score)").font(Theme.text(15, weight: .bold)).monospacedDigit()
+            Text(Fmt.int(e.score)).font(Theme.text(15, weight: .bold)).monospacedDigit()
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 6)
@@ -107,7 +107,7 @@ struct TournamentView: View {
         .overlay(alignment: .bottom) { DashedRule() }
     }
 
-    private func statBox(_ label: String, _ value: String) -> some View {
+    private func statBox(_ label: LocalizedStringKey, _ value: String) -> some View {
         VStack(spacing: 2) {
             Text(label).font(Theme.note(12)).foregroundStyle(Theme.ink2)
             Text(value).font(Theme.display(24))
@@ -117,9 +117,9 @@ struct TournamentView: View {
         .paperCard(shadow: 3)
     }
 
-    private func rule(_ s: String) -> some View {
+    private func rule(_ s: LocalizedStringKey) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text("•").font(Theme.text(15, weight: .heavy)).foregroundStyle(Theme.vermilion)
+            Text(verbatim: "•").font(Theme.text(15, weight: .heavy)).foregroundStyle(Theme.vermilion)
             Text(s).font(Theme.text(14)).fixedSize(horizontal: false, vertical: true)
         }
     }

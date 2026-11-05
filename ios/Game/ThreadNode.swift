@@ -84,7 +84,7 @@ final class ThreadNode: SKNode {
         hint.isHidden = true
         hint.zPosition = 3
         addChild(hint)
-        hintLabel.attributedText = FX.inked("Encercle-le pour le découper", color: Ink.ink, size: 13)
+        hintLabel.attributedText = FX.inked(String(localized: "Encercle-le pour le découper", comment: "Aide du tutoriel : entourer l’ennemi avec le fil"), color: Ink.ink, size: 13)
         hintLabel.isHidden = true
         hintLabel.zPosition = 3
         addChild(hintLabel)

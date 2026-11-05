@@ -44,7 +44,7 @@ final class Store {
             products = map
             lastError = nil
         } catch {
-            lastError = "Boutique indisponible. Réessaie plus tard."
+            lastError = String(localized: "Boutique indisponible. Réessaie plus tard.")
         }
         await processUnfinished()
         await refreshEntitlements()
@@ -53,7 +53,7 @@ final class Store {
     // MARK: achat
 
     func purchase(_ id: ProductID) async -> PurchaseOutcome {
-        guard let product = products[id] else { return .failed("Produit introuvable") }
+        guard let product = products[id] else { return .failed(String(localized: "Produit introuvable")) }
         do {
             let result = try await product.purchase()
             return await handlePurchaseResult(result)
@@ -68,7 +68,7 @@ final class Store {
         switch result {
         case .success(let verification):
             guard case .verified(let transaction) = verification else {
-                return .failed("Achat non vérifié")
+                return .failed(String(localized: "Achat non vérifié"))
             }
             await handle(transaction)
             return .purchased
@@ -77,7 +77,7 @@ final class Store {
         case .userCancelled:
             return .cancelled
         @unknown default:
-            return .failed("Résultat inconnu")
+            return .failed(String(localized: "Résultat inconnu", comment: "Achat : réponse inattendue de l’App Store"))
         }
     }
 
@@ -90,7 +90,7 @@ final class Store {
             await refreshEntitlements()
             return true
         } catch {
-            lastError = "Restauration impossible pour le moment."
+            lastError = String(localized: "Restauration impossible pour le moment.")
             return false
         }
     }

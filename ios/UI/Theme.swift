@@ -116,13 +116,13 @@ struct InkToggleStyle: ToggleStyle {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(.isToggle)
-        .accessibilityValue(configuration.isOn ? "activé" : "désactivé")
+        .accessibilityValue(configuration.isOn ? Text("activé") : Text("désactivé"))
     }
 }
 
 /// Titre de section : petites capitales d'encre soulignées d'un filet.
 struct SectionTitle: View {
-    let text: String
+    let text: LocalizedStringKey
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(text).font(Theme.display(19)).foregroundStyle(Theme.ink)

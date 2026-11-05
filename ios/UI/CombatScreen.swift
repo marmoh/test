@@ -30,7 +30,7 @@ struct CombatScreen: View {
         VStack {
             HStack {
                 HStack(spacing: 8) {
-                    Text(session.mode.isTournament ? "Tournoi" : "Niveau \(session.level.n)")
+                    Text(session.mode.isTournament ? String(localized: "Tournoi") : String(localized: "Niveau \(session.level.n)"))
                         .font(Theme.display(17))
                     Text("Salle \(session.roomIndex + 1)/\(session.roomCount)")
                         .font(Theme.text(14, weight: .bold))
@@ -146,10 +146,10 @@ struct PowerChoiceView: View {
                     Text(p.rarity.label.uppercased()).font(Theme.text(11, weight: .heavy)).foregroundStyle(p.rarity.color)
                     InkIcon(name: "power_\(id.rawValue)", size: 56, fallback: "sparkles")
                     HStack(spacing: 3) {
-                        Text(p.name).font(Theme.display(16)).multilineTextAlignment(.center)
-                        if let n = owned[id], n > 0 { Text("×\(n + 1)").font(Theme.text(12, weight: .heavy)) }
+                        Text(id.title).font(Theme.display(16)).multilineTextAlignment(.center)
+                        if let n = owned[id], n > 0 { Text(verbatim: "×\(n + 1)").font(Theme.text(12, weight: .heavy)) }
                     }
-                    Text(p.desc).font(Theme.text(12)).multilineTextAlignment(.center).foregroundStyle(Theme.ink2)
+                    Text(id.detail).font(Theme.text(12)).multilineTextAlignment(.center).foregroundStyle(Theme.ink2)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 0)
                 }
@@ -169,7 +169,7 @@ struct PowerChoiceView: View {
             .animation(.spring(response: 0.35), value: picked)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(p.name), \(p.rarity.label). \(p.desc)")
+        .accessibilityLabel(id.title + ", " + p.rarity.label + ". " + id.detail)
     }
 }
 
@@ -201,7 +201,7 @@ struct PauseView: View {
         .background(Theme.ink.opacity(0.6).ignoresSafeArea())
     }
 
-    private func toggle(_ title: String, _ b: Binding<Bool>) -> some View {
+    private func toggle(_ title: LocalizedStringKey, _ b: Binding<Bool>) -> some View {
         Toggle(isOn: b) { Text(title).font(Theme.text(16, weight: .bold)).foregroundStyle(Theme.ink) }
             .toggleStyle(InkToggleStyle())
             .padding(.vertical, 8)
@@ -236,7 +236,7 @@ struct DefeatView: View {
                         Spacer()
                         HStack(spacing: 3) {
                             InkIcon(name: "ui_gem", size: 18, fallback: "diamond.fill")
-                            Text("\(cost)").font(Theme.text(17, weight: .heavy))
+                            Text(verbatim: "\(cost)").font(Theme.text(17, weight: .heavy))
                         }
                         .padding(.horizontal, 8)
                         .background(Theme.cut)
@@ -251,7 +251,8 @@ struct DefeatView: View {
                     Button("Gemmes : boutique") { showShop = true }
                         .font(Theme.text(13, weight: .bold)).underline().foregroundStyle(Theme.ink)
                 }
-                Text(continuesUsed == 0 ? "2 continues possibles (60 puis 120 gemmes)" : "Dernier continue possible")
+                Text(continuesUsed == 0 ? String(localized: "2 continues possibles (60 puis 120 gemmes)", comment: "Défaite : « continuer » contre des gemmes")
+                                        : String(localized: "Dernier continue possible", comment: "Défaite : « continuer » contre des gemmes"))
                     .font(Theme.note(11)).foregroundStyle(Theme.ink2)
             }
             HStack(spacing: 10) {
@@ -315,9 +316,9 @@ struct VictoryView: View {
             }
             Puppet(name: app.currentHero.rawValue, size: 120)
             HStack(spacing: 18) {
-                stat("Or", "+\(gold)", icon: "ui_coin")
-                stat("Ennemis", "\(info.kills)")
-                stat("Temps", "\(Int(info.seconds.rounded())) s")
+                stat("Or", "+" + Fmt.int(gold), icon: "ui_coin")
+                stat("Ennemis", Fmt.int(info.kills))
+                stat("Temps", String(localized: "\(Int(info.seconds.rounded())) s", comment: "Durée en secondes"))
             }
             if info.dragonBonus {
                 Text("dont +25 % de l’Ordre du Dragon").font(Theme.note(12)).foregroundStyle(Theme.ink2)
@@ -325,7 +326,8 @@ struct VictoryView: View {
             if info.passPoints > 0 {
                 HStack(spacing: 6) {
                     InkIcon(name: "ui_chest", size: 20, fallback: "gift.fill")
-                    Text("Pass de saison : +\(info.passPoints) lunes" + (info.newTier.map { " · palier \($0) atteint !" } ?? ""))
+                    Text(info.newTier.map { String(localized: "Pass de saison : +\(info.passPoints) lunes · palier \($0) atteint !", comment: "Victoire : lunes gagnées, nouveau palier") }
+                         ?? String(localized: "Pass de saison : +\(info.passPoints) lunes", comment: "Victoire : lunes gagnées"))
                         .font(Theme.text(13, weight: .bold))
                 }
                 .foregroundStyle(Theme.ink)
@@ -370,7 +372,7 @@ struct VictoryView: View {
         }
     }
 
-    private func stat(_ label: String, _ value: String, icon: String? = nil) -> some View {
+    private func stat(_ label: LocalizedStringKey, _ value: String, icon: String? = nil) -> some View {
         VStack(spacing: 2) {
             if let icon { InkIcon(name: icon, size: 22, fallback: "circle.fill") } else { Text(label).font(Theme.note(12)) }
             Text(value).font(Theme.text(20, weight: .heavy)).monospacedDigit()
@@ -389,13 +391,13 @@ struct TournamentResultView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            Text(info.won ? "Tournoi terminé" : "Essai terminé").font(Theme.display(34)).foregroundStyle(Theme.ink)
-            Text("\(info.score)").font(Theme.display(54)).foregroundStyle(Theme.vermilion)
-            Text(info.newBest ? "Nouveau meilleur score !" : "Meilleur score : \(info.best)").font(Theme.note(15)).foregroundStyle(Theme.ink2)
+            Text(info.won ? String(localized: "Tournoi terminé") : String(localized: "Essai terminé")).font(Theme.display(34)).foregroundStyle(Theme.ink)
+            Text(Fmt.int(info.score)).font(Theme.display(54)).foregroundStyle(Theme.vermilion)
+            Text(info.newBest ? String(localized: "Nouveau meilleur score !") : String(localized: "Meilleur score : \(Fmt.int(info.best))")).font(Theme.note(15)).foregroundStyle(Theme.ink2)
             HStack(spacing: 18) {
-                stat("Ennemis", "\(info.kills)")
-                stat("PV restants", "\(Int(info.hpLeft.rounded()))")
-                stat("Temps", "\(Int(info.seconds.rounded())) s")
+                stat("Ennemis", Fmt.int(info.kills))
+                stat("PV restants", Fmt.int(Int(info.hpLeft.rounded())))
+                stat("Temps", String(localized: "\(Int(info.seconds.rounded())) s", comment: "Durée en secondes"))
             }
             Text("Score = ennemis × 100 + PV × 5 + (240 − secondes) × 40").font(Theme.note(11)).foregroundStyle(Theme.ink2)
             HStack(spacing: 10) {
@@ -413,7 +415,7 @@ struct TournamentResultView: View {
         .background(Theme.ink.opacity(0.6).ignoresSafeArea())
     }
 
-    private func stat(_ label: String, _ value: String) -> some View {
+    private func stat(_ label: LocalizedStringKey, _ value: String) -> some View {
         VStack(spacing: 2) {
             Text(label).font(Theme.note(12))
             Text(value).font(Theme.text(20, weight: .heavy)).monospacedDigit()
