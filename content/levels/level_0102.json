@@ -43,8 +43,8 @@
      },
      {
       "type": "mushroom",
-      "c": 8,
-      "r": 5
+      "c": 4,
+      "r": 4
      }
     ]
    ],
@@ -85,13 +85,13 @@
      },
      {
       "type": "mushroom",
-      "c": 5,
-      "r": 6
+      "c": 6,
+      "r": 2
      },
      {
       "type": "snipper",
-      "c": 6,
-      "r": 2
+      "c": 5,
+      "r": 6
      }
     ]
    ],
@@ -127,18 +127,18 @@
     [
      {
       "type": "mushroom",
+      "c": 3,
+      "r": 6
+     },
+     {
+      "type": "jelly",
       "c": 4,
       "r": 4
      },
      {
-      "type": "jelly",
+      "type": "snipper",
       "c": 3,
       "r": 5
-     },
-     {
-      "type": "snipper",
-      "c": 4,
-      "r": 6
      }
     ]
    ],
@@ -153,10 +153,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.7,
-  "expert": 0.995,
+  "moyen": 0.755,
+  "expert": 0.98,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 103
+  "avgSeconds": 98
  }
 }

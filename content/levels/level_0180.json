@@ -6,85 +6,71 @@
  "kind": "boss",
  "D": 7.847,
  "mult": 1.55,
- "budgetScale": 0.96,
- "seed": 7,
- "powerSeed": 2480052782,
+ "budgetScale": 0.683,
+ "seed": 26,
+ "powerSeed": 1092676806,
  "rooms": [
   {
-   "template": "room_05",
+   "template": "room_22",
    "waves": [
     [
      {
-      "type": "bat",
-      "c": 3,
-      "r": 3
+      "type": "wolf",
+      "c": 5,
+      "r": 9
      },
      {
-      "type": "wolf",
-      "c": 4,
+      "type": "moth",
+      "c": 6,
+      "r": 7
+     },
+     {
+      "type": "moth",
+      "c": 3,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 2182324522,
+   "budget": 7
+  },
+  {
+   "template": "room_16",
+   "waves": [
+    [
+     {
+      "type": "moth",
+      "c": 3,
       "r": 7,
+      "elite": true
+     },
+     {
+      "type": "moth",
+      "c": 2,
+      "r": 0
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 4099419286,
+   "budget": 8
+  },
+  {
+   "template": "room_01",
+   "waves": [
+    [
+     {
+      "type": "snipper",
+      "c": 5,
+      "r": 3,
       "elite": true
      }
     ]
    ],
    "boss": null,
-   "seed": 2872133706,
-   "budget": 10
-  },
-  {
-   "template": "room_20",
-   "waves": [
-    [
-     {
-      "type": "totem",
-      "c": 1,
-      "r": 3
-     },
-     {
-      "type": "mushroom",
-      "c": 6,
-      "r": 6
-     },
-     {
-      "type": "mushroom",
-      "c": 0,
-      "r": 7
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 1595941366,
-   "budget": 11
-  },
-  {
-   "template": "room_18",
-   "waves": [
-    [
-     {
-      "type": "goblin",
-      "c": 1,
-      "r": 5
-     },
-     {
-      "type": "skeleton",
-      "c": 1,
-      "r": 4
-     },
-     {
-      "type": "wolf",
-      "c": 6,
-      "r": 2
-     },
-     {
-      "type": "totem",
-      "c": 3,
-      "r": 6
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 38032305,
-   "budget": 13
+   "seed": 57142887,
+   "budget": 9
   },
   {
    "template": "room_21",
@@ -92,9 +78,9 @@
    "boss": {
     "archetype": "scorpion",
     "variant": 2,
-    "hpMult": 0.96
+    "hpMult": 0.683
    },
-   "seed": 4006135582,
+   "seed": 2071420656,
    "budget": 0
   }
  ],
@@ -104,10 +90,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.38,
-  "expert": 0.98,
+  "moyen": 0.255,
+  "expert": 0.97,
   "band": "Boss",
   "ok": true,
-  "avgSeconds": 102
+  "avgSeconds": 71
  }
 }

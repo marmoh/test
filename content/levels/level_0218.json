@@ -126,8 +126,8 @@
      },
      {
       "type": "mushroom",
-      "c": 0,
-      "r": 5
+      "c": 7,
+      "r": 2
      }
     ],
     [
@@ -164,10 +164,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.745,
-  "expert": 0.995,
+  "moyen": 0.615,
+  "expert": 0.945,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 98
+  "avgSeconds": 112
  }
 }

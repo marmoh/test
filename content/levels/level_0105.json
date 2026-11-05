@@ -38,13 +38,13 @@
     [
      {
       "type": "mushroom",
-      "c": 2,
-      "r": 7
+      "c": 5,
+      "r": 3
      },
      {
       "type": "moth",
-      "c": 5,
-      "r": 3
+      "c": 2,
+      "r": 7
      },
      {
       "type": "snipper",
@@ -154,12 +154,12 @@
      },
      {
       "type": "mushroom",
-      "c": 0,
+      "c": 5,
       "r": 3
      },
      {
       "type": "jelly",
-      "c": 5,
+      "c": 0,
       "r": 3
      }
     ]
@@ -175,10 +175,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.775,
-  "expert": 0.975,
+  "moyen": 0.8,
+  "expert": 0.955,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 120
+  "avgSeconds": 110
  }
 }

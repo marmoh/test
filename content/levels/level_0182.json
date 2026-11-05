@@ -82,13 +82,13 @@
      },
      {
       "type": "mushroom",
-      "c": 6,
-      "r": 7
+      "c": 2,
+      "r": 2
      },
      {
       "type": "moth",
-      "c": 4,
-      "r": 1
+      "c": 6,
+      "r": 7
      }
     ],
     [
@@ -99,13 +99,13 @@
      },
      {
       "type": "totem",
-      "c": 3,
-      "r": 3
+      "c": 4,
+      "r": 2
      },
      {
       "type": "wolf",
       "c": 3,
-      "r": 7
+      "r": 3
      }
     ]
    ],
@@ -141,8 +141,8 @@
      },
      {
       "type": "mushroom",
-      "c": 4,
-      "r": 3,
+      "c": 6,
+      "r": 2,
       "elite": true
      }
     ]
@@ -158,10 +158,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.7,
-  "expert": 0.98,
+  "moyen": 0.655,
+  "expert": 0.925,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 110
+  "avgSeconds": 91
  }
 }

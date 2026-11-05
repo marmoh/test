@@ -6,198 +6,141 @@
  "kind": "normal",
  "D": 7.526,
  "mult": 1,
- "budgetScale": 1,
- "seed": 5,
- "powerSeed": 343727286,
+ "budgetScale": 0.683,
+ "seed": 25,
+ "powerSeed": 1932304211,
  "rooms": [
   {
-   "template": "room_22",
+   "template": "room_03",
    "waves": [
     [
      {
-      "type": "skeleton",
+      "type": "mushroom",
       "c": 6,
-      "r": 4
+      "r": 2
      },
      {
-      "type": "mushroom",
+      "type": "jelly",
       "c": 1,
       "r": 2
      },
      {
-      "type": "bat",
-      "c": 5,
-      "r": 8
-     }
-    ],
-    [
-     {
-      "type": "skeleton",
-      "c": 5,
-      "r": 0
-     },
-     {
-      "type": "moth",
-      "c": 3,
-      "r": 6
+      "type": "goblin",
+      "c": 8,
+      "r": 3
      },
      {
       "type": "jelly",
-      "c": 5,
-      "r": 5
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 2457932446,
-   "budget": 16
-  },
-  {
-   "template": "room_19",
-   "waves": [
-    [
-     {
-      "type": "bat",
-      "c": 0,
-      "r": 1
-     },
-     {
-      "type": "goblin",
-      "c": 5,
-      "r": 7
-     },
-     {
-      "type": "bat",
-      "c": 7,
-      "r": 5
-     },
-     {
-      "type": "wolf",
-      "c": 0,
-      "r": 8
-     }
-    ],
-    [
-     {
-      "type": "totem",
-      "c": 7,
-      "r": 7
-     },
-     {
-      "type": "snipper",
-      "c": 0,
-      "r": 1
-     },
-     {
-      "type": "bat",
-      "c": 8,
+      "c": 3,
       "r": 4
      }
     ]
    ],
    "boss": null,
-   "seed": 1669556143,
-   "budget": 18
+   "seed": 3710877972,
+   "budget": 11
   },
   {
    "template": "room_06",
    "waves": [
     [
      {
-      "type": "wolf",
-      "c": 5,
-      "r": 8
-     },
-     {
-      "type": "moth",
-      "c": 1,
-      "r": 1
-     },
-     {
       "type": "bat",
       "c": 4,
-      "r": 7
+      "r": 2
      },
      {
-      "type": "jelly",
-      "c": 5,
-      "r": 5
-     }
-    ],
-    [
+      "type": "skeleton",
+      "c": 6,
+      "r": 8
+     },
      {
       "type": "moth",
       "c": 0,
-      "r": 6,
+      "r": 2,
       "elite": true
      },
      {
-      "type": "jelly",
-      "c": 1,
-      "r": 3
-     },
-     {
-      "type": "bat",
-      "c": 6,
-      "r": 1
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 2199600758,
-   "budget": 20
-  },
-  {
-   "template": "room_11",
-   "waves": [
-    [
-     {
-      "type": "mushroom",
-      "c": 1,
-      "r": 1
-     },
-     {
-      "type": "totem",
-      "c": 7,
-      "r": 3
-     },
-     {
       "type": "goblin",
-      "c": 7,
-      "r": 0
-     },
-     {
-      "type": "jelly",
-      "c": 3,
-      "r": 8
-     }
-    ],
-    [
-     {
-      "type": "jelly",
-      "c": 1,
-      "r": 1
-     },
-     {
-      "type": "goblin",
-      "c": 6,
-      "r": 6
-     },
-     {
-      "type": "mushroom",
-      "c": 5,
-      "r": 5
-     },
-     {
-      "type": "mushroom",
-      "c": 5,
+      "c": 0,
       "r": 4
      }
     ]
    ],
    "boss": null,
-   "seed": 1579177294,
-   "budget": 23
+   "seed": 434067241,
+   "budget": 12
+  },
+  {
+   "template": "room_15",
+   "waves": [
+    [
+     {
+      "type": "moth",
+      "c": 6,
+      "r": 3
+     },
+     {
+      "type": "bat",
+      "c": 4,
+      "r": 3
+     }
+    ],
+    [
+     {
+      "type": "jelly",
+      "c": 5,
+      "r": 4
+     },
+     {
+      "type": "wolf",
+      "c": 5,
+      "r": 1,
+      "elite": true
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 1684181707,
+   "budget": 14
+  },
+  {
+   "template": "room_10",
+   "waves": [
+    [
+     {
+      "type": "mushroom",
+      "c": 2,
+      "r": 3
+     },
+     {
+      "type": "bat",
+      "c": 3,
+      "r": 3,
+      "elite": true
+     },
+     {
+      "type": "wolf",
+      "c": 0,
+      "r": 6
+     }
+    ],
+    [
+     {
+      "type": "wolf",
+      "c": 2,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 3
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3334147756,
+   "budget": 16
   }
  ],
  "stars": {
@@ -206,10 +149,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.57,
-  "expert": 0.965,
+  "moyen": 0.61,
+  "expert": 0.96,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 153
+  "avgSeconds": 106
  }
 }

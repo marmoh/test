@@ -81,14 +81,14 @@
     [
      {
       "type": "totem",
-      "c": 3,
-      "r": 3,
+      "c": 1,
+      "r": 2,
       "elite": true
      },
      {
       "type": "skeleton",
-      "c": 1,
-      "r": 2
+      "c": 3,
+      "r": 3
      }
     ]
    ],
@@ -107,25 +107,25 @@
      },
      {
       "type": "mushroom",
-      "c": 3,
-      "r": 4,
+      "c": 6,
+      "r": 5,
       "elite": true
      },
      {
       "type": "totem",
-      "c": 7,
-      "r": 1
+      "c": 6,
+      "r": 4
      }
     ],
     [
      {
       "type": "mushroom",
-      "c": 0,
+      "c": 3,
       "r": 6
      },
      {
       "type": "bat",
-      "c": 3,
+      "c": 0,
       "r": 6
      }
     ]
@@ -141,10 +141,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.735,
-  "expert": 1,
+  "moyen": 0.6,
+  "expert": 0.99,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 99
+  "avgSeconds": 140
  }
 }

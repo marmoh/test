@@ -6,182 +6,151 @@
  "kind": "normal",
  "D": 9.12,
  "mult": 1,
- "budgetScale": 1,
- "seed": 6,
- "powerSeed": 2950743354,
+ "budgetScale": 0.826,
+ "seed": 9,
+ "powerSeed": 2811157781,
  "rooms": [
   {
-   "template": "room_15",
+   "template": "room_11",
    "waves": [
     [
      {
       "type": "jelly",
-      "c": 3,
-      "r": 1
+      "c": 4,
+      "r": 5,
+      "elite": true
      },
      {
-      "type": "jelly",
-      "c": 0,
-      "r": 2
-     },
-     {
-      "type": "jelly",
-      "c": 1,
-      "r": 1
-     }
-    ],
-    [
-     {
-      "type": "goblin",
-      "c": 3,
+      "type": "totem",
+      "c": 5,
       "r": 3
-     },
-     {
-      "type": "mushroom",
-      "c": 0,
-      "r": 2
      }
     ]
    ],
    "boss": null,
-   "seed": 2738634139,
-   "budget": 15
+   "seed": 2053610965,
+   "budget": 13
   },
   {
    "template": "room_14",
    "waves": [
     [
      {
-      "type": "mushroom",
-      "c": 0,
-      "r": 1
-     },
-     {
-      "type": "totem",
-      "c": 8,
-      "r": 5
-     },
-     {
-      "type": "snipper",
+      "type": "jelly",
       "c": 1,
-      "r": 1
-     }
-    ],
-    [
-     {
-      "type": "skeleton",
-      "c": 4,
-      "r": 5
-     },
-     {
-      "type": "skeleton",
-      "c": 5,
-      "r": 8
-     },
-     {
-      "type": "goblin",
-      "c": 4,
-      "r": 8
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 600732576,
-   "budget": 18
-  },
-  {
-   "template": "room_01",
-   "waves": [
-    [
-     {
-      "type": "moth",
-      "c": 6,
-      "r": 2
-     },
-     {
-      "type": "mushroom",
-      "c": 0,
-      "r": 6
-     },
-     {
-      "type": "mushroom",
-      "c": 5,
-      "r": 2
-     },
-     {
-      "type": "skeleton",
-      "c": 3,
       "r": 3
-     }
-    ],
-    [
+     },
      {
-      "type": "mushroom",
-      "c": 7,
+      "type": "wolf",
+      "c": 6,
       "r": 1
      },
      {
       "type": "snipper",
-      "c": 5,
+      "c": 4,
       "r": 1
+     }
+    ],
+    [
+     {
+      "type": "bat",
+      "c": 8,
+      "r": 0
      },
      {
       "type": "jelly",
-      "c": 5,
-      "r": 3
+      "c": 1,
+      "r": 0
      }
     ]
    ],
    "boss": null,
-   "seed": 343073249,
-   "budget": 20
+   "seed": 1590828144,
+   "budget": 15
   },
   {
-   "template": "room_07",
+   "template": "room_10",
    "waves": [
     [
      {
-      "type": "totem",
-      "c": 7,
-      "r": 2
+      "type": "mushroom",
+      "c": 5,
+      "r": 3
      },
      {
       "type": "goblin",
-      "c": 5,
-      "r": 2
+      "c": 1,
+      "r": 4
      },
      {
-      "type": "totem",
-      "c": 3,
-      "r": 7
-     },
-     {
-      "type": "jelly",
-      "c": 4,
-      "r": 8
+      "type": "bat",
+      "c": 2,
+      "r": 1
      }
     ],
     [
      {
       "type": "mage",
-      "c": 4,
-      "r": 6
-     },
-     {
-      "type": "goblin",
-      "c": 2,
+      "c": 6,
       "r": 0
      },
      {
-      "type": "skeleton",
-      "c": 6,
-      "r": 7
+      "type": "mage",
+      "c": 7,
+      "r": 5
      }
     ]
    ],
    "boss": null,
-   "seed": 3312922066,
-   "budget": 23
+   "seed": 604655039,
+   "budget": 17
+  },
+  {
+   "template": "room_21",
+   "waves": [
+    [
+     {
+      "type": "snipper",
+      "c": 2,
+      "r": 8
+     },
+     {
+      "type": "jelly",
+      "c": 3,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 7
+     },
+     {
+      "type": "bat",
+      "c": 6,
+      "r": 5
+     }
+    ],
+    [
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 8
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 3
+     },
+     {
+      "type": "wolf",
+      "c": 0,
+      "r": 6
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 988992946,
+   "budget": 19
   }
  ],
  "stars": {
@@ -190,10 +159,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.67,
-  "expert": 1,
+  "moyen": 0.595,
+  "expert": 0.945,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 180
+  "avgSeconds": 102
  }
 }
