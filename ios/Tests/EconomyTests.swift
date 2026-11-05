@@ -37,6 +37,8 @@ final class EconomyTests: XCTestCase {
         XCTAssertEqual(SeasonPass.season(at: SeasonPass.epoch - 86_400).number, 1)
         XCTAssertEqual(SeasonPass.season(at: SeasonPass.epoch + 42 * 86_400).number, 2)
         XCTAssertEqual(SeasonPass.productID(season: 1), ProductID.seasonPass1.rawValue)
+        XCTAssertEqual(SeasonPass.productID(season: 2), ProductID.seasonPass2.rawValue)
+        XCTAssertEqual(SeasonPass.season(at: 1_797_206_400).number, 2) // 14 décembre 2026, 00:00 UTC
         XCTAssertEqual(SeasonPass.pointsForWin(prevStars: 0, stars: 3), 40)
         XCTAssertEqual(SeasonPass.pointsForWin(prevStars: 3, stars: 2), 10)
         XCTAssertEqual(SeasonPass.freeTrack.count, 30)

@@ -8,6 +8,8 @@ enum ProductID: String, CaseIterable, Codable, Sendable {
     case gemsChest = "ombrelune.gems.chest"
     case starterPack = "ombrelune.starter"
     case seasonPass1 = "ombrelune.pass.season1"
+    /// Saison 2 : du 14 décembre 2026 au 25 janvier 2027 (saisons de 6 semaines depuis le 2 novembre 2026).
+    case seasonPass2 = "ombrelune.pass.season2"
     case dragonMonthly = "ombrelune.dragon.monthly"
     case dragonYearly = "ombrelune.dragon.yearly"
 
@@ -33,6 +35,7 @@ enum ProductID: String, CaseIterable, Codable, Sendable {
         case .gemsChest: .gems(1_200)
         case .starterPack: .starterPack
         case .seasonPass1: .seasonPass(season: 1)
+        case .seasonPass2: .seasonPass(season: 2)
         case .dragonMonthly, .dragonYearly: .dragon
         }
     }

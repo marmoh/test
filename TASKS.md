@@ -56,18 +56,28 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] `project.yml` XcodeGen (iOS 17+), cibles app + tests
 - [x] `Core/` : port Swift de la simulation (même RNG, mêmes formules), lecture des JSON
 - [x] `Game/` : SpriteKit (atlas, rendu, VFX), contrôles, Core Haptics
-- [~] `UI/` : SwiftUI — fait : `Theme`, `SettingsView`, `DragonView` (`SubscriptionStoreView` + gestion), `LivesView` (+ publicité factice) ; reste : carte, pré-niveau, pouvoirs, résultats, héros, boutique, pass, tournoi
-- [~] `Services/` : fait : StoreKit 2 (`Store` : chargement, achat, restauration, `Transaction.updates`/`unfinished`, crédit idempotent via `CreditLedger`), `Wallet`, `GameSettings`, `LivesCenter`, `AdService` (protocole + `MockAdService` + ATT) ; reste : GameKit, persistance JSON + iCloud KV (implémentera `PurchaseSink`), AVAudioEngine
+- [x] `UI/` : SwiftUI — titre, carte, pré-niveau, pouvoirs, résultats, héros, boutique, pass, tournoi, réglages, Ordre du Dragon, vies ; recalés sur le prototype web dans le simulateur (captures `docs/screens/ios/`)
+- [x] `Services/` : StoreKit 2 (`Store`, crédit idempotent via `CreditLedger`), `Wallet`, `GameSettings`, `LivesCenter`, `AdService` (protocole + `MockAdService` + ATT), Game Center, sauvegarde JSON + iCloud KV, sons
 - [x] `Ombrelune.storekit` avec tous les produits §11 (gemmes, offre de départ, pass saison 1, Ordre du Dragon mensuel/annuel avec essai de 3 jours)
 - [x] `Core/Lives.swift` (vies §8, +1 vie) et `Tests/MonetizationTests.swift` (parité avec `web/test/economy.test.ts`)
 - [ ] Réseau publicitaire réel (AdMob ou AppLovin MAX) derrière `AdService`, consentement UMP/CMP, `NSUserTrackingUsageDescription` (voir `docs/MONETISATION.md`)
-- [ ] Polices OFL embarquées (`Resources/Fonts`, `UIAppFonts`)
+- [x] Polices OFL embarquées (`Resources/Fonts`, `UIAppFonts`) et icône d'app 1024 × 1024 (`tools/app-icon.swift`)
+- [x] Pass de saison 2 déclaré dans l'app (`ProductID.seasonPass2`, `.storekit`) ; reste sa création dans App Store Connect (`docs/MAC_PHASE.md` §14.4)
 
 ## M7 — Parité et qualité
 - [x] Traces de rejeu TS (entrée → état) et tests XCTest de parité
 - [x] Tests de bornes de performance (150 projectiles, 30 ennemis)
-- [~] Tournoi hebdomadaire : jouable dans le prototype web (graine ISO, 5 essais, score) ; Game Center à faire
+- [x] Tournoi hebdomadaire : web (graine ISO, 5 essais, score) et iOS (Game Center, classement récurrent `ombrelune.tournament.weekly`) ; classement à créer dans App Store Connect (`docs/MAC_PHASE.md` §14.6)
 
 ## M8 — Phase Mac
 - [x] `docs/MAC_PHASE.md` : génération XcodeGen, signature, StoreKit local, Game Center sandbox, profilage iPhone 11, TestFlight (étapes monétisation déjà listées dans `docs/MONETISATION.md`)
+- [x] Mac prêt : Node 22 (Homebrew) + pnpm, XcodeGen, `pnpm verify` vert
+- [x] Signature : équipe P42VAGHFV3, `com.marmoh.ombrelune` ; App ID créé avec Game Center et iCloud
+- [x] Compilation simulateur sans erreur ni avertissement (atlas 4096 px, concurrence)
+- [x] XCTest 30/30 (parité 4, cœur 11, économie 9, monétisation 6) ; `pnpm traces` protégé contre un Node qui calcule autrement (DECISIONS #68)
+- [x] Recette dans le simulateur et captures (`docs/screens/ios/`)
+- [x] Archive Release signée et export App Store local vérifié (certificat Apple Distribution, profil App Store) — rien d'envoyé
+- [ ] Site d'Apple : accord Applications payantes, fiche de l'app, achats intégrés, groupe « Ordre du Dragon » (puis reporter son identifiant dans `ProductID.dragonGroupID`), pass saison 2, classement Game Center — liste exacte dans `docs/MAC_PHASE.md` §14
+- [ ] Réseau publicitaire réel (identifiants AdMob, `app-ads.txt`, étiquette de confidentialité) — §9 et §14.7
+- [ ] Profilage sur iPhone 11 (§11) et premier envoi TestFlight (§12), sur votre feu vert
 - [ ] Conditions d'utilisation et politique de confidentialité définitives (liens sous l'offre d'abonnement)

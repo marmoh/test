@@ -18,6 +18,32 @@ Contenu de `ios/` :
 Le projet copie dans l'app les mêmes JSON que le web : `content/levels/` et `content/rooms/` (dossiers
 `levels/` et `rooms/` du paquet), et dans le paquet de tests `content/traces/`.
 
+## État au 5 novembre 2026 (Mac, Xcode 26.6, iPhone 17 / iOS 26 en simulateur)
+
+| Étape | État |
+|---|---|
+| Outils | Node 22.23.4 (Homebrew `node@22`, `.nvmrc`), pnpm 10.28.0 (corepack), XcodeGen 2.46.0, Xcode 26.6 |
+| `pnpm install` + `pnpm verify` | ✅ 78 tests vitest, 24 gabarits, 300 niveaux dans leurs bandes |
+| Signature | ✅ équipe **P42VAGHFV3** (Mh MIZOURI), identifiant **`com.marmoh.ombrelune`** ; l'App ID a été créé par Xcode avec Game Center et iCloud (clé-valeur) |
+| Compilation simulateur | ✅ sans erreur ni avertissement (seule reste la note d'Xcode « Metadata extraction skipped. No AppIntents.framework dependency found », émise pour toute app sans AppIntents) |
+| XCTest | ✅ 30/30 : `ParityTests` 4 (traces rejouées au bit près), `CoreTests` 11, `EconomyTests` 9, `MonetizationTests` 6 |
+| Recette visuelle | ✅ titre, carte, boutique, pass, tournoi, réglages, combat avec boucle fermée et découpe — captures dans `docs/screens/ios/` |
+| Polices, icône | ✅ `Resources/Fonts` (OFL) et `AppIcon-1024.png` |
+| Archive Release | ✅ `xcodebuild archive` signé, puis export App Store **local** (`.ipa`, non envoyé) : certificat *Apple Distribution*, profil *iOS Team Store Provisioning Profile: com.marmoh.ombrelune* (valides jusqu'au 7 février 2027) |
+| App Store Connect, Game Center, réseau publicitaire | ⏳ à faire sur le site d'Apple : **§14** ci-dessous |
+
+Corrections faites pendant cette phase : atlas SpriteKit en pages de 4096 px (`TEXTURE_ATLAS_MAXIMUM_SIZE`, DECISIONS #69),
+deux avertissements de concurrence, nom PostScript d'IM Fell (`IM_FELL_English_SC`), écrans recalés sur le prototype web
+(titre, carte, boutique, pass, réglages), barre d'état masquée en combat, aide « Encercle-le » gardée dans l'arène.
+
+**Captures et recette rapide** (Debug seulement) : `xcrun simctl launch booted com.marmoh.ombrelune -screen <écran>`
+ouvre directement `map`, `heroes`, `shop`, `pass`, `tournament`, `settings`, `lives`, `dragon`, `prelevel` ou
+`combat` (`-level N`).
+
+**Traces de parité** : ne pas lancer `pnpm traces` sur ce Mac. Node 22 de Homebrew sur Apple Silicon calcule `sin`,
+`cos` et `pow` à 1 ulp près autrement que la machine qui a produit `content/traces/` (13 valeurs sur 13 620) ; l'outil
+le détecte et refuse d'écrire (DECISIONS #68). Les traces du dépôt, elles, passent sur le simulateur.
+
 ---
 
 ## 1. Préparer le Mac
@@ -28,6 +54,9 @@ Le projet copie dans l'app les mêmes JSON que le web : `content/levels/` et `co
    `storeKitConfiguration` du schéma en dépend).
 3. Pour régénérer contenus et traces : Node 22 et pnpm (`corepack enable`), puis `pnpm install` à la racine.
    **Garder Node 22** tant que les traces n'ont pas été vérifiées avec une version plus récente (DECISIONS #50).
+   Sur ce Mac : `brew install node@22` (version à part, sans toucher au Node de nvm), puis dans chaque terminal du projet
+   `export PATH="/opt/homebrew/opt/node@22/bin:$PATH"` ; `corepack enable --install-directory /opt/homebrew/opt/node@22/bin`
+   fournit `pnpm`. Voir l'encadré « Traces de parité » plus haut avant `pnpm traces`.
 
 ## 2. Générer et ouvrir le projet
 
@@ -43,9 +72,8 @@ open Ombrelune.xcodeproj
 
 ## 3. Signature et capacités
 
-1. Dans `ios/project.yml`, remplacer l'identifiant provisoire `com.example.ombrelune` (et `…tests`) par le
-   vrai identifiant, renseigner `DEVELOPMENT_TEAM`, puis `xcodegen generate`.
-   (Ou : cible *Ombrelune* › *Signing & Capabilities* › *Team* ; mais la valeur sera perdue à la prochaine génération.)
+1. ✅ Fait : `com.marmoh.ombrelune` (tests : `com.marmoh.ombrelune.tests`) et `DEVELOPMENT_TEAM: P42VAGHFV3` dans
+   `ios/project.yml` (ne pas les régler dans Xcode : la valeur serait perdue à la prochaine génération).
 2. Portail développeur (ou laisser Xcode le faire en signature automatique) — l'App ID doit avoir :
    - **In-App Purchase** ;
    - **Game Center** (entitlement `com.apple.developer.game-center`, déjà dans `project.yml`) ;
@@ -104,9 +132,11 @@ open Ombrelune.xcodeproj
    compris) ; Ordre du Dragon (essai de 3 jours, renouvellement accéléré via *Editor › Time Rate*, résiliation,
    changement de formule) ; *Restaurer les achats* ; *Ask to Buy* (achat en attente).
 3. Le pass a un produit **par saison** (`ombrelune.pass.season<N>`, saisons de 6 semaines depuis le
-   2 novembre 2026). Seule la saison 1 est déclarée (`ProductID.seasonPass1`, `.storekit`) : avant le
-   14 décembre 2026, ajouter `seasonPass2 = "ombrelune.pass.season2"` dans `Services/ProductCatalog.swift`, le
-   produit dans `Ombrelune.storekit` et dans App Store Connect (sinon l'écran affiche « Bientôt »).
+   2 novembre 2026). Saisons 1 et 2 déclarées dans l'app (`ProductID.seasonPass1/2`, `Ombrelune.storekit`) ; la
+   saison 2 (14 décembre 2026 – 25 janvier 2027) doit encore être créée dans App Store Connect (§14.4), sinon
+   l'écran du pass affiche « Bientôt ». Pour la saison 3 (dès le 25 janvier 2027) : même ajout, `seasonPass3`.
+4. Les descriptions du `.storekit` respectent les limites d'App Store Connect (nom ≤ 30 caractères,
+   description ≤ 55) : ce sont exactement les textes à saisir en §14.
 
 ## 7. App Store Connect
 
@@ -160,15 +190,14 @@ Le détail est en tête de `ios/Services/AdService.swift` ; résumé :
    `.mockAds(app.ads)` de la feuille des vies (`UI/OmbreluneApp.swift`). Les vues ne connaissent que `AdService`.
 6. Mettre à jour l'étiquette de confidentialité et joindre le `PrivacyInfo.xcprivacy` du SDK.
 
-## 10. Polices, icône
+## 10. Polices, icône (✅ fait)
 
-1. Polices OFL : `IMFellEnglishSC-Regular.ttf` et Alegreya Sans (Regular, Medium, Bold, ExtraBold,
-   MediumItalic) dans `ios/Resources/Fonts/`, plus le texte de la licence OFL. Dans `project.yml` :
-   ajouter `- path: Resources/Fonts` aux sources de la cible et
-   `UIAppFonts: [IMFellEnglishSC-Regular.ttf, AlegreyaSans-Regular.ttf, …]` aux `info.properties`.
-   Sans les fichiers, l'app utilise les polices système (aucune erreur).
-2. Icône : une image 1024 × 1024 PNG sans transparence dans `Resources/Assets.xcassets/AppIcon.appiconset`
-   (référencée dans son `Contents.json`).
+1. Polices OFL dans `ios/Resources/Fonts/` (dépôt `google/fonts`) : `IMFellEnglishSC-Regular.ttf` (nom PostScript
+   **`IM_FELL_English_SC`**, utilisé par `Theme.display` et la scène) et Alegreya Sans Regular, Medium, Bold,
+   ExtraBold, MediumItalic, avec `OFL-IMFellEnglishSC.txt` et `OFL-AlegreyaSans.txt` ; déclarées dans `UIAppFonts`.
+2. Icône : `Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png` (1024 × 1024, opaque). Elle est
+   composée par `window.atlasAppIcon` (`web/src/atlas.ts`, mêmes marionnettes vectorielles que les atlas) ; pour la
+   régénérer : `pnpm web:dev` puis `swift tools/app-icon.swift`.
 
 ## 11. Profilage sur iPhone 11 (objectif §13 : 60 i/s)
 
@@ -195,8 +224,122 @@ Le détail est en tête de `ios/Services/AdService.swift` ; résumé :
 
 ## 13. Reste à faire connu
 
+- Tout ce qui se fait sur le site d'Apple : §14.
+- Profilage sur un vrai iPhone 11 (§11) et premier envoi TestFlight (§12) : à faire quand vous le décidez.
 - Images d'atlas des apparences (pass de saison, Parure du Dragon) : esquisses SpriteKit en attendant (DECISIONS #56).
 - Particules d'ambiance par royaume (lucioles, spores, sable, neige, braises) du web : non portées.
 - Musique : boîte à musique synthétisée, comme le web ; sons et musique suivent les Réglages.
-- Saisons 2 et suivantes du pass : produit StoreKit à ajouter avant chaque saison (§6.3).
-- Textes légaux définitifs (TASKS M8).
+- Saison 3 et suivantes du pass : produit à ajouter avant chaque saison (§6.3).
+- Textes légaux définitifs (TASKS M8) : `PolicyText` de `UI/DragonView.swift` est un brouillon.
+
+## 14. À faire sur le site d'Apple (valeurs exactes)
+
+Rien n'a été envoyé à App Store Connect. L'App ID `com.marmoh.ombrelune` existe déjà (créé par Xcode, équipe
+P42VAGHFV3) avec Game Center et iCloud ; In-App Purchase est activé d'office.
+
+### 14.1 Préalables (une fois)
+1. **Accords, taxes et banque** : signer l'accord **Paid Applications** (« Applications payantes »), renseigner compte
+   bancaire et formulaires fiscaux. Sans lui, aucun achat intégré ni abonnement ne fonctionne, même en TestFlight.
+2. **Utilisateurs et accès › Sandbox › Testeurs** : créer au moins un compte testeur (adresse jamais utilisée comme
+   identifiant Apple), territoire France ; il sert aux achats et à Game Center en sandbox.
+3. **Une URL de politique de confidentialité** publique (obligatoire pour une app avec abonnement) et, au choix, le
+   CLUF standard d'Apple ou vos conditions : leurs liens doivent figurer dans la description de l'app et sous l'offre
+   d'abonnement (à reporter aussi dans `PolicyText`).
+
+### 14.2 Fiche de l'app (Apps › « + » › Nouvelle app)
+| Champ | Valeur |
+|---|---|
+| Plateforme | iOS |
+| Nom | Ombrelune (si le nom est pris : « Ombrelune — théâtre d'ombres ») |
+| Langue principale | Français (France) |
+| Identifiant de paquet | `com.marmoh.ombrelune` |
+| SKU | `ombrelune-ios` |
+| Accès | Accès complet |
+| Catégorie | Jeux ; sous-catégories Action et Aventure |
+| Chiffrement | déjà déclaré : `ITSAppUsesNonExemptEncryption = false` |
+| Confidentialité (sans réseau publicitaire) | « Aucune donnée collectée » ; à revoir en §14.6 |
+
+### 14.3 Achats intégrés (Monétisation › Achats intégrés)
+Pour chacun : nom de référence, identifiant, prix (pays de référence **France**), localisation **Français (France)**
+avec le nom affiché et la description ci-dessous, disponibilité dans tous les pays, et une **capture pour la
+vérification** (une capture de la boutique convient : `docs/screens/ios/03-shop.png`).
+
+| Type | Nom de référence | Identifiant du produit | Prix | Nom affiché | Description |
+|---|---|---|---|---|---|
+| Consommable | Poignée de gemmes | `ombrelune.gems.handful` | 0,99 € | Poignée de gemmes | 100 gemmes. |
+| Consommable | Bourse de gemmes | `ombrelune.gems.pouch` | 4,99 € | Bourse de gemmes | 550 gemmes. |
+| Consommable | Coffre de gemmes | `ombrelune.gems.chest` | 9,99 € | Coffre de gemmes | 1 200 gemmes. |
+| Non consommable | Offre de départ | `ombrelune.starter` | 2,99 € | Offre de départ | 300 gemmes, le Moine du vent et 5 bonus. Une fois. |
+| Non consommable | Pass de saison 1 | `ombrelune.pass.season1` | 4,99 € | Pass de saison 1 | 30 paliers premium : or, gemmes, bonus, apparences. |
+
+Partage familial : désactivé pour tous. Les premiers achats intégrés partent en vérification **avec** une version de
+l'app (cocher les produits sur la page de la version avant de la soumettre).
+
+### 14.4 Pass de saison 2 (avant le lundi 14 décembre 2026)
+| Champ | Valeur |
+|---|---|
+| Type | Non consommable |
+| Nom de référence | Pass de saison 2 |
+| Identifiant du produit | `ombrelune.pass.season2` |
+| Prix | 4,99 € (France) |
+| Nom affiché (fr) | Pass de saison 2 |
+| Description (fr) | 30 paliers premium : or, gemmes, bonus, apparences. |
+| Partage familial | non |
+
+Le code de l'app le connaît déjà (`ProductID.seasonPass2`) : il suffit qu'il soit approuvé avant le 14 décembre
+(le soumettre avec une version, ou seul si une version est déjà publiée).
+
+### 14.5 Abonnement « Ordre du Dragon » (Monétisation › Abonnements)
+1. **Groupe d'abonnements** : nom de référence `Ordre du Dragon` ; localisation Français : nom affiché
+   `Ordre du Dragon`. Après création, **me donner l'identifiant numérique du groupe** (affiché sur sa page) : il
+   remplacera `21566001` (identifiant du `.storekit`) dans `ProductID.dragonGroupID`, sinon l'écran d'abonnement
+   (`SubscriptionStoreView`) restera vide en production.
+2. Deux abonnements dans ce groupe, **au même niveau** (comme dans le `.storekit`) :
+
+| Champ | Annuel | Mensuel |
+|---|---|---|
+| Nom de référence | Ordre du Dragon annuel | Ordre du Dragon mensuel |
+| Identifiant du produit | `ombrelune.dragon.yearly` | `ombrelune.dragon.monthly` |
+| Durée | 1 an | 1 mois |
+| Prix (France) | 39,99 € | 4,99 € |
+| Nom affiché (fr) | Ordre du Dragon (annuel) | Ordre du Dragon (mensuel) |
+| Description (fr) | Vies illimitées, 60 gemmes/semaine, +25 % d’or, parure | idem |
+| Offre de lancement | Essai gratuit, 3 jours, nouveaux abonnés, tous les pays | idem |
+| Partage familial | non | non |
+
+3. Capture pour la vérification : l'écran de l'Ordre (`-screen dragon`) ; notes de vérification : « Avantages :
+   vies illimitées, 60 gemmes par semaine à réclamer sur la carte, apparence Parure du Dragon, +25 % d'or. »
+
+### 14.6 Game Center (Fonctionnalités › Game Center)
+1. Activer Game Center pour l'app, puis sur la page de la version cocher **Game Center** et y ajouter le classement.
+2. **Classement récurrent** :
+
+| Champ | Valeur |
+|---|---|
+| Type | Classement récurrent (*Recurring*) |
+| Nom de référence | Tournoi de la semaine |
+| ID du classement | `ombrelune.tournament.weekly` |
+| Format du score | Entier |
+| Type de soumission | Meilleur score |
+| Ordre de tri | Décroissant (le plus haut gagne) |
+| Début | lundi 9 novembre 2026, 00:00 UTC (toujours un lundi à 00:00 UTC) |
+| Durée | 1 semaine |
+| Redémarrer tous les | 1 semaine |
+| Plage de scores | 0 à 100 000 (facultatif) |
+| Localisation Français | nom `Tournoi de la semaine` ; suffixe du score : ` points` (singulier ` point`) |
+
+3. Test : sur l'iPhone, *Réglages › Game Center* › section *Développeur* › compte sandbox de §14.1.
+
+### 14.7 Réseau publicitaire (publicité récompensée « +1 vie »)
+Ce qui se passe sur le site d'Apple n'arrive qu'une fois le SDK choisi et branché (§9) ; le reste se fait chez le réseau.
+1. Chez le réseau (AdMob recommandé) : créer l'app iOS liée à `com.marmoh.ombrelune`, un bloc **Récompensé**
+   (récompense : 1 vie), activer le message de consentement UMP (RGPD) et le message IDFA ; me donner
+   l'**identifiant d'app** (`ca-app-pub-…~…`) et l'**identifiant du bloc** (`ca-app-pub-…/…`).
+2. Publier un fichier `app-ads.txt` à la racine du site web indiqué dans la fiche App Store (URL marketing).
+3. App Store Connect › **Confidentialité de l'app** : remplacer « Aucune donnée collectée » par les données déclarées
+   par le SDK (pour AdMob : *Identifiants › Identifiant de l'appareil*, *Données d'utilisation › Interaction avec le
+   produit* et *Données publicitaires*, *Diagnostics › Plantages et Performances* ; finalité **Publicité tierce** ;
+   « Utilisé pour le suivi » = **oui** si les publicités personnalisées sont proposées).
+4. Questionnaire d'âge : cocher la présence de publicités ; notes de vérification : « Publicité uniquement à la
+   demande du joueur (feuille des vies), jamais en combat ni pour les membres de l'Ordre. »
+
