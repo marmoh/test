@@ -246,7 +246,7 @@ Le détail est en tête de `ios/Services/AdService.swift` ; résumé :
 **Fait le 5 novembre 2026 par l'API** (§15) : la fiche de l'app (créée sur le site), §14.3, §14.4, §14.5 (groupe
 **22548846**, reporté dans `ProductID.dragonGroupID` et le `.storekit`) et §14.6. Les produits sont en état
 leurs captures pour la vérification (`fastlane review_screenshots` : boutique, ou écran du pass pour les pass) et
-leurs localisations anglaise et espagnole, ainsi que celles du groupe (`fastlane localize`), sont envoyées. Build 0.1.0 (1) validé sur TestFlight.
+leurs localisations anglaise et espagnole, ainsi que celles du groupe (`fastlane localize`), sont envoyées. Builds 0.1.0 (1) et 0.1.0 (2, nouveau fil court et progressif) validés sur TestFlight.
 Reste aussi §14.1 et §14.7.
 L'App ID `com.marmoh.ombrelune` a été créé par Xcode (équipe P42VAGHFV3) avec Game Center et iCloud.
 
