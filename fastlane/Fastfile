@@ -6,6 +6,7 @@
 #   status       lecture seule : app, builds, achats intégrés, abonnements, classements
 #   products     crée les achats intégrés (consommables, non consommables) du .storekit
 #   dragon       crée le groupe « Ordre du Dragon », ses abonnements et l'essai gratuit
+#   localize     ajoute les langues du .storekit (en-US, es-ES) aux produits, abonnements et groupe
 #   leaderboard  crée le classement récurrent du tournoi (Game Center)
 #   beta         archive Release, export App Store et envoi sur TestFlight
 #
@@ -261,6 +262,53 @@ platform :ios do
       UI.success("+ #{pid} (#{s['displayPrice']} €, #{points.size} pays, essai #{offer && offer['subscriptionPeriod']})")
     end
     UI.important("Identifiant du groupe « #{sk_group['name']} » : #{group['id']} → ProductID.dragonGroupID")
+  end
+
+  desc "Ajoute aux achats intégrés, aux abonnements et au groupe les langues du .storekit absentes d'App Store Connect"
+  lane :localize do
+    # « en_US » du .storekit → « en-US » d'App Store Connect ; le français est déjà en place
+    locales = ->(item) { item["localizations"].reject { |l| l["locale"].start_with?("fr") }.map { |l| [l["locale"].tr("_", "-"), l] } }
+    iaps = asc_all("/v1/apps/#{app_id}/inAppPurchasesV2?limit=200").to_h { |p| [p.dig("attributes", "productId"), p["id"]] }
+    products.each do |p|
+      id = iaps[p["productID"]] or next UI.important("#{p['productID']} absent : lancer d'abord `products`")
+      have = asc_all("/v2/inAppPurchases/#{id}/inAppPurchaseLocalizations?limit=200").map { |l| l.dig("attributes", "locale") }
+      locales.(p).each do |loc, l|
+        next if have.include?(loc)
+        asc(:post, "/v1/inAppPurchaseLocalizations", data: {
+          type: "inAppPurchaseLocalizations",
+          attributes: { locale: loc, name: l["displayName"], description: l["description"] },
+          relationships: { inAppPurchaseV2: rel("inAppPurchases", id) }
+        })
+        UI.success("+ #{p['productID']} #{loc} : #{l['displayName']}")
+      end
+    end
+    sk_group = STOREKIT["subscriptionGroups"].first
+    group = asc_all("/v1/apps/#{app_id}/subscriptionGroups?limit=200").find { |g| g.dig("attributes", "referenceName") == sk_group["name"] }
+    UI.user_error!("Groupe #{sk_group['name']} absent : lancer d'abord `dragon`") unless group
+    have = asc_all("/v1/subscriptionGroups/#{group['id']}/subscriptionGroupLocalizations?limit=200").map { |l| l.dig("attributes", "locale") }
+    locales.(sk_group).each do |loc, l|
+      next if have.include?(loc)
+      asc(:post, "/v1/subscriptionGroupLocalizations", data: {
+        type: "subscriptionGroupLocalizations",
+        attributes: { locale: loc, name: l["displayName"] },
+        relationships: { subscriptionGroup: rel("subscriptionGroups", group["id"]) }
+      })
+      UI.success("+ groupe #{loc} : #{l['displayName']}")
+    end
+    subs = asc_all("/v1/subscriptionGroups/#{group['id']}/subscriptions?limit=200").to_h { |s| [s.dig("attributes", "productId"), s["id"]] }
+    subscriptions.each do |s|
+      id = subs[s["productID"]] or next UI.important("#{s['productID']} absent : lancer d'abord `dragon`")
+      have = asc_all("/v1/subscriptions/#{id}/subscriptionLocalizations?limit=200").map { |l| l.dig("attributes", "locale") }
+      locales.(s).each do |loc, l|
+        next if have.include?(loc)
+        asc(:post, "/v1/subscriptionLocalizations", data: {
+          type: "subscriptionLocalizations",
+          attributes: { locale: loc, name: l["displayName"], description: l["description"] },
+          relationships: { subscription: rel("subscriptions", id) }
+        })
+        UI.success("+ #{s['productID']} #{loc} : #{l['displayName']}")
+      end
+    end
   end
 
   desc "Active Game Center et crée le classement récurrent du tournoi"
