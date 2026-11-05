@@ -78,7 +78,8 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] XCTest 30/30 (parité 4, cœur 11, économie 9, monétisation 6) ; `pnpm traces` protégé contre un Node qui calcule autrement (DECISIONS #68)
 - [x] Recette dans le simulateur et captures (`docs/screens/ios/`)
 - [x] Archive Release signée et export App Store local vérifié (certificat Apple Distribution, profil App Store) — rien d'envoyé
-- [ ] Site d'Apple : accord Applications payantes, fiche de l'app, achats intégrés, groupe « Ordre du Dragon » (puis reporter son identifiant dans `ProductID.dragonGroupID`), pass saison 2, classement Game Center — liste exacte dans `docs/MAC_PHASE.md` §14
+- [x] App Store Connect par l'API (fastlane) : achats intégrés, pass saison 2, Ordre du Dragon (groupe 22548846 reporté dans le code), classement du tournoi, build TestFlight — `docs/MAC_PHASE.md` §15
+- [ ] Site d'Apple : accord Applications payantes, captures pour la vérification des produits, localisations en/es des produits, envoi de la fiche App Store (`fastlane/metadata/`) — §14
 - [ ] Réseau publicitaire réel (identifiants AdMob, `app-ads.txt`, étiquette de confidentialité) — §9 et §14.7
-- [ ] Profilage sur iPhone 11 (§11) et premier envoi TestFlight (§12), sur votre feu vert
+- [ ] Profilage sur iPhone 11 (§11)
 - [ ] Conditions d'utilisation et politique de confidentialité définitives (liens sous l'offre d'abonnement)

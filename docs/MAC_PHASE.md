@@ -30,7 +30,9 @@ Le projet copie dans l'app les mêmes JSON que le web : `content/levels/` et `co
 | Recette visuelle | ✅ titre, carte, boutique, pass, tournoi, réglages, combat avec boucle fermée et découpe — captures dans `docs/screens/ios/` |
 | Polices, icône | ✅ `Resources/Fonts` (OFL) et `AppIcon-1024.png` |
 | Archive Release | ✅ `xcodebuild archive` signé, puis export App Store **local** (`.ipa`, non envoyé) : certificat *Apple Distribution*, profil *iOS Team Store Provisioning Profile: com.marmoh.ombrelune* (valides jusqu'au 7 février 2027) |
-| App Store Connect, Game Center, réseau publicitaire | ⏳ à faire sur le site d'Apple : **§14** ci-dessous |
+| App Store Connect | ✅ par l'API (fastlane, §15) : fiche Ombrelune (id 6831128456), 6 achats intégrés, Ordre du Dragon (groupe 22548846, 2 abonnements, 175 pays, essai 3 jours), classement du tournoi, build TestFlight |
+| Langues | ✅ français, anglais, espagnol (`Localizable.xcstrings`, DECISIONS #70) |
+| Reste chez Apple | ⏳ accord Applications payantes, captures pour la vérification des produits, fiche App Store, réseau publicitaire : §14 |
 
 Corrections faites pendant cette phase : atlas SpriteKit en pages de 4096 px (`TEXTURE_ATLAS_MAXIMUM_SIZE`, DECISIONS #69),
 deux avertissements de concurrence, nom PostScript d'IM Fell (`IM_FELL_English_SC`), écrans recalés sur le prototype web
@@ -234,8 +236,11 @@ Le détail est en tête de `ios/Services/AdService.swift` ; résumé :
 
 ## 14. À faire sur le site d'Apple (valeurs exactes)
 
-Rien n'a été envoyé à App Store Connect. L'App ID `com.marmoh.ombrelune` existe déjà (créé par Xcode, équipe
-P42VAGHFV3) avec Game Center et iCloud ; In-App Purchase est activé d'office.
+**Fait le 5 novembre 2026 par l'API** (§15) : la fiche de l'app (créée sur le site), §14.3, §14.4, §14.5 (groupe
+**22548846**, reporté dans `ProductID.dragonGroupID` et le `.storekit`) et §14.6. Les produits sont en état
+« Métadonnées manquantes » tant qu'il leur manque la **capture pour la vérification** ; les localisations anglaise
+et espagnole des produits (présentes dans le `.storekit`) ne sont pas encore envoyées. Reste aussi §14.1 et §14.7.
+L'App ID `com.marmoh.ombrelune` a été créé par Xcode (équipe P42VAGHFV3) avec Game Center et iCloud.
 
 ### 14.1 Préalables (une fois)
 1. **Accords, taxes et banque** : signer l'accord **Paid Applications** (« Applications payantes »), renseigner compte
@@ -342,4 +347,24 @@ Ce qui se passe sur le site d'Apple n'arrive qu'une fois le SDK choisi et branch
    « Utilisé pour le suivi » = **oui** si les publicités personnalisées sont proposées).
 4. Questionnaire d'âge : cocher la présence de publicités ; notes de vérification : « Publicité uniquement à la
    demande du joueur (feuille des vies), jamais en combat ni pour les membres de l'Ordre. »
+
+## 15. fastlane (API App Store Connect)
+
+Clé d'API d'équipe : `fastlane/.env` (`ASC_KEY_ID`, `ASC_ISSUER_ID`, ignoré par git) et
+`~/.appstoreconnect/private_keys/AuthKey_<ID>.p8` (jamais copié). Lancer depuis la racine :
+
+```sh
+LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane status        # lecture seule
+LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane products      # achats intégrés du .storekit
+LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane dragon        # groupe, abonnements, prix des 175 pays, essai (≈ 15 min)
+LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane leaderboard   # Game Center et classement du tournoi
+LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane beta          # archive, export, envoi TestFlight (sans soumission)
+```
+
+- Les lanes de création sont idempotentes (un identifiant existant est laissé tel quel) ; produits, prix et textes
+  viennent de `ios/Ombrelune.storekit`.
+- Avant chaque `beta` : incrémenter `CURRENT_PROJECT_VERSION` dans `ios/project.yml` (Apple refuse deux builds
+  de même numéro), puis `xcodegen generate`.
+- Classement récurrent : l'API attend une durée `PT168H` et une règle `FREQ=DAILY;INTERVAL=7` (pas `P7D` ni `WEEKLY`).
+- La fiche App Store (textes fr-FR, en-US, es-ES) est prête dans `fastlane/metadata/`, pas encore envoyée.
 
