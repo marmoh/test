@@ -6,90 +6,80 @@
  "kind": "boss",
  "D": 12.034,
  "mult": 1.55,
- "budgetScale": 0.683,
- "seed": 26,
- "powerSeed": 1975871276,
+ "budgetScale": 0.751,
+ "seed": 23,
+ "powerSeed": 3940050757,
  "rooms": [
-  {
-   "template": "room_24",
-   "waves": [
-    [
-     {
-      "type": "mage",
-      "c": 1,
-      "r": 7
-     },
-     {
-      "type": "bat",
-      "c": 6,
-      "r": 7
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 2216096653,
-   "budget": 7
-  },
-  {
-   "template": "room_13",
-   "waves": [
-    [
-     {
-      "type": "wolf",
-      "c": 2,
-      "r": 6
-     },
-     {
-      "type": "jelly",
-      "c": 4,
-      "r": 8
-     },
-     {
-      "type": "bat",
-      "c": 1,
-      "r": 5
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 3225690538,
-   "budget": 8
-  },
   {
    "template": "room_23",
    "waves": [
     [
      {
-      "type": "bat",
-      "c": 6,
-      "r": 7
-     },
-     {
       "type": "wolf",
-      "c": 8,
-      "r": 1
+      "c": 6,
+      "r": 2
      },
      {
-      "type": "goblin",
+      "type": "skeleton",
       "c": 5,
-      "r": 7,
+      "r": 1
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 4088879601,
+   "budget": 7
+  },
+  {
+   "template": "room_07",
+   "waves": [
+    [
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 8,
       "elite": true
      }
     ]
    ],
    "boss": null,
-   "seed": 1319777523,
+   "seed": 738209735,
    "budget": 9
   },
   {
-   "template": "room_10",
+   "template": "room_17",
+   "waves": [
+    [
+     {
+      "type": "moth",
+      "c": 5,
+      "r": 0
+     },
+     {
+      "type": "mushroom",
+      "c": 4,
+      "r": 5
+     },
+     {
+      "type": "totem",
+      "c": 1,
+      "r": 2
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3507066916,
+   "budget": 10
+  },
+  {
+   "template": "room_02",
    "waves": [],
    "boss": {
     "archetype": "ashlord",
     "variant": 2,
-    "hpMult": 0.683
+    "hpMult": 0.751
    },
-   "seed": 1012749593,
+   "seed": 105665747,
    "budget": 0
   }
  ],
@@ -99,10 +89,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.27,
-  "expert": 0.98,
+  "moyen": 0.28,
+  "expert": 0.805,
   "band": "Boss",
   "ok": true,
-  "avgSeconds": 79
+  "avgSeconds": 122
  }
 }
