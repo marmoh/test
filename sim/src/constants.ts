@@ -169,3 +169,64 @@ export const THREAD = {
 export const SHOT_DMG_MULT = 0.3;
 /** Les aiguilles épinglent les mites de papier : dégâts × 3 contre elles (DECISIONS #41). */
 export const NEEDLE_MOTH_MULT = 3;
+
+/**
+ * Moine du vent — Élan et bourrasque (DECISIONS #74). Courir charge l'élan (0 → 1) ; s'arrêter après avoir
+ * couru libère une bourrasque autour du moine : dégâts ∝ élan, recul des ennemis, projectiles ennemis dissipés.
+ */
+export const GUST = {
+  /** secondes de course pour charger l'élan de 0 à 1 */
+  chargeTime: 0.9,
+  /** perte d'élan par seconde à l'arrêt (si la bourrasque n'a pas eu lieu) */
+  decay: 1.5,
+  /** élan minimal pour déclencher une bourrasque */
+  minMomentum: 0.3,
+  /** rayon (pt) : base + perMomentum × élan */
+  radius: 62,
+  radiusPerMomentum: 58,
+  /** dégâts à élan plein, × dégâts du héros / 100 */
+  damage: 130,
+  /** recul (pt) à élan plein */
+  knockback: 46,
+  /** délai minimal entre deux bourrasques (s) */
+  cooldown: 0.35,
+  /** Tourbillon : durée, rayon d'aspiration, dégâts par seconde (× dégâts / 100), vitesse d'aspiration */
+  whirlLife: 1.6,
+  whirlRadius: 90,
+  whirlDps: 60,
+  whirlPull: 70,
+  /** Pas de plume : invulnérabilité après une bourrasque (s) */
+  featherInvuln: 0.6,
+} as const;
+
+/**
+ * Sorcier de braise — Traînée de braises (DECISIONS #74). En marchant, le sorcier sème des braises qui brûlent
+ * les ennemis au sol qui les touchent (brûlure entretenue tant qu'ils restent dessus, puis 1,2 s).
+ */
+export const EMBER = {
+  spacing: 12,
+  /** durée de vie d'une braise (s) */
+  life: 1.8,
+  maxPoints: 120,
+  /** rayon d'une braise (pt), ajouté au rayon de l'ennemi */
+  radius: 13,
+  /** dégâts par seconde de la brûlure, × dégâts du héros / 100 */
+  dps: 28,
+  /** durée de la brûlure après avoir quitté les braises (s) */
+  linger: 1.2,
+  /** Combustion : explosion d'un ennemi mort en brûlant (fraction de ses PV max, plafond × dégâts / 100) et rayon */
+  combustFrac: 0.35,
+  combustCap: 260,
+  combustRadius: 70,
+  /** les projectiles du sorcier font couver leur cible : fraction de la brûlure et durée */
+  needleFrac: 0.4,
+  needleLinger: 0.6,
+  /** Fournaise : ralentissement des ennemis dans la traînée */
+  furnaceSlow: 0.35,
+} as const;
+
+/** Aiguilles du Moine et du Sorcier : leur mécanique porte plus de dégâts que celles de l'Éclaireuse (DECISIONS #74). */
+export const SIGNATURE_NEEDLE_MULT = 0.65;
+
+/** Toile de l'araignée tisseuse : ralentit l'héroïne (DECISIONS #73). */
+export const WEB_SLOW = 0.45;

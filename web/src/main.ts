@@ -17,9 +17,14 @@ import { sfx, wakeAudio } from './audio.js';
 import { applyPrefs } from './prefs.js';
 import { installDragonSkin, installPassSkins } from './skins.js';
 import { passSheet, passBadge } from './pass.js';
-import { portrait } from './portraits.js';
+import { portrait, liveSprite } from './portraits.js';
 import { livesSheet, outOfLives, openDragon } from './dragon.js';
 import { DRAGON } from './economy.js';
+import { HEROES, type HeroId, type PowerId } from '../../sim/src/content.js';
+import { currentGearStats, grantLoot, recordFight, questsToClaim, heroUnlocked, heroUnlockText } from './meta.js';
+import { questsSheet, bestiarySheet } from './journal.js';
+import { onHeroTrial } from './menus.js';
+import { levelInfo } from '../../sim/src/formulas.js';
 
 const params = new URLSearchParams(location.search);
 
@@ -82,8 +87,9 @@ function showMap(): void {
     screen.querySelector('.tribute')?.remove();
     const t = tributeTag();
     if (t) screen.appendChild(t);
-    screen.querySelector('.avatar image')?.setAttribute('href', portrait('hero', 64, { scale: 1.5, dy: 8 }));
+    screen.querySelector('.avatar image')?.setAttribute('href', portrait(save().heroId, 64, { scale: 1.5, dy: 8 }));
     badge();
+    side();
     tickLives(false);
   };
   // pastille du pass : récompenses à réclamer
@@ -93,9 +99,20 @@ function showMap(): void {
     const n = passBadge();
     if (b && n > 0) b.prepend(el(`<i class="dot">${n}</i>`));
   };
+  // quêtes du jour et bestiaire : deux étiquettes de papier à gauche de la carte
+  const side = () => {
+    screen.querySelector('.side-tags')?.remove();
+    const n = questsToClaim();
+    screen.appendChild(
+      el(`<div class="side-tags"><button class="stag quests-tag" aria-label="Quêtes du jour"><img src="${iconURL(INK_UI.scroll)}" alt=""/><span>Quêtes</span>${n ? `<i class="dot">${n}</i>` : ''}</button><button class="stag beasts-tag" aria-label="Bestiaire"><img src="${iconURL(INK_UI.skull)}" alt=""/><span>Bestiaire</span></button></div>`),
+    );
+  };
+  side();
   refreshMap = refresh;
   screen.addEventListener('click', (e) => {
     const t = e.target as Element;
+    if (t.closest('.quests-tag')) return (sfx('tap'), questsSheet(refresh));
+    if (t.closest('.beasts-tag')) return (sfx('tap'), bestiarySheet());
     if (t.closest('.topbar .lives')) (sfx('tap'), void livesSheet(refresh));
     else if (t.closest('.topbar .gems')) shopSheet(refresh);
     else if (t.closest('.tribute')) {
@@ -154,11 +171,22 @@ async function openLevel(n: number): Promise<void> {
   play(lvl, choice);
 }
 
-function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: boolean }): void {
+interface PlayOptions {
+  /** héros joué (par défaut : celui de la sauvegarde) */
+  heroId?: HeroId;
+  /** essai d'un héros verrouillé : aucune vie, aucune récompense */
+  trial?: boolean;
+}
+
+function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: boolean }, popt: PlayOptions = {}): void {
   clear();
   const screen = el(`<div class="screen combat-screen"></div>`);
   root.appendChild(screen);
   const st = save().settings;
+  const heroId = popt.heroId ?? save().heroId;
+  const firstWin = (save().stars[lvl.n] ?? 0) === 0;
+  const report = (won: boolean, stats: { killsByType?: Record<string, number>; signatureHits?: number }, stars = 0, hpFrac = 0) =>
+    recordFight({ won, level: lvl.n, hero: heroId, killsByType: stats.killsByType ?? {}, signatureHits: stats.signatureHits ?? 0, stars, hpFrac, replay: !firstWin, boss: levelInfo(lvl.n).kind === 'boss' });
   const start = (scrollPick: import('../../sim/src/content.js').PowerId | null) => {
     const c: Combat = new Combat(
       screen,
@@ -171,8 +199,9 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
         autoFire: st.autoFire,
         reduceMotion: st.reduceMotion,
         haptics: st.haptics,
-        heroId: save().heroId,
+        heroId,
         talents: params.has('demo') ? undefined : save().talents,
+        gear: params.has('demo') ? undefined : currentGearStats(),
         demoBot: params.has('demo') ? new Bot(BOTS.expert, 7) : undefined,
       },
       {
@@ -180,13 +209,18 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
         defeat: (used) => defeat(used),
         pause: () => pauseMenu(),
         finish: async (r) => {
+          if (popt.trial) return trialEnd(c, heroId, lvl, true);
           const res = recordAttempt(lvl.n, true, r.stars);
-          const next = await victory(lvl, r, res);
+          const loot = grantLoot(lvl.n, firstWin, r.stars === 3);
+          report(true, r, r.stars, r.hpFrac);
+          const next = await victory(lvl, r, res, loot);
           c.destroy();
           showMap();
           if (next === 'next' && lvl.n < LEVEL_COUNT) void openLevel(lvl.n + 1);
         },
         retry: () => {
+          if (popt.trial) return (c.destroy(), play(lvl, { potion: false, scroll: false, aegis: false }, popt));
+          report(false, c.stats());
           recordAttempt(lvl.n, false, 0);
           c.destroy();
           if (canPlay()) play(lvl, { potion: false, scroll: false, aegis: false });
@@ -197,7 +231,10 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
           }
         },
         quit: () => {
-          recordAttempt(lvl.n, false, 0);
+          if (!popt.trial) {
+            report(false, c.stats());
+            recordAttempt(lvl.n, false, 0);
+          }
           c.destroy();
           showMap();
         },
@@ -212,11 +249,30 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
       const { Rng } = await import('../../sim/src/rng.js');
       const { newHero } = await import('../../sim/src/world.js');
       const { NO_TALENTS } = await import('../../sim/src/hero.js');
-      const pick = await choosePower(offerPowers(new Rng(lvl.powerSeed ^ 0x5c), {}), newHero(NO_TALENTS), 'Parchemin : pouvoir de départ');
+      const hd = HEROES[heroId];
+      const pick = await choosePower(offerPowers(new Rng(lvl.powerSeed ^ 0x5c), {}, 3, hd.family), newHero(NO_TALENTS, {}, true, { kind: hd.kind }), 'Parchemin : pouvoir de départ');
       start(pick);
     });
   } else start(null);
 }
+
+/** Fin d'un essai de héros : rien n'est gagné ni perdu ; on rappelle comment le débloquer. */
+function trialEnd(c: Combat, heroId: HeroId, lvl: LevelDef, won: boolean): void {
+  const h = HEROES[heroId];
+  const o = el(`<div class="overlay result-overlay ${won ? 'win' : 'lose'}"><div class="scrim"></div><div class="result"><h2 class="rtitle">Essai terminé</h2><p class="rsub">${h.name} · ${h.mechanic}</p><div class="trial-hero"></div><p class="trial-unlock">${heroUnlocked(heroId) ? 'Ce héros est à toi : choisis-le dans l’écran Héros.' : `Pour le garder : <b>${heroUnlockText(heroId)}</b>.`}</p><div class="ractions"><button class="btn ghost map">Carte</button><button class="btn primary again">Recommencer</button></div></div></div>`);
+  root.appendChild(o);
+  o.querySelector('.trial-hero')!.appendChild(liveSprite(heroId, 120, 2.4, 'idle', { aiming: true, facing: 0.2 }));
+  requestAnimationFrame(() => o.classList.add('in'));
+  o.querySelector('.map')!.addEventListener('click', () => (c.destroy(), showMap()));
+  o.querySelector('.again')!.addEventListener('click', () => (c.destroy(), play(lvl, { potion: false, scroll: false, aegis: false }, { heroId, trial: true })));
+}
+
+/** Essai d'un héros verrouillé : un niveau déjà connu, sans vie ni récompense. */
+onHeroTrial((id) => {
+  const n = Math.max(5, Math.min(save().unlocked - 1, id === 'emberSorcerer' ? 47 : 25));
+  play(level(n), { potion: false, scroll: false, aegis: false }, { heroId: id, trial: true });
+  toast(`Essai : ${HEROES[id].name}`);
+});
 
 function playTournament(weekKey: string): void {
   const t = tournamentState(weekKey);
@@ -242,7 +298,7 @@ function playTournament(weekKey: string): void {
   let kills = 0;
   const c: Combat = new Combat(
     screen,
-    { level: lvl, templates: TEMPLATES, heroId: 'scout', talents: NO_TALENTS, autoFire: true, reduceMotion: save().settings.reduceMotion, haptics: save().settings.haptics },
+    { level: lvl, templates: TEMPLATES, heroId: 'scout', talents: NO_TALENTS, autoFire: true, reduceMotion: save().settings.reduceMotion, haptics: save().settings.haptics, tutorialHints: false },
     {
       choosePower: (offer, hero) => choosePower(offer, hero),
       defeat: async () => {
@@ -295,6 +351,10 @@ function openScreen(name: string): void {
     map: () => undefined,
     prelevel: () => void openLevel(Number(params.get('level') ?? Math.min(save().unlocked, LEVEL_COUNT))),
     heroes: () => heroesSheet(() => refreshMap()),
+    gear: () => heroesSheet(() => refreshMap(), 'gear'),
+    talents: () => heroesSheet(() => refreshMap(), 'talents'),
+    quests: () => questsSheet(() => refreshMap()),
+    bestiary: () => bestiarySheet(),
     shop: () => shopSheet(() => refreshMap()),
     pass: () => passSheet(() => refreshMap()),
     tournament: () => tournamentSheet(weekKey, wk.week, () => playTournament(weekKey)),

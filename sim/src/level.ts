@@ -6,6 +6,8 @@ import {
   SPAWN_WEIGHT,
   BOSS_BY_KINGDOM,
   POWERS,
+  SIGNATURE_FAMILIES,
+  type PowerFamily,
   POWER_BY_ID,
   HEROES,
   unlockedEnemies,
@@ -17,6 +19,7 @@ import {
 } from './content.js';
 import { levelInfo, roomBudget, waveCap, stars, type LevelKind } from './formulas.js';
 import { talentsAtRank, NO_TALENTS, type Talents } from './hero.js';
+import type { GearStats } from './gear.js';
 import { Rng, seedOf } from './rng.js';
 import { World, newHero, grantPower, type HeroInput, type HeroState, type SpawnSpec } from './world.js';
 
@@ -196,16 +199,19 @@ function round3(x: number): number {
  * Offre de 3 pouvoirs distincts (tirage à graine), sans pouvoir déjà au maximum. La première carte est toujours de la
  * famille Fil tant qu'il en reste une à prendre : chaque choix oppose le fil (durée, découpe) au tir (DECISIONS #71).
  */
-export function offerPowers(rng: Rng, owned: Partial<Record<PowerId, number>>, count = 3): PowerId[] {
+export function offerPowers(rng: Rng, owned: Partial<Record<PowerId, number>>, count = 3, signature: PowerFamily = 'thread'): PowerId[] {
   const offer: PowerId[] = [];
+  // les familles signature des autres héros ne sont jamais proposées (DECISIONS #74) ; pour l'Éclaireuse, le
+  // filtrage retire les pouvoirs ajoutés après elle : ses tirages restent identiques au bit près
+  const own = (p: (typeof POWERS)[number]) => p.family === signature || !SIGNATURE_FAMILIES.includes(p.family);
   const eligible = (id: PowerId) => !offer.includes(id) && (owned[id] ?? 0) < POWER_BY_ID[id].maxStacks;
   for (let k = 0; k < count; k++) {
     const r = rng.weighted([RARITY_WEIGHTS.common, RARITY_WEIGHTS.rare, RARITY_WEIGHTS.epic]);
     const rarity = (['common', 'rare', 'epic'] as const)[r];
-    const family = (p: (typeof POWERS)[number]) => k > 0 || p.family === 'thread';
+    const family = (p: (typeof POWERS)[number]) => own(p) && (k > 0 || p.family === signature);
     let pool = POWERS.filter((p) => p.rarity === rarity && family(p) && eligible(p.id));
     if (!pool.length && k === 0) pool = POWERS.filter((p) => family(p) && eligible(p.id));
-    if (!pool.length) pool = POWERS.filter((p) => eligible(p.id));
+    if (!pool.length) pool = POWERS.filter((p) => own(p) && eligible(p.id));
     if (!pool.length) break;
     offer.push(rng.pick(pool).id);
   }
@@ -229,6 +235,8 @@ export interface Controller {
 
 export interface RunOptions {
   talents?: Talents;
+  /** Équipement porté (DECISIONS #75). */
+  gear?: GearStats;
   heroId?: HeroId;
   /** Graine de la tentative (aléas de combat : critiques, IA, orbes). */
   attemptSeed?: number;
@@ -257,7 +265,8 @@ export interface RunResult {
   timeout: boolean;
   /** Instrumentation : découpes réussies et dégâts effectifs par source. */
   cuts: number;
-  dmgBy: { cut: number; shot: number; other: number };
+  gusts: number;
+  dmgBy: { cut: number; shot: number; other: number; sig: number };
 }
 
 export function talentsForLevel(n: number): Talents {
@@ -266,8 +275,8 @@ export function talentsForLevel(n: number): Talents {
 
 export function runLevel(level: LevelDef, templates: Map<string, RoomTemplate>, ctl: Controller, opt: RunOptions = {}): RunResult {
   const talents = opt.talents ?? NO_TALENTS;
-  const hero = newHero(talents, {}, opt.autoFire ?? AUTO_FIRE_DEFAULT);
   const heroDef = HEROES[opt.heroId ?? 'scout'];
+  const hero = newHero(talents, {}, opt.autoFire ?? AUTO_FIRE_DEFAULT, { kind: heroDef.kind, gear: opt.gear });
   if (heroDef.startPower) grantPower(hero, heroDef.startPower);
   if (opt.scroll) grantPower(hero, opt.scroll);
   if (opt.potion) {
@@ -285,7 +294,7 @@ export function runLevel(level: LevelDef, templates: Map<string, RoomTemplate>, 
     const room = level.rooms[i];
     if (i > 0) {
       hero.hp = Math.min(hero.stats.maxHp, hero.hp + hero.stats.maxHp * HEAL_BETWEEN_ROOMS);
-      const offer = offerPowers(powerRng, hero.powers);
+      const offer = offerPowers(powerRng, hero.powers, 3, heroDef.family);
       let pick = i === 1 && opt.forceFirstPower ? opt.forceFirstPower : ctl.choosePower(offer, { level, nextRoom: i, hero });
       if (!pick) pick = offer[0];
       grantPower(hero, pick);
@@ -313,5 +322,5 @@ export function runLevel(level: LevelDef, templates: Map<string, RoomTemplate>, 
 function result(won: boolean, hero: HeroState, seconds: number, kills: number, rooms: number, powers: PowerId[], timeout: boolean): RunResult {
   const hpLeft = Math.max(0, hero.hp);
   const hpFrac = hpLeft / hero.stats.maxHp;
-  return { won, hpFrac, hpLeft, seconds, kills, stars: stars(won, hpFrac), roomsCleared: rooms, powers, hitsTaken: hero.hitsTaken, timeout, cuts: hero.cuts, dmgBy: { ...hero.dmgBy } };
+  return { won, hpFrac, hpLeft, seconds, kills, stars: stars(won, hpFrac), roomsCleared: rooms, powers, hitsTaken: hero.hitsTaken, timeout, cuts: hero.cuts, gusts: hero.gusts, dmgBy: { ...hero.dmgBy } };
 }

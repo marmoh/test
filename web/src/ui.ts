@@ -1,6 +1,6 @@
 /** Écrans et surcouches DOM : titre, pré-niveau, choix du pouvoir, victoire, défaite, pause. */
 import { levelInfo, goldReward } from '../../sim/src/formulas.js';
-import { POWER_BY_ID, BOSSES, ENEMIES, BOSS_BY_KINGDOM, type PowerId, type MinionType } from '../../sim/src/content.js';
+import { POWER_BY_ID, BOSSES, ENEMIES, BOSS_BY_KINGDOM, HEROES, newEnemyAt, type PowerId, type MinionType, type HeroId } from '../../sim/src/content.js';
 import type { LevelDef } from '../../sim/src/level.js';
 import type { HeroState } from '../../sim/src/world.js';
 import { INK_POWERS, INK_UI, iconURL } from '../../art/src/icons.js';
@@ -13,6 +13,9 @@ import { openDragon } from './dragon.js';
 import { applyPrefs } from './prefs.js';
 import type { CombatResult } from './combat.js';
 import type { AttemptResult } from './state.js';
+import { heroUnlocked, equip, type Loot } from './meta.js';
+import { lootBlock, lootPreview } from './gearui.js';
+import { LORE } from './journal.js';
 
 export function el(html: string): HTMLElement {
   const t = document.createElement('template');
@@ -116,6 +119,11 @@ export interface PreLevelChoice {
   aegis: boolean;
 }
 
+function heroChip(): string {
+  const h = HEROES[save().heroId];
+  return `<button class="pl-hero" aria-label="Changer de héros"><img src="${portrait(h.id, 44, { scale: 1.3, dy: 6 })}" alt=""/><span><small>Héros</small><b>${h.name}</b><em>${h.mechanic}</em></span><i class="pl-swap">⇄</i></button>`;
+}
+
 export function preLevel(level: LevelDef): Promise<PreLevelChoice | null> {
   const info = levelInfo(level.n);
   const s = save();
@@ -125,6 +133,8 @@ export function preLevel(level: LevelDef): Promise<PreLevelChoice | null> {
   const types = new Set<MinionType>();
   for (const r of level.rooms) for (const w of r.waves) for (const e of w) types.add(e.type);
   const boss = level.rooms.find((r) => r.boss)?.boss;
+  // ennemi présenté par ce niveau (salle tutoriel du début de chapitre)
+  const fresh = info.position === 1 ? newEnemyAt(info.chapter) : null;
   const badge = info.kind === 'boss' ? `<span class="badge boss">Boss</span>` : info.kind === 'hard' ? `<span class="badge hard"><img src="${iconURL(INK_UI.skull)}"/>Difficile</span>` : '';
   const tag = (id: BonusId) =>
     s.bonuses[id] > 0
@@ -138,7 +148,9 @@ export function preLevel(level: LevelDef): Promise<PreLevelChoice | null> {
       <div class="sheet-head"><div class="lvl-num">Niveau ${level.n}</div>${badge}</div>
       <div class="sheet-stars">${[0, 1, 2].map((i) => `<img class="${i < st ? 'on' : ''}" src="${iconURL(i < st ? INK_UI.star : INK_UI.starEmpty)}"/>`).join('')}</div>
       <p class="objective">Traverse ${level.rooms.length} salles${boss ? ` et terrasse <b>${BOSSES[boss.archetype].name}</b>` : ''}.</p>
-      <div class="foes">${boss ? `<div class="foe boss"><img src="${portrait(BOSS_BY_KINGDOM[info.kingdom - 1], 84, { scale: 0.75, dy: 12, variant: boss.variant })}"/></div>` : ''}${[...types].map((t) => `<div class="foe" title="${ENEMIES[t].name}"><img src="${portrait(t, 56, { scale: 1.2, dy: 6, variant: t === 'jellySmall' ? 1 : 0 })}"/></div>`).join('')}</div>
+      <div class="foes">${boss ? `<div class="foe boss"><img src="${portrait(BOSS_BY_KINGDOM[info.kingdom - 1], 84, { scale: 0.75, dy: 12, variant: boss.variant })}"/></div>` : ''}${[...types].map((t) => `<div class="foe${t === fresh ? ' fresh' : ''}" title="${ENEMIES[t].name}"><img src="${portrait(t, 56, { scale: 1.2, dy: 6, variant: t === 'jellySmall' ? 1 : 0 })}"/></div>`).join('')}</div>
+      ${fresh && LORE[fresh] ? `<div class="newfoe"><span class="nf-tag">Nouveau</span><b>${ENEMIES[fresh].name}</b><small>${LORE[fresh].what} ${LORE[fresh].tip}</small></div>` : ''}
+      <div class="pl-row">${heroChip()}${lootPreview(level.n)}</div>
       <div class="bonuses">${bonus('potion', INK_UI.potion, 'Potion de vie', '+25 % PV max')}${bonus('scroll', INK_UI.scroll, 'Parchemin', '1 pouvoir')}${bonus('aegis', INK_UI.aegis, 'Égide', '1 bouclier')}</div>
       <button class="btn primary big play">Jouer</button>
       <p class="fine">Une vie n’est retirée qu’en cas de défaite.</p>
@@ -146,6 +158,18 @@ export function preLevel(level: LevelDef): Promise<PreLevelChoice | null> {
     </div>`,
   );
   const choice: PreLevelChoice = { potion: false, scroll: false, aegis: false };
+  // héros : un toucher passe au héros débloqué suivant
+  const bindHero = () =>
+    o.querySelector('.pl-hero')?.addEventListener('click', () => {
+      const ids = (Object.keys(HEROES) as HeroId[]).filter((id) => heroUnlocked(id));
+      if (ids.length < 2) return toast('Débloque d’autres héros en avançant sur la carte');
+      s.heroId = ids[(ids.indexOf(s.heroId) + 1) % ids.length];
+      persist();
+      sfx('tap');
+      o.querySelector('.pl-hero')!.outerHTML = heroChip();
+      bindHero();
+    });
+  bindHero();
   o.querySelectorAll<HTMLButtonElement>('.bonus').forEach((b) =>
     b.addEventListener('click', () => {
       const id = b.dataset.b as BonusId;
@@ -223,7 +247,7 @@ export function choosePower(offer: PowerId[], hero: HeroState, title = 'Choisis 
 
 const BONUS_NAME = { potion: 'Potion de vie', scroll: 'Parchemin', aegis: 'Égide' } as const;
 
-export function victory(level: LevelDef, r: CombatResult, res: AttemptResult): Promise<'next' | 'map'> {
+export function victory(level: LevelDef, r: CombatResult, res: AttemptResult, loot: Loot | null = null): Promise<'next' | 'map'> {
   const s = save();
   const firstThree = res.firstThree;
   const pass = res.pass;
@@ -242,11 +266,19 @@ export function victory(level: LevelDef, r: CombatResult, res: AttemptResult): P
       <div class="rstats"><div><img src="${iconURL(INK_UI.coin)}"/><b class="count" data-to="${gold}">0</b></div><div><span>Ennemis</span><b>${r.kills}</b></div><div><span>Temps</span><b>${Math.round(r.seconds)} s</b></div></div>
       ${dragon ? `<p class="fine dragon-gold">dont +25 % de l’Ordre du Dragon</p>` : ''}
       ${pass.points ? `<div class="rpass${tierUp ? ' up' : ''}"><img src="${iconURL(INK_UI.chest)}" alt=""/><span>Pass de saison : <b>+${pass.points} lunes</b>${tierUp ? ` · palier ${pass.tierAfter} atteint !` : ''}</span></div>` : ''}
+      ${loot ? lootBlock(loot) : ''}
       ${res.chests.map((c) => `<div class="rchest"><img src="${iconURL(INK_UI.chest)}" alt=""/><span><b>Coffre d’étoiles</b> (${c.index * 20} ★) : +${c.gold} or · +${c.gems} gemmes · ${BONUS_NAME[c.bonus]}</span></div>`).join('')}
       <div class="ractions"><button class="btn ghost map">Carte</button><button class="btn primary next">Niveau suivant</button></div>
     </div>`,
   );
-  o.querySelector('.rhero')!.appendChild(liveSprite('hero', 130, 2.6, 'idle', { aiming: false, facing: 0.2 }));
+  o.querySelector('.rhero')!.appendChild(liveSprite(s.heroId, 130, 2.6, 'idle', { aiming: false, facing: 0.2 }));
+  if (loot?.item) setTimeout(() => sfx('loot'), 1500);
+  o.querySelector<HTMLButtonElement>('.lequip')?.addEventListener('click', (e) => {
+    const b = e.currentTarget as HTMLButtonElement;
+    equip(Number(b.dataset.uid));
+    sfx('star');
+    b.outerHTML = '<small class="lworn">Équipé</small>';
+  });
   for (let i = 0; i < r.stars; i++) setTimeout(() => sfx('star'), 600 + i * 450);
   const c = o.querySelector<HTMLElement>('.count')!;
   const to = gold;

@@ -1,5 +1,7 @@
 /** §12.6 Écrans secondaires : Héros et talents, Boutique, Tournoi, Réglages (feuilles depuis la carte). */
-import { HEROES, type HeroId } from '../../sim/src/content.js';
+import { HEROES, POWER_BY_ID, type HeroId, type PowerId } from '../../sim/src/content.js';
+import { heroUnlocked, heroUnlockText } from './meta.js';
+import { gearPanel } from './gearui.js';
 import { TALENTS } from '../../sim/src/constants.js';
 import { tournamentScore } from '../../sim/src/formulas.js';
 import { INK_UI, INK_POWERS, iconURL } from '../../art/src/icons.js';
@@ -16,45 +18,89 @@ import { SKINS, PREMIUM_TRACK, PASS, type SkinId } from './season.js';
 import { skinPreview } from './skins.js';
 import { passSheet } from './pass.js';
 
-// ───────────────────────────── Héros et talents ─────────────────────────────
+// ───────────────────────────── Héros, équipement et talents ─────────────────────────────
 
-const HERO_UNLOCK: Record<HeroId, string> = { scout: 'Disponible', windMonk: 'Offre de départ', emberSorcerer: 'Terminer le Marais (niv. 120)' };
-const HERO_BLURB: Record<HeroId, string> = {
-  scout: 'Flèches de lune. Aucune faiblesse, aucune fioriture.',
-  windMonk: 'Rafales d’air. Commence avec Vitesse +15 %.',
-  emberSorcerer: 'Braises. Commence avec Flamme.',
+/** Les trois premières cartes de la famille signature de chaque héros (aperçu de sa mécanique). */
+const HERO_POWERS: Record<HeroId, PowerId[]> = {
+  scout: ['longThread', 'sharpScissors', 'echoCut'],
+  windMonk: ['bigGust', 'whirlwind', 'eyeOfStorm'],
+  emberSorcerer: ['liveEmbers', 'combustion', 'furnace'],
 };
 
-export function heroesSheet(onChange: () => void): void {
+let trialHandler: ((id: HeroId) => void) | null = null;
+/** Branché par main.ts : lance un essai du héros (salle d'entraînement, sans récompense). */
+export function onHeroTrial(fn: (id: HeroId) => void): void {
+  trialHandler = fn;
+}
+
+export type HeroTab = 'heroes' | 'gear' | 'talents';
+
+export function heroesSheet(onChange: () => void, tab: HeroTab = 'heroes'): void {
   const s = save();
-  const talentRow = (k: keyof typeof s.talents, name: string, per: string, icon: string) => {
-    const r = s.talents[k];
-    const max = r >= TALENTS.maxRank;
-    return `<div class="talent" data-k="${k}"><img src="${iconURL(icon)}"/><div class="tinfo"><b>${name}</b><small>${per} par rang</small><div class="pips">${Array.from({ length: 10 }, (_, i) => `<i class="${i < r ? 'on' : ''}"></i>`).join('')}</div></div><button class="btn small buy" ${max || s.gold < talentCost(r) ? 'disabled' : ''}>${max ? 'Max' : `<img src="${iconURL(INK_UI.coin)}"/>${talentCost(r)}`}</button></div>`;
-  };
-  const { o } = sheet(
+  const { o, close } = sheet(
     'heroes',
     'Héros',
-    `<div class="hero-cards">${(Object.keys(HEROES) as HeroId[])
-      .map((id) => {
-        const owned = s.heroes.includes(id);
-        return `<button class="hero-card${s.heroId === id ? ' sel' : ''}${owned ? '' : ' locked'}" data-id="${id}"><div class="hc-sprite" data-sprite="${id}"></div><b>${HEROES[id].name}</b><small>${owned ? HERO_BLURB[id] : HERO_UNLOCK[id]}</small></button>`;
-      })
-      .join('')}</div>
+    `<div class="tabs" role="tablist"><button data-tab="heroes" role="tab">Héros</button><button data-tab="gear" role="tab">Équipement</button><button data-tab="talents" role="tab">Talents</button></div><div class="tab-body"></div>`,
+  );
+  const body = o.querySelector<HTMLElement>('.tab-body')!;
+  const show = (t: HeroTab) => {
+    o.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((b) => {
+      b.classList.toggle('on', b.dataset.tab === t);
+      b.setAttribute('aria-selected', String(b.dataset.tab === t));
+    });
+    if (t === 'heroes') heroesPanel(body, onChange, close);
+    else if (t === 'gear') gearPanel(body, onChange);
+    else talentsPanel(body, onChange);
+    body.scrollTop = 0;
+  };
+  o.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((b) => b.addEventListener('click', () => (sfx('tap'), show(b.dataset.tab as HeroTab))));
+  show(tab);
+  void s;
+}
+
+function heroesPanel(body: HTMLElement, onChange: () => void, close: () => Promise<void>): void {
+  const s = save();
+  const ids = Object.keys(HEROES) as HeroId[];
+  body.innerHTML = `<div class="hero-list">${ids
+    .map((id) => {
+      const h = HEROES[id];
+      const owned = heroUnlocked(id);
+      const sel = s.heroId === id;
+      return `<div class="hero-row${sel ? ' sel' : ''}${owned ? '' : ' locked'}" data-id="${id}">
+        <div class="hr-sprite" data-sprite="${id}"></div>
+        <div class="hr-txt"><b>${h.name}</b><span class="hr-mech">${h.mechanic}</span><small>${h.pitch}</small>
+          <div class="hr-pows">${HERO_POWERS[id].map((p) => `<img src="${iconURL(INK_POWERS[p])}" title="${POWER_BY_ID[p].name}" alt="${POWER_BY_ID[p].name}"/>`).join('')}</div>
+          ${owned ? '' : `<em class="hr-lock">${heroUnlockText(id)}</em>`}</div>
+        <div class="hr-act">${owned ? (sel ? '<span class="hr-chosen">Choisi</span>' : '<button class="btn primary small pick">Choisir</button>') : '<button class="btn ghost small try">Essayer</button>'}</div>
+      </div>`;
+    })
+    .join('')}</div>
     ${
       subscribed()
         ? `<label class="toggle parure"><span>Parure du Dragon<small>Apparence exclusive de l’Ordre du Dragon</small></span><input type="checkbox" class="skin" ${s.subscription.skin ? 'checked' : ''}/><i></i></label>`
         : `<p class="fine left parure-locked"><img src="${iconURL(INK_UI.crown)}" alt=""/> Parure du Dragon : apparence réservée aux membres de l’Ordre du Dragon.</p>`
     }
     <h3 class="sec">Apparences <small>pass de saison · cosmétiques</small></h3>
-    <div class="skins">${skinCards()}</div>
-    <h3 class="sec">Talents permanents <small>désactivés en tournoi</small></h3>
-    <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', INK_UI.heart)}${talentRow('strength', 'Force', '+2 % dégâts', INK_UI.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', INK_UI.coin)}${talentRow('fortune', 'Fortune', '+5 % or', INK_UI.chest)}${talentRow('ink', 'Encre lente', '+6 % durée du fil', INK_POWERS.longThread)}</div>
-    <p class="fine">Or disponible : <b>${s.gold}</b></p>`,
-  );
-  o.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 92, 2.1, 'idle', { aiming: true, facing: 0.15 })));
+    <div class="skins">${skinCards()}</div>`;
+  body.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 84, 2, 'idle', { aiming: true, facing: 0.15 })));
+  body.querySelectorAll<HTMLElement>('.hero-row').forEach((row) => {
+    const id = row.dataset.id as HeroId;
+    row.querySelector('.pick')?.addEventListener('click', () => {
+      s.heroId = id;
+      persist();
+      sfx('star');
+      heroesPanel(body, onChange, close);
+      onChange();
+    });
+    row.querySelector('.try')?.addEventListener('click', async () => {
+      if (!trialHandler) return toast(heroUnlockText(id));
+      sfx('tap');
+      await close();
+      trialHandler(id);
+    });
+  });
   const bindSkins = () =>
-    o.querySelectorAll<HTMLButtonElement>('.skin-card').forEach((b) =>
+    body.querySelectorAll<HTMLButtonElement>('.skin-card').forEach((b) =>
       b.addEventListener('click', () => {
         const id = (b.dataset.skin || null) as SkinId | null;
         if (id && !s.skins.includes(id)) {
@@ -66,31 +112,32 @@ export function heroesSheet(onChange: () => void): void {
         persist();
         clearPortraits();
         sfx('tap');
-        o.querySelector('.skins')!.innerHTML = skinCards();
+        body.querySelector('.skins')!.innerHTML = skinCards();
         bindSkins();
         onChange();
       }),
     );
   bindSkins();
-  o.querySelector<HTMLInputElement>('.skin')?.addEventListener('change', (e) => {
+  body.querySelector<HTMLInputElement>('.skin')?.addEventListener('change', (e) => {
     s.subscription.skin = (e.target as HTMLInputElement).checked;
     persist();
     clearPortraits();
     sfx('tap');
     onChange();
   });
-  o.querySelectorAll<HTMLButtonElement>('.hero-card').forEach((b) =>
-    b.addEventListener('click', () => {
-      const id = b.dataset.id as HeroId;
-      if (!s.heroes.includes(id)) return toast(HERO_UNLOCK[id]);
-      s.heroId = id;
-      persist();
-      o.querySelectorAll('.hero-card').forEach((c) => c.classList.toggle('sel', c === b));
-      sfx('tap');
-      onChange();
-    }),
-  );
-  o.querySelectorAll<HTMLElement>('.talent').forEach((row) =>
+}
+
+function talentsPanel(body: HTMLElement, onChange: () => void): void {
+  const s = save();
+  const talentRow = (k: keyof typeof s.talents, name: string, per: string, icon: string) => {
+    const r = s.talents[k];
+    const max = r >= TALENTS.maxRank;
+    return `<div class="talent" data-k="${k}"><img src="${iconURL(icon)}"/><div class="tinfo"><b>${name}</b><small>${per} par rang</small><div class="pips">${Array.from({ length: 10 }, (_, i) => `<i class="${i < r ? 'on' : ''}"></i>`).join('')}</div></div><button class="btn small buy" ${max || s.gold < talentCost(r) ? 'disabled' : ''}>${max ? 'Max' : `<img src="${iconURL(INK_UI.coin)}"/>${talentCost(r)}`}</button></div>`;
+  };
+  body.innerHTML = `<p class="fine left">Les talents valent pour tous les héros et toute la partie. Désactivés en tournoi.</p>
+    <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', INK_UI.heart)}${talentRow('strength', 'Force', '+2 % dégâts', INK_UI.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', INK_UI.coin)}${talentRow('fortune', 'Fortune', '+5 % or', INK_UI.chest)}${talentRow('ink', 'Encre lente', '+6 % durée du fil (Éclaireuse)', INK_POWERS.longThread)}</div>
+    <p class="fine">Or disponible : <b class="gold-left">${s.gold}</b></p>`;
+  body.querySelectorAll<HTMLElement>('.talent').forEach((row) =>
     row.querySelector('.buy')!.addEventListener('click', () => {
       const k = row.dataset.k as keyof typeof s.talents;
       const cost = talentCost(s.talents[k]);
@@ -99,15 +146,9 @@ export function heroesSheet(onChange: () => void): void {
       s.talents[k]++;
       persist();
       sfx('star');
-      row.querySelectorAll('.pips i')[s.talents[k] - 1]?.classList.add('on', 'pop');
-      const btn = row.querySelector<HTMLButtonElement>('.buy')!;
-      const r = s.talents[k];
-      btn.innerHTML = r >= TALENTS.maxRank ? 'Max' : `<img src="${iconURL(INK_UI.coin)}"/>${talentCost(r)}`;
-      o.querySelectorAll<HTMLElement>('.talent').forEach((tr) => {
-        const kk = tr.dataset.k as keyof typeof s.talents;
-        tr.querySelector<HTMLButtonElement>('.buy')!.disabled = s.talents[kk] >= TALENTS.maxRank || s.gold < talentCost(s.talents[kk]);
-      });
-      o.querySelector('.fine b')!.textContent = String(s.gold);
+      talentsPanel(body, onChange);
+      body.querySelectorAll('.talent')
+        .forEach((tr) => (tr as HTMLElement).dataset.k === k && tr.querySelectorAll('.pips i')[s.talents[k] - 1]?.classList.add('pop'));
       onChange();
     }),
   );

@@ -24,9 +24,14 @@ import {
   ARENA_W,
   ARENA_H,
   WALL_SHY,
+  GUST,
+  EMBER,
+  WEB_SLOW,
+  SIGNATURE_NEEDLE_MULT,
 } from './constants.js';
-import { ENEMIES, BOSSES, type MinionType, type BossArchetype, type Pattern, type PowerId } from './content.js';
+import { ENEMIES, BOSSES, type MinionType, type BossArchetype, type Pattern, type PowerId, type HeroKind } from './content.js';
 import { computeStats, type HeroStats, type Talents } from './hero.js';
+import { NO_GEAR, type GearStats } from './gear.js';
 import type { Vec } from './controls.js';
 import { Rng } from './rng.js';
 
@@ -64,7 +69,24 @@ export interface HeroState {
   cutT: number;
   cuts: number;
   /** Instrumentation : dégâts effectifs infligés (plafonnés aux PV restants) par source. */
-  dmgBy: { cut: number; shot: number; other: number };
+  dmgBy: { cut: number; shot: number; other: number; sig: number };
+  /** Mécanique signature (DECISIONS #74) et équipement porté (#75). */
+  kind: HeroKind;
+  gear: GearStats;
+  /** vient de s'arrêter à ce pas (moving → immobile) */
+  stopped: boolean;
+  /** Moine du vent : élan 0 → 1, délai, animation (1 → 0), nombre de bourrasques */
+  momentum: number;
+  gustCd: number;
+  gustT: number;
+  gusts: number;
+  /** Sorcier de braise : traînée (du plus ancien au plus récent point) */
+  embers: ThreadPoint[];
+}
+
+export interface HeroOptions {
+  kind?: HeroKind;
+  gear?: GearStats;
 }
 
 export interface ThreadPoint {
@@ -73,8 +95,9 @@ export interface ThreadPoint {
   t: number;
 }
 
-export function newHero(talents: Talents, powers: Partial<Record<PowerId, number>> = {}, autoFire = AUTO_FIRE_DEFAULT): HeroState {
-  const stats = computeStats(talents, powers);
+export function newHero(talents: Talents, powers: Partial<Record<PowerId, number>> = {}, autoFire = AUTO_FIRE_DEFAULT, opts: HeroOptions = {}): HeroState {
+  const gear = opts.gear ?? NO_GEAR;
+  const stats = computeStats(talents, powers, gear);
   return {
     pos: { x: 0, y: 0 },
     vel: { x: 0, y: 0 },
@@ -98,7 +121,15 @@ export function newHero(talents: Talents, powers: Partial<Record<PowerId, number
     thread: [],
     cutT: 0,
     cuts: 0,
-    dmgBy: { cut: 0, shot: 0, other: 0 },
+    dmgBy: { cut: 0, shot: 0, other: 0, sig: 0 },
+    kind: opts.kind ?? 'thread',
+    gear,
+    stopped: false,
+    momentum: 0,
+    gustCd: 0,
+    gustT: 0,
+    gusts: 0,
+    embers: [],
   };
 }
 
@@ -106,7 +137,7 @@ export function newHero(talents: Talents, powers: Partial<Record<PowerId, number
 export function grantPower(h: HeroState, id: PowerId): void {
   const before = h.stats.maxHp;
   h.powers[id] = (h.powers[id] ?? 0) + 1;
-  h.stats = computeStats(h.talents, h.powers);
+  h.stats = computeStats(h.talents, h.powers, h.gear);
   if (id === 'maxHp') h.hp += h.stats.maxHp - before;
   if (id === 'shield') h.shieldReady = true;
   h.hp = Math.min(h.hp, h.stats.maxHp);
@@ -139,6 +170,9 @@ export interface Enemy {
   poisonStacks: number;
   poisonT: number;
   poisonDps: number;
+  /** braises du sorcier : brûlure entretenue (DECISIONS #74) */
+  emberT: number;
+  emberDps: number;
   orbHitCd: number;
   strafe: number;
   volley: number;
@@ -193,6 +227,15 @@ export interface Hazard {
   ownerId: number;
   /** Origine (type d'ennemi ou « boss ») — diagnostic et rendu. */
   src?: string;
+  /** Toile : ralentit l'héroïne de cette fraction tant qu'elle est dedans (DECISIONS #73). */
+  slow?: number;
+}
+
+/** Tourbillon laissé par une bourrasque (pouvoir du Moine du vent). */
+export interface Whirl {
+  pos: Vec;
+  endAt: number;
+  r: number;
 }
 
 export interface HealOrb {
@@ -210,7 +253,11 @@ export type WorldEvent =
   | { e: 'wave'; index: number }
   | { e: 'cleared' }
   | { e: 'cut'; poly: Vec[]; hits: number; echo: boolean }
-  | { e: 'snip'; x: number; y: number; by: string };
+  | { e: 'snip'; x: number; y: number; by: string }
+  | { e: 'gust'; x: number; y: number; r: number; m: number; hits: number }
+  | { e: 'block'; x: number; y: number }
+  | { e: 'blink'; x: number; y: number; fromX: number; fromY: number }
+  | { e: 'boom'; x: number; y: number; r: number; by: 'lantern' | 'combustion' };
 
 export interface SpawnSpec {
   type: MinionType;
@@ -238,6 +285,7 @@ export class World {
   projectiles: Projectile[] = [];
   hazards: Hazard[] = [];
   orbs: HealOrb[] = [];
+  whirls: Whirl[] = [];
   events: WorldEvent[] = [];
   t = 0;
   kills = 0;
@@ -256,7 +304,7 @@ export class World {
   private readonly tgtD: number[] = [];
   private shooterId = 0;
   /** Source des dégâts en cours d'application (instrumentation). */
-  private dmgSrc: 'cut' | 'shot' | 'other' = 'other';
+  private dmgSrc: 'cut' | 'shot' | 'other' | 'sig' = 'other';
 
   constructor(setup: RoomSetup, hero: HeroState) {
     this.arena = setup.arena;
@@ -267,6 +315,9 @@ export class World {
     this.hero = hero;
     hero.pos = { ...this.arena.spawn };
     hero.thread = [];
+    hero.embers = [];
+    hero.momentum = 0;
+    hero.gustT = 0;
     hero.cutT = 0;
     hero.vel = { x: 0, y: 0 };
     hero.invuln = 0;
@@ -320,6 +371,8 @@ export class World {
       poisonStacks: 0,
       poisonT: 0,
       poisonDps: 0,
+      emberT: 0,
+      emberDps: 0,
       orbHitCd: 0,
       strafe: this.rng.chance(0.5) ? 1 : -1,
       volley: 0,
@@ -353,7 +406,9 @@ export class World {
     this.events.length = 0;
     this.t += dt;
     this.updateHero(input, dt);
-    this.updateThread();
+    if (this.hero.kind === 'thread') this.updateThread();
+    else if (this.hero.kind === 'gust') this.updateGust(dt);
+    else this.updateEmbers(dt);
     for (const e of this.enemies) this.updateEnemy(e, dt);
     this.separateEnemies();
     this.threadContacts(dt);
@@ -361,6 +416,7 @@ export class World {
     this.updatePendingCuts();
     this.updateHazards();
     this.updateOrbs(dt);
+    if (this.whirls.length) this.updateWhirls(dt);
     this.contactDamage();
     this.updateStatus(dt);
     this.reap();
@@ -401,8 +457,16 @@ export class World {
       mx = 0;
       my = 0;
     }
-    const vx = mx * s.speed;
-    const vy = my * s.speed;
+    let sp = s.speed;
+    // toile de l'araignée tisseuse (DECISIONS #73) : aucune toile ⇒ calcul inchangé
+    for (const z of this.hazards) {
+      if (z.slow && this.t >= z.activeAt && this.t <= z.endAt && Math.hypot(h.pos.x - z.pos.x, h.pos.y - z.pos.y) < z.radius) {
+        sp *= 1 - z.slow;
+        break;
+      }
+    }
+    const vx = mx * sp;
+    const vy = my * sp;
     const bx = h.pos.x;
     const by = h.pos.y;
     this.arena.moveCircle(h.pos, vx * dt, vy * dt, HERO.radius);
@@ -411,6 +475,7 @@ export class World {
     const speed = Math.hypot(h.vel.x, h.vel.y);
     const wasMoving = h.moving;
     h.moving = speed >= CONTROL.stillSpeed;
+    h.stopped = wasMoving && !h.moving;
     if (h.moving) {
       h.stillTime = 0;
       // tir auto permanent : le héros garde sa visée en marchant (il ne se retourne que si la cible change)
@@ -508,7 +573,7 @@ export class World {
           pos: { x: h.pos.x - cy * off + cx * 10, y: h.pos.y + cx * off + cy * 10 },
           vel: { x: cx * HERO.projectileSpeed, y: cy * HERO.projectileSpeed },
           radius: HERO.projectileRadius,
-          dmg: s.damage * SHOT_DMG_MULT * s.needleMult * (s.pierce ? POWER_TUNING.pierceDmg : 1),
+          dmg: s.damage * SHOT_DMG_MULT * s.needleMult * (s.pierce ? POWER_TUNING.pierceDmg : 1) * (h.kind === 'thread' ? 1 : SIGNATURE_NEEDLE_MULT),
           fromHero: true,
           born: this.t,
           pierce: s.pierce,
@@ -822,6 +887,204 @@ export class World {
         }
         break;
       }
+      // ───── chapitres 11 à 15 (DECISIONS #73) ─────
+      case 'lantern':
+        this.updateLantern(e, dist, slow, dt);
+        break;
+      case 'weaver':
+      case 'puppeteer':
+        this.updateCaster(e, dist, slow, dt);
+        break;
+      case 'beetle':
+        this.updateBeetle(e, dx, dy, slow, dt);
+        break;
+      case 'shade':
+        this.chase(e, e.speed * slow, dt);
+        break;
+      case 'specter':
+        this.updateSpecter(e, slow, dt);
+        break;
+    }
+  }
+
+  /** Lampion : fonce sur l'héroïne, s'arrête à portée et explose après 0,8 s (le tuer avant désamorce). */
+  private updateLantern(e: Enemy, dist: number, slow: number, dt: number): void {
+    if (e.state === 'move') {
+      this.chase(e, e.speed * slow, dt);
+      if (dist < 58 + e.radius) {
+        e.state = 'windup';
+        e.t = 0.8;
+        this.hazards.push({
+          kind: 'circle',
+          pos: { ...e.pos },
+          radius: 66,
+          born: this.t,
+          activeAt: this.t + 0.8,
+          endAt: this.t + 0.8 + 0.12,
+          dmg: e.shotDmg,
+          tick: 1,
+          nextTick: this.t + 0.8,
+          ownerId: e.id,
+          src: 'lantern',
+        });
+      }
+    } else if (e.state === 'windup') {
+      e.t -= dt;
+      if (e.t <= 0) {
+        e.volley = 1; // a explosé : la zone reste active même s'il meurt
+        this.events.push({ e: 'boom', x: e.pos.x, y: e.pos.y, r: 66, by: 'lantern' });
+        e.hp = 0;
+      }
+    }
+  }
+
+  /** Araignée tisseuse (toile qui ralentit) et montreur d'ombres (invoque deux ombres) : tireurs à distance. */
+  private updateCaster(e: Enemy, dist: number, slow: number, dt: number): void {
+    const def = ENEMIES[e.type as MinionType];
+    const [near, far] = def.range ?? [150, 280];
+    const h = this.hero.pos;
+    if (e.state === 'move') {
+      this.keepRange(e, near, far, dist, e.speed * slow, dt);
+      e.cd -= dt;
+      if (e.cd <= 0 && this.arena.lineOfSight(e.pos, h)) {
+        e.state = 'windup';
+        e.t = e.type === 'weaver' ? 0.6 : 1.0;
+        e.aim = { x: h.x, y: h.y };
+        if (e.type === 'weaver') {
+          // la toile tombe là où était l'héroïne au début du geste (télégraphe : cercle visible 0,6 s)
+          this.hazards.push({
+            kind: 'circle',
+            pos: { x: h.x, y: h.y },
+            radius: 50,
+            born: this.t,
+            activeAt: this.t + 0.6,
+            endAt: this.t + 0.6 + 4.5,
+            dmg: 0,
+            tick: 0,
+            nextTick: Infinity,
+            ownerId: e.id,
+            src: 'weaver',
+            slow: WEB_SLOW,
+          });
+        }
+      }
+    } else if (e.state === 'windup') {
+      e.t -= dt;
+      if (e.t <= 0) {
+        if (e.type === 'puppeteer') {
+          let shades = 0;
+          for (const o of this.enemies) if (o.type === 'shade') shades++;
+          for (let k = 0; k < 2 && shades < 6; k++) {
+            const ang = this.rng.next() * Math.PI * 2;
+            const pos = { x: clamp(e.pos.x + Math.cos(ang) * 34, 30, ARENA_W - 30), y: clamp(e.pos.y + Math.sin(ang) * 34, 30, ARENA_H - 30) };
+            if (this.arena.isWalkableAt(pos.x, pos.y) && this.spawnEnemy('shade', pos, false, 0.4)) shades++;
+          }
+        }
+        e.state = 'move';
+        e.cd = def.period;
+      }
+    }
+  }
+
+  /** Scarabée-bouclier : se tourne lentement vers l'héroïne (bouclier devant), avance, charge court. */
+  private updateBeetle(e: Enemy, dx: number, dy: number, slow: number, dt: number): void {
+    const h = this.hero.pos;
+    if (e.state !== 'charge') {
+      // rotation bornée du bouclier (1,6 rad/s) : on le contourne en courant
+      const want = Math.atan2(dy, dx);
+      const cur = Math.atan2(e.aim.y, e.aim.x);
+      let d = want - cur;
+      while (d > Math.PI) d -= 2 * Math.PI;
+      while (d < -Math.PI) d += 2 * Math.PI;
+      const a = cur + Math.max(-1.6 * dt, Math.min(1.6 * dt, d));
+      e.aim = { x: Math.cos(a), y: Math.sin(a) };
+    }
+    if (e.state === 'move') {
+      this.chase(e, e.speed * slow, dt);
+      e.cd -= dt;
+      // coup de bouclier au sol : onde courte télégraphiée 0,7 s autour de lui
+      if (e.cd <= 0 && Math.hypot(dx, dy) < 96) {
+        e.state = 'windup';
+        e.t = 0.7;
+        this.hazards.push({
+          kind: 'circle',
+          pos: { ...e.pos },
+          radius: 64,
+          born: this.t,
+          activeAt: this.t + 0.7,
+          endAt: this.t + 0.7 + 0.12,
+          dmg: e.contact,
+          tick: 1,
+          nextTick: this.t + 0.7,
+          ownerId: e.id,
+          src: 'beetle',
+        });
+      }
+    } else if (e.state === 'windup') {
+      e.t -= dt;
+      if (e.t <= 0) {
+        e.state = 'recover';
+        e.t = 0.6;
+      }
+    } else if (e.state === 'recover') {
+      e.t -= dt;
+      if (e.t <= 0) {
+        e.state = 'move';
+        e.cd = ENEMIES.beetle.period;
+      }
+    }
+    void h;
+  }
+
+  /** Les aiguilles qui arrivent de face sur le bouclier du scarabée rebondissent (±70°). */
+  private shielded(e: Enemy, p: Projectile): boolean {
+    if (e.type !== 'beetle') return false;
+    const v = Math.hypot(p.vel.x, p.vel.y) || 1;
+    return (e.aim.x * p.vel.x + e.aim.y * p.vel.y) / v < -0.34;
+  }
+
+  /** Spectre : dérive, puis se téléporte près de l'héroïne (marque 0,7 s) et lâche un anneau 0,35 s après. */
+  private updateSpecter(e: Enemy, slow: number, dt: number): void {
+    const h = this.hero.pos;
+    if (e.state === 'move') {
+      this.chase(e, e.speed * slow, dt);
+      e.cd -= dt;
+      if (e.cd <= 0) {
+        const ang = this.rng.next() * Math.PI * 2;
+        const to = { x: clamp(h.x + Math.cos(ang) * 120, 36, ARENA_W - 36), y: clamp(h.y + Math.sin(ang) * 120, 36, ARENA_H - 36) };
+        e.aim = to;
+        e.state = 'windup';
+        e.t = 0.7;
+        this.hazards.push({
+          kind: 'circle',
+          pos: { ...to },
+          radius: 26,
+          born: this.t,
+          activeAt: this.t + 0.7,
+          endAt: this.t + 0.7,
+          dmg: 0,
+          tick: 0,
+          nextTick: Infinity,
+          ownerId: e.id,
+          src: 'specter',
+        });
+      }
+    } else if (e.state === 'windup') {
+      e.t -= dt;
+      if (e.t <= 0) {
+        this.events.push({ e: 'blink', x: e.aim.x, y: e.aim.y, fromX: e.pos.x, fromY: e.pos.y });
+        e.pos = { x: e.aim.x, y: e.aim.y };
+        e.state = 'recover';
+        e.t = 0.35;
+      }
+    } else if (e.state === 'recover') {
+      e.t -= dt;
+      if (e.t <= 0) {
+        const off = this.rng.next() * Math.PI;
+        for (let i = 0; i < 6; i++) this.enemyShot(e.pos, off + (i * Math.PI) / 3, 150, e.shotDmg, 8);
+        e.state = 'move';
+        e.cd = ENEMIES.specter.period;
+      }
     }
   }
 
@@ -1108,6 +1371,11 @@ export class World {
 
   private heroHitInner(p: Projectile, e: Enemy): void {
     const s = this.hero.stats;
+    if (e.type === 'beetle' && this.shielded(e, p)) {
+      p.dead = true;
+      this.events.push({ e: 'block', x: p.pos.x, y: p.pos.y });
+      return;
+    }
     const crit = s.critChance > 0 && this.rng.chance(s.critChance);
     let dmg = p.dmg * (crit ? 2 : 1);
     if (e.elite || e.boss) dmg *= s.eliteMult;
@@ -1115,6 +1383,11 @@ export class World {
     if (e.type === 'moth') dmg *= NEEDLE_MOTH_MULT;
     this.damageEnemy(e, dmg, true, crit);
     p.lastHit = e.id;
+    // Sorcier de braise : ses projectiles sont des braises, la cible touchée couve (moitié de la brûlure, 0,6 s)
+    if (this.hero.kind === 'ember') {
+      e.emberT = Math.max(e.emberT, EMBER.needleLinger);
+      e.emberDps = Math.max(e.emberDps, EMBER.dps * EMBER.needleFrac * (s.damage / HERO.damage) * s.emberDmgMult);
+    }
     if (s.chain) {
       let n = 0;
       const sorted = this.enemies
@@ -1177,6 +1450,12 @@ export class World {
         e.hp -= e.burnDps * dt;
         if (e.burnT <= 0) e.burnDps = 0;
       }
+      if (e.emberT > 0) {
+        e.emberT -= dt;
+        if (e.hp > 0) this.hero.dmgBy.sig += Math.min(e.hp, e.emberDps * dt);
+        e.hp -= e.emberDps * dt;
+        if (e.emberT <= 0) e.emberDps = 0;
+      }
       if (e.poisonT > 0) {
         e.poisonT -= dt;
         if (e.hp > 0) this.hero.dmgBy.other += Math.min(e.hp, e.poisonDps * dt);
@@ -1197,7 +1476,16 @@ export class World {
     for (const e of dead) {
       this.kills++;
       this.events.push({ e: 'kill', x: e.pos.x, y: e.pos.y, type: e.type });
-      this.hazards = this.hazards.filter((z) => !(z.ownerId === e.id && z.dmg === 0));
+      this.hazards = this.hazards.filter((z) => !(z.ownerId === e.id && (z.dmg === 0 || (e.type === 'lantern' && e.volley === 0))));
+      if (s.combustion && e.emberT > 0) {
+        const boom = Math.min(e.maxHp * EMBER.combustFrac, EMBER.combustCap * (s.damage / HERO.damage));
+        this.events.push({ e: 'boom', x: e.pos.x, y: e.pos.y, r: EMBER.combustRadius, by: 'combustion' });
+        this.dmgSrc = 'sig';
+        for (const o of this.enemies) {
+          if (o.hp > 0 && Math.hypot(o.pos.x - e.pos.x, o.pos.y - e.pos.y) < EMBER.combustRadius + o.radius) this.damageEnemy(o, boom, false, false);
+        }
+        this.dmgSrc = 'other';
+      }
       if (e.type === 'jelly') {
         for (const k of [-1, 1]) {
           const pos = { x: e.pos.x + k * 14, y: e.pos.y };
@@ -1275,6 +1563,157 @@ export class World {
         if (a.speed > 0) this.arena.moveCircle(a.pos, -ux * push, -uy * push, a.radius, a.flying);
         if (b.speed > 0) this.arena.moveCircle(b.pos, ux * push, uy * push, b.radius, b.flying);
       }
+    }
+  }
+
+  // ───────────────────────────── Moine du vent : élan et bourrasque ─────────────────────────────
+
+  /** Courir charge l'élan ; s'arrêter le libère en bourrasque (DECISIONS #74). */
+  private updateGust(dt: number): void {
+    const h = this.hero;
+    const s = h.stats;
+    h.gustCd = Math.max(0, h.gustCd - dt);
+    h.gustT = Math.max(0, h.gustT - dt * 2.2);
+    if (this.cleared) {
+      h.momentum = 0;
+      return;
+    }
+    if (h.moving) {
+      h.momentum = Math.min(1, h.momentum + (dt * s.momentumRate) / GUST.chargeTime);
+    } else if (h.stopped && h.momentum >= GUST.minMomentum && h.gustCd <= 0) {
+      this.gust(h.momentum);
+    } else {
+      h.momentum = Math.max(0, h.momentum - GUST.decay * dt);
+    }
+  }
+
+  private gust(m: number): void {
+    const h = this.hero;
+    const s = h.stats;
+    const r = (GUST.radius + GUST.radiusPerMomentum * m) * s.gustRadiusMult;
+    const base = GUST.damage * m * (s.damage / HERO.damage) * s.gustDmgMult;
+    let hits = 0;
+    this.dmgSrc = 'sig';
+    for (const e of this.enemies) {
+      if (e.hp <= 0 || e.state === 'spawn') continue;
+      const dx = e.pos.x - h.pos.x;
+      const dy = e.pos.y - h.pos.y;
+      const d = Math.hypot(dx, dy);
+      if (d > r + e.radius) continue;
+      hits++;
+      const crit = s.critChance > 0 && this.rng.chance(s.critChance);
+      let dmg = base * (crit ? 2 : 1);
+      if (e.elite || e.boss) dmg *= s.eliteMult;
+      this.damageEnemy(e, dmg, true, crit);
+      if (e.boss) continue;
+      // recul, et un tireur en plein geste est interrompu
+      const push = GUST.knockback * m * (1 - (0.5 * d) / (r + e.radius));
+      const dir = d > 1e-6 ? { x: dx / d, y: dy / d } : { x: 0, y: -1 };
+      if (e.state !== 'charge') this.arena.moveCircle(e.pos, dir.x * push, dir.y * push, e.radius, e.flying);
+      if (e.state === 'windup' && (e.type === 'goblin' || e.type === 'skeleton' || e.type === 'weaver' || e.type === 'puppeteer' || e.type === 'specter')) {
+        e.state = 'move';
+        e.cd = Math.max(e.cd, 0.8);
+        this.hazards = this.hazards.filter((z) => !(z.ownerId === e.id && z.dmg === 0 && this.t < z.activeAt));
+      }
+    }
+    this.dmgSrc = 'other';
+    // projectiles ennemis pris dans la bourrasque : dissipés (Œil du cyclone : renvoyés)
+    for (const p of this.projectiles) {
+      if (p.fromHero || p.dead) continue;
+      const dx = p.pos.x - h.pos.x;
+      const dy = p.pos.y - h.pos.y;
+      const d = Math.hypot(dx, dy);
+      if (d > r + p.radius) continue;
+      if (s.eyeOfStorm) {
+        const dir = d > 1e-6 ? { x: dx / d, y: dy / d } : { x: 0, y: -1 };
+        p.fromHero = true;
+        p.vel = { x: dir.x * 520, y: dir.y * 520 };
+        p.dmg = s.damage * 0.6;
+        p.born = this.t;
+        p.src = 'gust';
+        p.lastHit = -1;
+      } else p.dead = true;
+    }
+    compact(this.projectiles, (p) => !p.dead);
+    if (s.whirlwind) this.whirls.push({ pos: { ...h.pos }, endAt: this.t + GUST.whirlLife, r: GUST.whirlRadius });
+    if (s.featherStep) h.invuln = Math.max(h.invuln, GUST.featherInvuln);
+    this.events.push({ e: 'gust', x: h.pos.x, y: h.pos.y, r, m, hits });
+    h.momentum = 0;
+    h.gustCd = GUST.cooldown;
+    h.gustT = 1;
+    h.gusts++;
+  }
+
+  /** Tourbillons : aspirent les ennemis vers leur centre et les blessent. */
+  private updateWhirls(dt: number): void {
+    const s = this.hero.stats;
+    const dps = GUST.whirlDps * (s.damage / HERO.damage) * s.gustDmgMult;
+    this.dmgSrc = 'sig';
+    for (const w of this.whirls) {
+      for (const e of this.enemies) {
+        if (e.hp <= 0 || e.state === 'spawn' || e.boss) continue;
+        const dx = w.pos.x - e.pos.x;
+        const dy = w.pos.y - e.pos.y;
+        const d = Math.hypot(dx, dy);
+        if (d > w.r + e.radius) continue;
+        this.damageEnemy(e, dps * dt, false, false);
+        if (d > 8 && e.state !== 'charge') this.arena.moveCircle(e.pos, (dx / d) * GUST.whirlPull * dt, (dy / d) * GUST.whirlPull * dt, e.radius, e.flying);
+      }
+    }
+    this.dmgSrc = 'other';
+    const now = this.t;
+    compact(this.whirls, (w) => w.endAt > now);
+  }
+
+  // ───────────────────────────── Sorcier de braise : traînée de braises ─────────────────────────────
+
+  /** Sème des braises en marchant ; les ennemis au sol qui les touchent brûlent (DECISIONS #74). */
+  private updateEmbers(dt: number): void {
+    const h = this.hero;
+    const s = h.stats;
+    const em = h.embers;
+    const life = EMBER.life * s.emberLife;
+    let drop = 0;
+    while (drop < em.length && this.t - em[drop].t > life) drop++;
+    if (drop) em.splice(0, drop);
+    if (this.cleared) {
+      em.length = 0;
+      return;
+    }
+    const last = em[em.length - 1];
+    if (h.moving && (!last || Math.hypot(h.pos.x - last.x, h.pos.y - last.y) >= EMBER.spacing)) {
+      em.push({ x: h.pos.x, y: h.pos.y, t: this.t });
+      if (em.length > EMBER.maxPoints) em.splice(0, em.length - EMBER.maxPoints);
+    }
+    if (em.length === 0) return;
+    const rad = EMBER.radius * s.emberWidth;
+    const dps = EMBER.dps * (s.damage / HERO.damage) * s.emberDmgMult;
+    for (const e of this.enemies) {
+      if (e.hp <= 0 || e.state === 'spawn' || e.flying) continue;
+      const rr = (rad + e.radius) ** 2;
+      // le point le plus récent est sous les pieds du sorcier : il ne brûle qu'une fois posé (0,15 s)
+      for (let i = em.length - 1; i >= 0; i--) {
+        const p = em[i];
+        if (this.t - p.t < 0.15) continue;
+        if ((p.x - e.pos.x) ** 2 + (p.y - e.pos.y) ** 2 > rr) continue;
+        e.emberT = EMBER.linger;
+        e.emberDps = Math.max(e.emberDps, dps * (e.elite || e.boss ? s.eliteMult : 1));
+        if (s.furnace) e.slowT = Math.max(e.slowT, 0.3);
+        break;
+      }
+    }
+    if (s.ashWard) {
+      for (const p of this.projectiles) {
+        if (p.fromHero || p.dead) continue;
+        for (let i = em.length - 1; i >= 0; i--) {
+          const q = em[i];
+          if ((q.x - p.pos.x) ** 2 + (q.y - p.pos.y) ** 2 < (rad + p.radius) ** 2) {
+            p.dead = true;
+            break;
+          }
+        }
+      }
+      compact(this.projectiles, (p) => !p.dead);
     }
   }
 

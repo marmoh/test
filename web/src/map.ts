@@ -6,6 +6,8 @@ import { KINGDOMS, INK, INK2, CUT, DANGER, GOLD_LEAF, JADE } from '../../art/src
 import { INK_UI, iconURL } from '../../art/src/icons.js';
 import { portrait } from './portraits.js';
 import { save, totalStars, subscribed } from './state.js';
+import { levelLoot, GEAR_BY_ID } from '../../sim/src/gear.js';
+import { gearIcon } from './gearui.js';
 
 const MW = 400;
 const STEP = 96;
@@ -148,6 +150,17 @@ export function buildMap(onSelect: (n: number) => void): HTMLElement {
       g += `<text y="7" text-anchor="middle" class="nnum${locked ? ' dim' : cur ? ' cur' : ''}">${n}</text>`;
       if (info.kind === 'hard') g += `<image href="${iconURL(INK_UI.skull)}" x="${r - 12}" y="${-r - 8}" width="22" height="22"/>`;
     }
+    // butin annoncé (DECISIONS #75) : l'objet des prochains niveaux, un losange de rareté plus loin
+    const loot = st === 0 ? levelLoot(n) : null;
+    if (loot) {
+      const rar = GEAR_BY_ID[loot.id].rarity;
+      const col = rar === 'legendary' ? GOLD_LEAF : rar === 'epic' ? GOLD_LEAF : rar === 'rare' ? JADE : INK2;
+      const lx = r - 4;
+      const ly = -r - 4;
+      if (n <= current + 25) {
+        g += `<g class="loot-mark${rar === 'legendary' ? ' leg' : ''}" transform="translate(${lx} ${ly})"><rect x="-12" y="-12" width="24" height="24" rx="3" transform="rotate(45)" fill="${CUT}" stroke="${col}" stroke-width="${rar === 'common' ? 1.6 : 2.6}"/><image href="${gearIcon(loot.id)}" x="-10" y="-10" width="20" height="20"/></g>`;
+      } else g += `<rect x="${lx - 5}" y="${ly - 5}" width="10" height="10" transform="rotate(45 ${lx} ${ly})" fill="${col}" stroke="${INK}" stroke-width="1.2"/>`;
+    }
     if (!locked && n < current) {
       for (let i = 0; i < 3; i++) {
         const sx = (i - 1) * 14;
@@ -162,7 +175,7 @@ export function buildMap(onSelect: (n: number) => void): HTMLElement {
   const hx = nodeX(current);
   const hy = nodeY(current) - (levelInfo(current).kind === 'boss' ? 70 : 58);
   // la marionnette de l'héroïne, tenue par sa baguette
-  const avatar = `<g class="avatar" transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)})"><g class="bob"><line x1="0" y1="8" x2="0" y2="40" stroke="${INK}" stroke-width="2"/><image href="${portrait('hero', 64, { scale: 1.5, dy: 8 })}" x="-30" y="-36" width="60" height="60"/></g></g>`;
+  const avatar = `<g class="avatar" transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)})"><g class="bob"><line x1="0" y1="8" x2="0" y2="40" stroke="${INK}" stroke-width="2"/><image href="${portrait(s.heroId, 64, { scale: 1.5, dy: 8 })}" x="-30" y="-36" width="60" height="60"/></g></g>`;
 
   const svg = `<svg class="map-svg" viewBox="0 0 ${MW} ${MAP_H}" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">${stops.join('')}</linearGradient>

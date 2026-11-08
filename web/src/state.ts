@@ -19,6 +19,7 @@ import {
   type AdStatus,
   type Subscription,
 } from './economy.js';
+import type { GearItem, GearSlot } from '../../sim/src/gear.js';
 import { passFor, seasonAt, addPoints, pointsForWin, tierOf, pendingChests, starChest, claim as claimTier, claimAll, buyPremium, type PassState, type Reward, type SkinId, type Track } from './season.js';
 
 export interface Settings {
@@ -60,6 +61,30 @@ export interface Save {
   skin: SkinId | null;
   /** Coffres d'étoiles déjà ouverts (un tous les 20 ★, §8). */
   chests: number;
+  /** Équipement (DECISIONS #75) : objets possédés, objet porté par emplacement (uid), éclats. */
+  gear: GearState;
+  /** Quêtes du jour (DECISIONS #76). */
+  quests: QuestState;
+  /** Bestiaire : ennemis vaincus par type (et boss par archétype). */
+  bestiary: Record<string, number>;
+}
+
+export interface GearState {
+  items: GearItem[];
+  equipped: Partial<Record<GearSlot, number>>;
+  nextUid: number;
+  shards: number;
+}
+
+export interface QuestState {
+  day: string;
+  progress: Record<string, number>;
+  claimed: string[];
+  bonusClaimed: boolean;
+}
+
+export function freshGear(): GearState {
+  return { items: [], equipped: {}, nextUid: 1, shards: 0 };
 }
 
 const KEY = 'ombrelune.save.v1';
@@ -93,6 +118,9 @@ function fresh(): Save {
     skins: [],
     skin: null,
     chests: 0,
+    gear: freshGear(),
+    quests: { day: '', progress: {}, claimed: [], bonusClaimed: false },
+    bestiary: {},
   };
 }
 
@@ -120,6 +148,11 @@ export function save(): Save {
     cache.skins = Array.isArray(parsed.skins) ? parsed.skins.filter((x) => x === 'foxEars' || x === 'paperWings' || x === 'moonCrown') : [];
     if (!cache.skin || !cache.skins.includes(cache.skin)) cache.skin = null;
     cache.chests = Number.isInteger(parsed.chests) ? parsed.chests! : 0;
+    // équipement, quêtes, bestiaire (DECISIONS #75, #76) : absents des anciennes sauvegardes
+    const g = parsed.gear;
+    cache.gear = g && Array.isArray(g.items) ? { ...freshGear(), ...g } : freshGear();
+    cache.quests = { ...base.quests, ...parsed.quests };
+    cache.bestiary = parsed.bestiary && typeof parsed.bestiary === 'object' ? parsed.bestiary : {};
     cache.version = 2;
     // migration : le tir automatique devient le réglage par défaut (DECISIONS #10)
     if (!(cache as Save & { autoFireDefault?: boolean }).autoFireDefault) {
