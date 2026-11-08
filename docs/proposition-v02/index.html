@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ombrelune 0.2</title>
+<title>Proposition Ombrelune 0.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;0,800;1,500&display=swap" rel="stylesheet">
@@ -66,7 +66,7 @@ td.num { text-align: right; }
 <main class="sheet">
   <h1>Ombrelune 0.2</h1>
   <p class="lead">Trois héros qui ne se jouent pas pareil, de l’équipement à gagner, cinq nouveaux monstres et des raisons de revenir chaque jour.</p>
-  <a class="play" href="{{PLAY_URL}}">Jouer au prototype ›</a>
+  <a class="play" href="https://claude.ai/artifact/Vwmu9eH38U3Nmz8k1zUEpw">Jouer au prototype ›</a>
   <p class="note">Le prototype web tourne sur la même simulation que l’app iOS. Pour tout voir vite : jouer quelques niveaux, ouvrir l’écran Héros (bouton « Essayer » sur les héros verrouillés), l’équipement, les quêtes et le bestiaire depuis la carte.</p>
 
   <h2><span class="n">1</span>Trois héros, trois façons de jouer</h2>
@@ -114,12 +114,24 @@ td.num { text-align: right; }
 
   <h2><span class="n">5</span>Mesuré par les bots</h2>
   <p>Les 300 niveaux ont été régénérés et revalidés : les bots modélisent désormais l’équipement attendu comme ils modélisaient les talents (sans cela, l’équipement aurait fait passer le bot moyen de 41 % à 70 % sur les niveaux difficiles).</p>
-  {{BALANCE}}
+  <div class="scroll"><table>
+    <thead><tr><th>Héros</th><th>Niveaux mesurés</th><th>Bot moyen</th><th>Bot expert</th><th>Part de la mécanique dans les dégâts</th></tr></thead>
+    <tbody>
+      <tr><td>Éclaireuse (fil)</td><td>7 à 300 (12 niveaux)</td><td class="num">49 %</td><td class="num">94 %</td><td class="num">1–44 %</td></tr>
+      <tr><td>Moine du vent (bourrasque)</td><td>7 à 300 (12 niveaux)</td><td class="num">70 %</td><td class="num">98 %</td><td class="num">29–64 %</td></tr>
+      <tr><td>Sorcier de braise (braises)</td><td>100 à 300 (8 niveaux)</td><td class="num">70 %</td><td class="num">94 %</td><td class="num">22–65 %</td></tr>
+    </tbody>
+  </table></div>
+  <p>24 parties par héros et par bot sur chaque niveau publié, avec l’équipement attendu à ce stade. Les 300 niveaux restent dans leurs bandes de difficulté (bot moyen : 90 % aux chapitres 1–2, ~71 % aux niveaux normaux, 38 % aux difficiles, 36 % aux boss). Les héros à débloquer sont <b>plus confortables</b> que l’Éclaireuse sur les niveaux à foule et <b>plus durs</b> contre le boss final (niveau 300 : 8–13 % au bot moyen).</p>
 
   <div class="ask">
     <h3>À décider ensemble</h3>
     <ul>
-      {{ASKS}}
+      <li><b>Héros débloqués plus faciles</b> (+20 points au bot moyen) : on garde cela comme récompense de progression, ou on les ramène au niveau de l’Éclaireuse ? Baisser la bourrasque fait apparaître un seuil brutal (à 100 de dégâts, le Moine ne passe plus le niveau 47) : il faudrait plutôt jouer sur le rayon ou le délai.</li>
+      <li><b>Paliers de déblocage</b> : Moine au niveau 40, Sorcier au niveau 100. Plus tôt pour accrocher, plus tard pour faire durer ?</li>
+      <li><b>Puissance des légendaires</b> : après les boss de fin de royaume (niveaux 60 et 100), les niveaux suivants comptent jusqu’à deux fois plus d’ennemis, parce que les bots supposent l’objet équipé et amélioré. Atténuer le légendaire, ou laisser quelques niveaux avant de le compter ?</li>
+      <li><b>Équipement jamais vendu</b> : butin annoncé et sans hasard, rien à acheter qui donne de la puissance (la boutique reste cosmétique, vies et bonus). À confirmer comme principe de monétisation.</li>
+      <li><b>Priorité du port iOS</b> : tout reporter d’un bloc, ou d’abord les héros et les monstres (simulation), puis l’équipement et les quêtes ?</li>
     </ul>
   </div>
 

@@ -680,10 +680,7 @@ export class Combat {
     ctx.restore();
     // aide : tant que le moine n'a pas lâché trois bourrasques
     if (this.opt.tutorialHints !== false && h.gusts < 3 && !this.world.cleared && this.world.enemies.length) {
-      ctx.font = 'italic 700 13px "Alegreya Sans", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = INK;
-      ctx.fillText(m < 0.6 ? 'Cours pour prendre de l’élan…' : '…puis arrête-toi près d’eux !', hp.x, hp.y + 48);
+      this.hint(ctx, m < 0.6 ? 'Cours pour prendre de l’élan…' : '…puis arrête-toi près d’eux !', hp.x, hp.y + 52);
     }
   }
 
@@ -775,11 +772,24 @@ export class Combat {
     ctx.globalAlpha = 1;
     ctx.restore();
     if (this.opt.tutorialHints !== false && this.opt.level.n <= 125 && w.hero.dmgBy.sig < 300 && !w.cleared && w.enemies.length) {
-      ctx.font = 'italic 700 13px "Alegreya Sans", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = INK;
-      ctx.fillText('Fais-les marcher dans tes braises', hp.x, hp.y + 48);
+      this.hint(ctx, 'Fais-les marcher dans tes braises', hp.x, hp.y + 52);
     }
+  }
+
+  /** Aide écrite sous l'héros : encre détourée de papier, lisible sur les ennemis et les chiffres. */
+  private hint(ctx: Ctx, text: string, x: number, y: number): void {
+    ctx.save();
+    ctx.font = 'italic 700 14px "Alegreya Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const cx = Math.max(90, Math.min(AW - 90, x));
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = this.theme.light;
+    ctx.strokeText(text, cx, y);
+    ctx.fillStyle = INK;
+    ctx.fillText(text, cx, y);
+    ctx.restore();
   }
 
   /** Le fil de découpe : une entaille dans le papier, plus pâle à mesure que l'encre sèche. */
