@@ -49,6 +49,14 @@ const demoSave = (extra = {}) => ({
   pass: { season, points: 290, premium: false, claimedFree: [1, 2, 3, 4], claimedPremium: [] },
   skins: [],
   skin: null,
+  // version 0.2 : équipement, bestiaire (DECISIONS #75, #76)
+  gear: {
+    items: [{ uid: 1, id: 'sewingNeedle', level: 4 }, { uid: 2, id: 'crowPin', level: 6 }, { uid: 3, id: 'juteCloak', level: 3 }, { uid: 4, id: 'foxMask', level: 2 }, { uid: 5, id: 'spool', level: 3 }, { uid: 6, id: 'marshCloak', level: 1 }],
+    equipped: { needle: 2, cloak: 3, mask: 4, charm: 5 },
+    nextUid: 7,
+    shards: 48,
+  },
+  bestiary: { goblin: 64, bat: 31, treant: 1 },
   ...extra,
 });
 
@@ -65,6 +73,14 @@ const SCREENS = [
   ['pause', '?screen=pause', 2400, null, demoSave()],
   ['heroes', '?screen=heroes', 1800, null, demoSave()],
   ['heroes-skins', '?screen=heroes', 1800, "document.querySelector('.sheet-body').scrollTop = 330", demoSave({ skins: ['foxEars', 'paperWings'], skin: 'paperWings' })],
+  ['gear', '?screen=gear', 1800, null, demoSave()],
+  ['gear-item', '?screen=gear', 1800, "document.querySelector('.ggrid .gtile[data-uid=\"6\"]').click()", demoSave()],
+  ['talents', '?screen=talents', 1800, null, demoSave()],
+  ['quests', '?screen=quests', 1800, null, demoSave()],
+  ['bestiary', '?screen=bestiary', 1800, null, demoSave()],
+  ['combat-monk', '?level=47&play&demo', 7000, null, demoSave({ heroId: 'windMonk' })],
+  ['combat-ember', '?level=47&play&demo', 7000, null, demoSave({ heroId: 'emberSorcerer', heroes: ['scout', 'windMonk', 'emberSorcerer'] })],
+  ['combat-new-enemies', '?level=262&play&demo', 7000, null, demoSave({ unlocked: 262 })],
   ['shop', '?screen=shop', 1800, null, demoSave({ starterPack: false })],
   ['shop-spend', '?screen=shop', 1800, "document.querySelector('.sheet-body').scrollTop = 9999", demoSave()],
   ['pass', '?screen=pass', 1800, null, demoSave()],

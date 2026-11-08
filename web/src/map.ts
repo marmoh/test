@@ -8,6 +8,8 @@ import { portrait } from './portraits.js';
 import { save, totalStars, subscribed } from './state.js';
 import { levelLoot, GEAR_BY_ID } from '../../sim/src/gear.js';
 import { gearIcon } from './gearui.js';
+import { HERO_UNLOCK_LEVEL } from './meta.js';
+import type { HeroId } from '../../sim/src/content.js';
 
 const MW = 400;
 const STEP = 96;
@@ -150,6 +152,11 @@ export function buildMap(onSelect: (n: number) => void): HTMLElement {
       g += `<text y="7" text-anchor="middle" class="nnum${locked ? ' dim' : cur ? ' cur' : ''}">${n}</text>`;
       if (info.kind === 'hard') g += `<image href="${iconURL(INK_UI.skull)}" x="${r - 12}" y="${-r - 8}" width="22" height="22"/>`;
     }
+    // héros à débloquer sur ce nœud (DECISIONS #77) : médaillon du héros, on sait ce qui nous attend
+    const heroHere = (Object.keys(HERO_UNLOCK_LEVEL) as HeroId[]).find((id) => HERO_UNLOCK_LEVEL[id] === n && !s.heroes.includes(id));
+    if (heroHere) {
+      g += `<g transform="translate(${-r - 34} ${-4})"><g class="hero-medal"><circle r="21" cx="2" cy="2" fill="${INK}"/><circle r="21" fill="${CUT}" stroke="${GOLD_LEAF}" stroke-width="3"/><image href="${portrait(heroHere, 48, { scale: 1.25, dy: 6 })}" x="-19" y="-19" width="38" height="38"/><rect x="-24" y="16" width="48" height="13" fill="${INK}"/><text y="26" text-anchor="middle" class="medal-txt">Héros</text></g></g>`;
+    }
     // butin annoncé (DECISIONS #75) : l'objet des prochains niveaux, un losange de rareté plus loin
     const loot = st === 0 ? levelLoot(n) : null;
     if (loot) {
@@ -158,7 +165,7 @@ export function buildMap(onSelect: (n: number) => void): HTMLElement {
       const lx = r - 4;
       const ly = -r - 4;
       if (n <= current + 25) {
-        g += `<g class="loot-mark${rar === 'legendary' ? ' leg' : ''}" transform="translate(${lx} ${ly})"><rect x="-12" y="-12" width="24" height="24" rx="3" transform="rotate(45)" fill="${CUT}" stroke="${col}" stroke-width="${rar === 'common' ? 1.6 : 2.6}"/><image href="${gearIcon(loot.id)}" x="-10" y="-10" width="20" height="20"/></g>`;
+        g += `<g transform="translate(${lx} ${ly})"><g class="loot-mark${rar === 'legendary' ? ' leg' : ''}"><rect x="-12" y="-12" width="24" height="24" rx="3" transform="rotate(45)" fill="${CUT}" stroke="${col}" stroke-width="${rar === 'common' ? 1.6 : 2.6}"/><image href="${gearIcon(loot.id)}" x="-10" y="-10" width="20" height="20"/></g></g>`;
       } else g += `<rect x="${lx - 5}" y="${ly - 5}" width="10" height="10" transform="rotate(45 ${lx} ${ly})" fill="${col}" stroke="${INK}" stroke-width="1.2"/>`;
     }
     if (!locked && n < current) {

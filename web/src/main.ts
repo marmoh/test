@@ -210,12 +210,15 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
         pause: () => pauseMenu(),
         finish: async (r) => {
           if (popt.trial) return trialEnd(c, heroId, lvl, true);
+          const owned = new Set(save().heroes);
           const res = recordAttempt(lvl.n, true, r.stars);
+          const fresh = (Object.keys(HEROES) as HeroId[]).filter((id) => !owned.has(id) && heroUnlocked(id));
           const loot = grantLoot(lvl.n, firstWin, r.stars === 3);
           report(true, r, r.stars, r.hpFrac);
           const next = await victory(lvl, r, res, loot);
           c.destroy();
           showMap();
+          for (const id of fresh) await heroUnlockedScreen(id);
           if (next === 'next' && lvl.n < LEVEL_COUNT) void openLevel(lvl.n + 1);
         },
         retry: () => {
@@ -254,6 +257,29 @@ function play(lvl: LevelDef, choice: { potion: boolean; scroll: boolean; aegis: 
       start(pick);
     });
   } else start(null);
+}
+
+/** Nouveau héros débloqué en jouant : on le présente et on propose de le choisir. */
+function heroUnlockedScreen(id: HeroId): Promise<void> {
+  const h = HEROES[id];
+  const o = el(`<div class="overlay result-overlay win"><div class="scrim"></div><div class="result unlock"><p class="rsub">Nouveau héros !</p><h2 class="rtitle">${h.name}</h2><div class="trial-hero"></div><span class="hr-mech big">${h.mechanic}</span><p class="trial-unlock">${h.pitch}</p><div class="ractions"><button class="btn ghost later">Plus tard</button><button class="btn primary pick">Le choisir</button></div></div></div>`);
+  root.appendChild(o);
+  o.querySelector('.trial-hero')!.appendChild(liveSprite(id, 150, 3, 'idle', { aiming: true, facing: 0.2 }));
+  requestAnimationFrame(() => o.classList.add('in'));
+  sfx('loot');
+  return new Promise((resolve) => {
+    const done = (pick: boolean) => {
+      if (pick) {
+        save().heroId = id;
+        persist();
+        refreshMap();
+      }
+      o.remove();
+      resolve();
+    };
+    o.querySelector('.pick')!.addEventListener('click', () => done(true));
+    o.querySelector('.later')!.addEventListener('click', () => done(false));
+  });
 }
 
 /** Fin d'un essai de héros : rien n'est gagné ni perdu ; on rappelle comment le débloquer. */

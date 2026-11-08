@@ -499,6 +499,8 @@ img { -webkit-user-drag: none; }
 .newfoe .nf-tag { position: absolute; top: -9px; right: 10px; font-size: 11px; font-weight: 800; padding: 0 8px; background: var(--vermilion); color: var(--cut); transform: rotate(3deg); }
 .newfoe b { display: block; font-family: var(--display); font-weight: 400; font-size: 17px; }
 .newfoe small { font-size: 13px; color: var(--paper-3); font-style: italic; }
+.map-svg .medal-txt { font-family: var(--ui); font-weight: 800; font-size: 10px; fill: var(--gold); letter-spacing: .5px; text-transform: uppercase; }
+.hero-medal { animation: bob 2.2s ease-in-out infinite; }
 .loot-mark.leg { animation: bob 1.8s ease-in-out infinite; }
 .rloot { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; margin: 0 0 10px; text-align: left; }
 .rloot.small { display: flex; justify-content: center; gap: 10px; }
@@ -519,6 +521,8 @@ img { -webkit-user-drag: none; }
 .lshards { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 15px; }
 .lshards img { width: 22px; }
 .lworn { font-size: 13px; font-weight: 800; color: var(--jade); }
+.hr-mech.big { font-size: 15px; padding: 1px 12px; margin: 2px 0 6px; }
+.result.unlock .rsub { font-family: var(--display); font-size: 18px; color: var(--vermilion); font-style: normal; margin: 0 0 4px; }
 .trial-hero { display: flex; justify-content: center; margin: 4px 0; }
 .trial-unlock { margin: 0 0 6px; font-size: 14px; color: var(--ink-2); }
 
