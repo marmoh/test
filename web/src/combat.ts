@@ -956,7 +956,8 @@ export class Combat {
     const flash = this.flashes.get(e.id) ?? 0;
     if (flash > 0) this.flashes.set(e.id, Math.max(0, flash - dt * 6));
     const hd = Math.atan2(this.world.hero.pos.y - e.pos.y, this.world.hero.pos.x - e.pos.x);
-    const facing = e.state === 'charge' ? Math.atan2(e.aim.y, e.aim.x) : hd;
+    // le bouclier du scarabée tourne lentement dans la simulation : on montre son orientation réelle
+    const facing = e.state === 'charge' || e.type === 'beetle' ? Math.atan2(e.aim.y, e.aim.x) : hd;
     const painter = (e.boss ? PAINTERS[e.boss.archetype] : PAINTERS[e.type]) ?? PAINTERS.goblin;
     ctx.save();
     ctx.translate(p.x, p.y);

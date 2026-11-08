@@ -2,7 +2,7 @@
  * Équilibrage des héros (DECISIONS #74) et de l'équipement (#75) : taux de réussite des bots avec chaque héros
  * sur les niveaux publiés (graine et échelle de content/levels/index.json).
  * usage: tsx tools/src/heroes-probe.ts 5 25 47 65 100 147 [--games 30] [--heroes scout,windMonk,emberSorcerer]
- *        [--bots moyen,expert] [--gear] (équipement attendu au niveau n)
+ *        [--bots moyen,expert] [--nogear] (sans l'équipement attendu au niveau n)
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -17,7 +17,8 @@ const val = (k: string, d: string) => {
 const games = Number(val('games', '30'));
 const heroes = val('heroes', 'scout,windMonk,emberSorcerer').split(',') as HeroId[];
 const bots = val('bots', 'moyen,expert').split(',') as BotName[];
-const withGear = args.includes('--gear');
+// équipement attendu au niveau n par défaut (comme le générateur) ; --nogear pour l'ignorer
+const withGear = !args.includes('--nogear');
 const ns = args.filter((a, i) => !a.startsWith('--') && !(i > 0 && args[i - 1].startsWith('--'))).map(Number);
 const index = JSON.parse(readFileSync(join(ROOT, 'content', 'levels', 'index.json'), 'utf8')) as Record<string, { seed: number; budgetScale: number }>;
 const rooms = loadRooms();

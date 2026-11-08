@@ -4,7 +4,7 @@
  * au premier choix. Aucun pouvoir ne doit dépasser la médiane de plus de 12 points de taux de réussite.
  * Écrit content/reports/powers.json (lu par levels:validate).
  */
-import { generateLevel, runLevel, talentsForLevel, Bot, BOTS, seedOf, POWERS } from '../../sim/src/index.js';
+import { generateLevel, runLevel, talentsForLevel, gearForLevel, Bot, BOTS, seedOf, POWERS } from '../../sim/src/index.js';
 import { loadRooms, roomMap, loadLevel, writeReport } from './content-io.js';
 
 const args = process.argv.slice(2);
@@ -23,7 +23,7 @@ for (const p of POWERS) {
   let total = 0;
   for (const l of levels) {
     for (let g = 0; g < GAMES; g++) {
-      const r = runLevel(l, map, new Bot(BOTS.moyen, seedOf(g, 31)), { talents: talentsForLevel(l.n), attemptSeed: seedOf(g, 32), forceFirstPower: p.id });
+      const r = runLevel(l, map, new Bot(BOTS.moyen, seedOf(g, 31)), { talents: talentsForLevel(l.n), gear: gearForLevel(l.n), attemptSeed: seedOf(g, 32), forceFirstPower: p.id });
       if (r.won) wins++;
       total++;
     }

@@ -58,40 +58,40 @@ export const SLOT_MAIN: Record<GearSlot, GearStat> = { needle: 'dmg', cloak: 'hp
 export const MAX_LEVEL: Record<GearRarity, number> = { common: 10, rare: 20, epic: 30, legendary: 40 };
 
 /** Statistique principale au niveau 1 et gain par niveau (fractions), pour un multiplicateur d'emplacement de 1. */
-const MAIN_BASE: Record<GearRarity, number> = { common: 0.03, rare: 0.05, epic: 0.08, legendary: 0.12 };
-const MAIN_PER_LEVEL = 0.004;
+const MAIN_BASE: Record<GearRarity, number> = { common: 0.02, rare: 0.035, epic: 0.055, legendary: 0.08 };
+const MAIN_PER_LEVEL = 0.0025;
 /** Le masque (cadence) vaut moins, le talisman (signature) plus. */
-const SLOT_MULT: Record<GearSlot, number> = { needle: 1, cloak: 1, mask: 0.6, charm: 1.5 };
+const SLOT_MULT: Record<GearSlot, number> = { needle: 1, cloak: 1, mask: 0.6, charm: 1.2 };
 
 export const GEAR: GearDef[] = [
   // Aiguilles (dégâts)
   { id: 'sewingNeedle', name: 'Aiguille de couturière', slot: 'needle', rarity: 'common', sub: null, lore: 'Elle a cousu plus de rideaux que de batailles.' },
-  { id: 'boneNeedle', name: "Aiguille d'os", slot: 'needle', rarity: 'common', sub: { stat: 'hp', value: 0.03 }, lore: 'Taillée dans un os de marionnette brisée.' },
-  { id: 'crowPin', name: 'Épingle de corbeau', slot: 'needle', rarity: 'rare', sub: { stat: 'crit', value: 0.05 }, lore: 'Le corbeau ne rate jamais un œil.' },
-  { id: 'moonNeedle', name: 'Aiguille lunaire', slot: 'needle', rarity: 'rare', sub: { stat: 'sig', value: 0.08 }, lore: 'Trempée dans le premier quartier.' },
-  { id: 'amberSting', name: "Dard d'ambre", slot: 'needle', rarity: 'epic', sub: { stat: 'rate', value: 0.08 }, lore: "Arraché au Scorpion d'ambre, encore tiède." },
-  { id: 'throneNeedle', name: 'Aiguille du Trône de lune', slot: 'needle', rarity: 'legendary', sub: { stat: 'crit', value: 0.08 }, lore: "Celle qui a découpé la lune dans l'écran." },
+  { id: 'boneNeedle', name: "Aiguille d'os", slot: 'needle', rarity: 'common', sub: { stat: 'hp', value: 0.02 }, lore: 'Taillée dans un os de marionnette brisée.' },
+  { id: 'crowPin', name: 'Épingle de corbeau', slot: 'needle', rarity: 'rare', sub: { stat: 'crit', value: 0.03 }, lore: 'Le corbeau ne rate jamais un œil.' },
+  { id: 'moonNeedle', name: 'Aiguille lunaire', slot: 'needle', rarity: 'rare', sub: { stat: 'sig', value: 0.05 }, lore: 'Trempée dans le premier quartier.' },
+  { id: 'amberSting', name: "Dard d'ambre", slot: 'needle', rarity: 'epic', sub: { stat: 'rate', value: 0.05 }, lore: "Arraché au Scorpion d'ambre, encore tiède." },
+  { id: 'throneNeedle', name: 'Aiguille du Trône de lune', slot: 'needle', rarity: 'legendary', sub: { stat: 'crit', value: 0.05 }, lore: "Celle qui a découpé la lune dans l'écran." },
   // Capes (PV)
   { id: 'juteCloak', name: 'Cape de jute', slot: 'cloak', rarity: 'common', sub: null, lore: 'Rêche, chaude, increvable.' },
-  { id: 'feltCloak', name: 'Cape de feutre', slot: 'cloak', rarity: 'common', sub: { stat: 'dmg', value: 0.03 }, lore: 'Le feutre étouffe les pas.' },
-  { id: 'crowCloak', name: 'Cape de corbeau', slot: 'cloak', rarity: 'rare', sub: { stat: 'speed', value: 0.05 }, lore: 'Mille plumes de papier noir.' },
-  { id: 'mistMantle', name: 'Manteau de brume', slot: 'cloak', rarity: 'rare', sub: { stat: 'dodge', value: 0.05 }, lore: 'On le voit, puis on ne le voit plus.' },
-  { id: 'marshCloak', name: 'Cape des marais', slot: 'cloak', rarity: 'epic', sub: { stat: 'sig', value: 0.1 }, lore: 'Tissée par la Reine des marais pour son champion.' },
-  { id: 'starryMantle', name: 'Manteau de nuit étoilée', slot: 'cloak', rarity: 'legendary', sub: { stat: 'dmg', value: 0.08 }, lore: 'Chaque étoile est un trou de lumière.' },
+  { id: 'feltCloak', name: 'Cape de feutre', slot: 'cloak', rarity: 'common', sub: { stat: 'dmg', value: 0.02 }, lore: 'Le feutre étouffe les pas.' },
+  { id: 'crowCloak', name: 'Cape de corbeau', slot: 'cloak', rarity: 'rare', sub: { stat: 'speed', value: 0.03 }, lore: 'Mille plumes de papier noir.' },
+  { id: 'mistMantle', name: 'Manteau de brume', slot: 'cloak', rarity: 'rare', sub: { stat: 'dodge', value: 0.03 }, lore: 'On le voit, puis on ne le voit plus.' },
+  { id: 'marshCloak', name: 'Cape des marais', slot: 'cloak', rarity: 'epic', sub: { stat: 'sig', value: 0.06 }, lore: 'Tissée par la Reine des marais pour son champion.' },
+  { id: 'starryMantle', name: 'Manteau de nuit étoilée', slot: 'cloak', rarity: 'legendary', sub: { stat: 'dmg', value: 0.05 }, lore: 'Chaque étoile est un trou de lumière.' },
   // Masques (cadence)
   { id: 'paperMask', name: 'Masque de papier', slot: 'mask', rarity: 'common', sub: null, lore: 'Deux trous, un sourire, beaucoup de courage.' },
-  { id: 'foxMask', name: 'Masque de renard', slot: 'mask', rarity: 'common', sub: { stat: 'speed', value: 0.03 }, lore: 'Le renard file entre les ombres.' },
-  { id: 'owlMask', name: 'Masque de chouette', slot: 'mask', rarity: 'rare', sub: { stat: 'crit', value: 0.05 }, lore: 'Il voit dans le noir des coulisses.' },
-  { id: 'wolfMask', name: 'Masque de loup', slot: 'mask', rarity: 'rare', sub: { stat: 'dmg', value: 0.05 }, lore: "Pris au Loup d'ombre, crocs compris." },
-  { id: 'emberMask', name: 'Masque de braise', slot: 'mask', rarity: 'epic', sub: { stat: 'sig', value: 0.1 }, lore: 'Ses yeux fument encore.' },
-  { id: 'eclipseMask', name: 'Masque de la lune noire', slot: 'mask', rarity: 'legendary', sub: { stat: 'crit', value: 0.08 }, lore: 'Quand il le porte, la scène retient son souffle.' },
+  { id: 'foxMask', name: 'Masque de renard', slot: 'mask', rarity: 'common', sub: { stat: 'speed', value: 0.02 }, lore: 'Le renard file entre les ombres.' },
+  { id: 'owlMask', name: 'Masque de chouette', slot: 'mask', rarity: 'rare', sub: { stat: 'crit', value: 0.03 }, lore: 'Il voit dans le noir des coulisses.' },
+  { id: 'wolfMask', name: 'Masque de loup', slot: 'mask', rarity: 'rare', sub: { stat: 'dmg', value: 0.03 }, lore: "Pris au Loup d'ombre, crocs compris." },
+  { id: 'emberMask', name: 'Masque de braise', slot: 'mask', rarity: 'epic', sub: { stat: 'sig', value: 0.06 }, lore: 'Ses yeux fument encore.' },
+  { id: 'eclipseMask', name: 'Masque de la lune noire', slot: 'mask', rarity: 'legendary', sub: { stat: 'crit', value: 0.05 }, lore: 'Quand il le porte, la scène retient son souffle.' },
   // Talismans (signature)
   { id: 'spool', name: 'Bobine de fil', slot: 'charm', rarity: 'common', sub: null, lore: 'Le premier outil de tout marionnettiste.' },
-  { id: 'windBell', name: 'Grelot de vent', slot: 'charm', rarity: 'common', sub: { stat: 'speed', value: 0.03 }, lore: 'Il tinte avant la bourrasque.' },
-  { id: 'emberJar', name: 'Braise captive', slot: 'charm', rarity: 'rare', sub: { stat: 'dmg', value: 0.05 }, lore: 'Une braise qui ne veut pas mourir.' },
-  { id: 'paperCrane', name: 'Grue de papier', slot: 'charm', rarity: 'rare', sub: { stat: 'dodge', value: 0.04 }, lore: 'Pliée mille fois, elle porte chance.' },
-  { id: 'waxHeart', name: 'Cœur de cire', slot: 'charm', rarity: 'epic', sub: { stat: 'hp', value: 0.08 }, lore: 'Il bat au rythme de la rampe.' },
-  { id: 'eclipseCharm', name: 'Éclipse', slot: 'charm', rarity: 'legendary', sub: { stat: 'rate', value: 0.08 }, lore: "Un disque d'encre devant la lune." },
+  { id: 'windBell', name: 'Grelot de vent', slot: 'charm', rarity: 'common', sub: { stat: 'speed', value: 0.02 }, lore: 'Il tinte avant la bourrasque.' },
+  { id: 'emberJar', name: 'Braise captive', slot: 'charm', rarity: 'rare', sub: { stat: 'dmg', value: 0.03 }, lore: 'Une braise qui ne veut pas mourir.' },
+  { id: 'paperCrane', name: 'Grue de papier', slot: 'charm', rarity: 'rare', sub: { stat: 'dodge', value: 0.025 }, lore: 'Pliée mille fois, elle porte chance.' },
+  { id: 'waxHeart', name: 'Cœur de cire', slot: 'charm', rarity: 'epic', sub: { stat: 'hp', value: 0.05 }, lore: 'Il bat au rythme de la rampe.' },
+  { id: 'eclipseCharm', name: 'Éclipse', slot: 'charm', rarity: 'legendary', sub: { stat: 'rate', value: 0.05 }, lore: "Un disque d'encre devant la lune." },
 ];
 
 export const GEAR_BY_ID: Record<string, GearDef> = Object.fromEntries(GEAR.map((g) => [g.id, g]));

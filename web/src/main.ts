@@ -325,7 +325,7 @@ async function demoUi(kind: string): Promise<void> {
     setTimeout(() => void choosePower(['multishot', 'frost', 'crit'], newHero(NO_TALENTS)), 300);
   } else if (kind === 'victory') {
     play(level(5), { potion: false, scroll: false, aegis: false });
-    setTimeout(() => void victory(level(5), { won: true, stars: 3, hpFrac: 0.9, seconds: 74, kills: 23, continues: 0 }, { firstThree: true, pass: { points: 40, tierBefore: 2, tierAfter: 3 }, chests: [{ index: 1, gold: 200, gems: 20, bonus: 'potion' }] }), 300);
+    setTimeout(() => void victory(level(5), { won: true, stars: 3, hpFrac: 0.9, seconds: 74, kills: 23, continues: 0 }, { firstThree: true, pass: { points: 40, tierBefore: 2, tierAfter: 3 }, chests: [] }, { item: { uid: -1, id: 'crowPin', level: 3 }, shards: 9, first: true }), 300);
   } else if (kind === 'defeat') {
     play(level(5), { potion: false, scroll: false, aegis: false });
     setTimeout(() => void defeat(0), 300);

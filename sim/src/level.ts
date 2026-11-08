@@ -19,7 +19,7 @@ import {
 } from './content.js';
 import { levelInfo, roomBudget, waveCap, stars, type LevelKind } from './formulas.js';
 import { talentsAtRank, NO_TALENTS, type Talents } from './hero.js';
-import type { GearStats } from './gear.js';
+import { gearStats, expectedGear, type GearStats } from './gear.js';
 import { Rng, seedOf } from './rng.js';
 import { World, newHero, grantPower, type HeroInput, type HeroState, type SpawnSpec } from './world.js';
 
@@ -271,6 +271,11 @@ export interface RunResult {
 
 export function talentsForLevel(n: number): Talents {
   return talentsAtRank(expectedTalentRank(n));
+}
+
+/** Équipement attendu au niveau n (modèle des bots, comme les talents) : DECISIONS #75. */
+export function gearForLevel(n: number): GearStats {
+  return gearStats(expectedGear(n));
 }
 
 export function runLevel(level: LevelDef, templates: Map<string, RoomTemplate>, ctl: Controller, opt: RunOptions = {}): RunResult {

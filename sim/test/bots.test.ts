@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateLevel, runLevel, talentsForLevel, Bot, BOTS, seedOf, type BotName } from '../src/index.js';
+import { generateLevel, runLevel, talentsForLevel, gearForLevel, Bot, BOTS, seedOf, type BotName } from '../src/index.js';
 import { loadRooms, roomMap, levelIndex } from './helpers.js';
 
 const rooms = loadRooms();
@@ -13,7 +13,7 @@ function rate(n: number, bot: BotName): { win: number; secs: number } {
   let w = 0;
   let s = 0;
   for (let g = 0; g < GAMES; g++) {
-    const r = runLevel(lvl, map, new Bot(BOTS[bot], seedOf(g, 7)), { talents: talentsForLevel(n), attemptSeed: g, autoFire: true });
+    const r = runLevel(lvl, map, new Bot(BOTS[bot], seedOf(g, 7)), { talents: talentsForLevel(n), gear: gearForLevel(n), attemptSeed: g, autoFire: true });
     if (r.won) w++;
     s += r.seconds;
   }

@@ -8,7 +8,7 @@
  */
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateLevel, runLevel, talentsForLevel, Bot, BOTS, seedOf, levelInfo, LEVEL_COUNT, type LevelDef } from '../../sim/src/index.js';
+import { generateLevel, runLevel, talentsForLevel, gearForLevel, Bot, BOTS, seedOf, levelInfo, LEVEL_COUNT, type LevelDef } from '../../sim/src/index.js';
 import { loadRooms, roomMap, loadLevel, saveLevel, writeReport, REPORTS_DIR } from './content-io.js';
 import { bandFor, inBand } from './bands.js';
 
@@ -35,7 +35,7 @@ for (let n = 1; n <= LEVEL_COUNT; n++) {
   if (RERUN) {
     const rate = (b: 'moyen' | 'expert', salt: number) => {
       let w = 0;
-      for (let g = 0; g < GAMES; g++) if (runLevel(l, map, new Bot(BOTS[b], seedOf(g, salt, 9)), { talents: talentsForLevel(n), attemptSeed: seedOf(g, salt, 5) }).won) w++;
+      for (let g = 0; g < GAMES; g++) if (runLevel(l, map, new Bot(BOTS[b], seedOf(g, salt, 9)), { talents: talentsForLevel(n), gear: gearForLevel(n), attemptSeed: seedOf(g, salt, 5) }).won) w++;
       return w / GAMES;
     };
     const m = rate('moyen', 11);

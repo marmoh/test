@@ -4,7 +4,7 @@
  * Affiche aussi la part des découpes dans les dégâts infligés (« boucles ») et le taux de réussite des boucles
  * planifiées par le bot (découpes / boucles commencées).
  */
-import { generateLevel, runLevel, talentsForLevel, Bot, BOTS, seedOf, levelInfo, type BotName } from '../../sim/src/index.js';
+import { generateLevel, runLevel, talentsForLevel, gearForLevel, Bot, BOTS, seedOf, levelInfo, type BotName } from '../../sim/src/index.js';
 import { loadRooms, roomMap } from './content-io.js';
 
 const args = process.argv.slice(2);
@@ -29,7 +29,7 @@ for (const n of ns) {
       const lvl = generateLevel(n, sd, rooms, scale);
       for (let g = 0; g < games; g++) {
         const bot = new Bot(BOTS[b], seedOf(g, 7));
-        const r = runLevel(lvl, map, bot, { talents: talentsForLevel(n), attemptSeed: g });
+        const r = runLevel(lvl, map, bot, { talents: talentsForLevel(n), gear: gearForLevel(n), attemptSeed: g });
         total++;
         if (r.won) wins++;
         if (r.timeout) to++;
