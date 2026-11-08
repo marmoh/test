@@ -7,149 +7,154 @@
  "D": 9.365,
  "mult": 0.85,
  "budgetScale": 0.909,
- "seed": 1,
- "powerSeed": 2275723063,
+ "seed": 2,
+ "powerSeed": 3119878849,
  "rooms": [
-  {
-   "template": "room_10",
-   "waves": [
-    [
-     {
-      "type": "snipper",
-      "c": 4,
-      "r": 6
-     },
-     {
-      "type": "goblin",
-      "c": 4,
-      "r": 3,
-      "elite": true
-     },
-     {
-      "type": "bat",
-      "c": 8,
-      "r": 1
-     },
-     {
-      "type": "snipper",
-      "c": 1,
-      "r": 4
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 1340274656,
-   "budget": 12
-  },
-  {
-   "template": "room_19",
-   "waves": [
-    [
-     {
-      "type": "bat",
-      "c": 2,
-      "r": 9
-     },
-     {
-      "type": "jelly",
-      "c": 7,
-      "r": 3
-     },
-     {
-      "type": "wolf",
-      "c": 5,
-      "r": 3
-     }
-    ],
-    [
-     {
-      "type": "snipper",
-      "c": 2,
-      "r": 7
-     },
-     {
-      "type": "snipper",
-      "c": 3,
-      "r": 0
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 103752907,
-   "budget": 14
-  },
-  {
-   "template": "room_23",
-   "waves": [
-    [
-     {
-      "type": "skeleton",
-      "c": 4,
-      "r": 3
-     },
-     {
-      "type": "jelly",
-      "c": 4,
-      "r": 1
-     },
-     {
-      "type": "skeleton",
-      "c": 7,
-      "r": 8
-     }
-    ],
-    [
-     {
-      "type": "skeleton",
-      "c": 3,
-      "r": 6
-     },
-     {
-      "type": "mushroom",
-      "c": 1,
-      "r": 7
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 519218994,
-   "budget": 16
-  },
   {
    "template": "room_18",
    "waves": [
     [
      {
-      "type": "mage",
-      "c": 7,
+      "type": "goblin",
+      "c": 0,
+      "r": 3
+     },
+     {
+      "type": "goblin",
+      "c": 1,
       "r": 2
      },
      {
-      "type": "wolf",
-      "c": 1,
-      "r": 5
+      "type": "goblin",
+      "c": 8,
+      "r": 7
      },
      {
-      "type": "totem",
-      "c": 1,
+      "type": "jelly",
+      "c": 5,
+      "r": 2
+     },
+     {
+      "type": "skeleton",
+      "c": 7,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 2419426307,
+   "budget": 12
+  },
+  {
+   "template": "room_05",
+   "waves": [
+    [
+     {
+      "type": "goblin",
+      "c": 4,
+      "r": 7
+     },
+     {
+      "type": "mushroom",
+      "c": 4,
+      "r": 2
+     },
+     {
+      "type": "snipper",
+      "c": 8,
+      "r": 0
+     }
+    ],
+    [
+     {
+      "type": "moth",
+      "c": 3,
+      "r": 0
+     },
+     {
+      "type": "skeleton",
+      "c": 5,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3146622055,
+   "budget": 14
+  },
+  {
+   "template": "room_20",
+   "waves": [
+    [
+     {
+      "type": "mushroom",
+      "c": 4,
+      "r": 2,
+      "elite": true
+     },
+     {
+      "type": "mushroom",
+      "c": 5,
       "r": 2
      }
     ],
     [
      {
-      "type": "bat",
+      "type": "mage",
       "c": 3,
-      "r": 7
-     },
-     {
-      "type": "totem",
-      "c": 6,
-      "r": 3
+      "r": 8
      }
     ]
    ],
    "boss": null,
-   "seed": 1034190809,
+   "seed": 3660177265,
+   "budget": 16
+  },
+  {
+   "template": "room_01",
+   "waves": [
+    [
+     {
+      "type": "mushroom",
+      "c": 3,
+      "r": 6
+     },
+     {
+      "type": "goblin",
+      "c": 1,
+      "r": 7
+     },
+     {
+      "type": "snipper",
+      "c": 1,
+      "r": 8
+     },
+     {
+      "type": "skeleton",
+      "c": 3,
+      "r": 3
+     }
+    ],
+    [
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 5
+     },
+     {
+      "type": "lantern",
+      "c": 2,
+      "r": 1
+     },
+     {
+      "type": "goblin",
+      "c": 3,
+      "r": 4
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3931902839,
    "budget": 18
   }
  ],
@@ -159,10 +164,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.685,
-  "expert": 0.98,
+  "moyen": 0.705,
+  "expert": 1,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 111
+  "avgSeconds": 81
  }
 }

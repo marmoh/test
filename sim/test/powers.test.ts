@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { offerPowers, POWERS, POWER_BY_ID, Rng, computeStats, NO_TALENTS, THREAD, type PowerId } from '../src/index.js';
 
 describe('§6 offre de pouvoirs', () => {
-  it('24 pouvoirs', () => expect(POWERS.length).toBe(24));
+  it('36 pouvoirs (24 + 6 du vent + 6 de braise)', () => expect(POWERS.length).toBe(36));
 
   it('3 pouvoirs distincts, déterministes', () => {
     for (let s = 0; s < 500; s++) {

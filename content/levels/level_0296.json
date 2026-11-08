@@ -7,158 +7,167 @@
  "D": 11.897,
  "mult": 1,
  "budgetScale": 0.909,
- "seed": 3,
- "powerSeed": 2410686971,
+ "seed": 5,
+ "powerSeed": 2055471670,
  "rooms": [
   {
-   "template": "room_01",
+   "template": "room_14",
    "waves": [
     [
-     {
-      "type": "goblin",
-      "c": 8,
-      "r": 9
-     },
      {
       "type": "skeleton",
-      "c": 6,
-      "r": 2
-     },
-     {
-      "type": "bat",
       "c": 0,
-      "r": 5
-     },
-     {
-      "type": "wolf",
-      "c": 1,
-      "r": 7
-     },
-     {
-      "type": "wolf",
-      "c": 2,
-      "r": 4
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 1773904684,
-   "budget": 14
-  },
-  {
-   "template": "room_21",
-   "waves": [
-    [
-     {
-      "type": "goblin",
-      "c": 8,
       "r": 8
      },
      {
-      "type": "goblin",
+      "type": "moth",
       "c": 3,
-      "r": 2
+      "r": 0
      },
      {
-      "type": "totem",
+      "type": "lantern",
       "c": 6,
-      "r": 2,
-      "elite": true
+      "r": 9
      },
      {
-      "type": "wolf",
-      "c": 1,
-      "r": 1
+      "type": "goblin",
+      "c": 2,
+      "r": 7
+     },
+     {
+      "type": "mushroom",
+      "c": 3,
+      "r": 7
+     },
+     {
+      "type": "lantern",
+      "c": 8,
+      "r": 6
      }
     ]
    ],
    "boss": null,
-   "seed": 1006408701,
-   "budget": 16
+   "seed": 500757662,
+   "budget": 14
   },
   {
    "template": "room_02",
    "waves": [
     [
      {
-      "type": "goblin",
+      "type": "weaver",
       "c": 1,
-      "r": 7
+      "r": 0
      },
      {
-      "type": "jelly",
-      "c": 6,
+      "type": "weaver",
+      "c": 3,
       "r": 1
      },
      {
+      "type": "jelly",
+      "c": 5,
+      "r": 8
+     },
+     {
+      "type": "specter",
+      "c": 1,
+      "r": 5
+     },
+     {
+      "type": "skeleton",
+      "c": 1,
+      "r": 8
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 261748369,
+   "budget": 16
+  },
+  {
+   "template": "room_17",
+   "waves": [
+    [
+     {
       "type": "mage",
-      "c": 3,
-      "r": 4
+      "c": 2,
+      "r": 5
+     },
+     {
+      "type": "goblin",
+      "c": 0,
+      "r": 7
+     },
+     {
+      "type": "mushroom",
+      "c": 7,
+      "r": 2
      }
     ],
     [
      {
-      "type": "bat",
-      "c": 8,
-      "r": 3
+      "type": "wolf",
+      "c": 2,
+      "r": 1
      },
      {
-      "type": "bat",
-      "c": 1,
+      "type": "lantern",
+      "c": 5,
       "r": 4
      },
      {
-      "type": "jelly",
+      "type": "weaver",
+      "c": 7,
+      "r": 0
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 1455196339,
+   "budget": 18
+  },
+  {
+   "template": "room_07",
+   "waves": [
+    [
+     {
+      "type": "skeleton",
+      "c": 8,
+      "r": 2
+     },
+     {
+      "type": "mage",
+      "c": 8,
+      "r": 8
+     },
+     {
+      "type": "mage",
+      "c": 1,
+      "r": 5
+     }
+    ],
+    [
+     {
+      "type": "lantern",
+      "c": 8,
+      "r": 1,
+      "elite": true
+     },
+     {
+      "type": "bat",
       "c": 2,
+      "r": 3
+     },
+     {
+      "type": "lantern",
+      "c": 1,
       "r": 5
      }
     ]
    ],
    "boss": null,
-   "seed": 1584968875,
-   "budget": 18
-  },
-  {
-   "template": "room_11",
-   "waves": [
-    [
-     {
-      "type": "goblin",
-      "c": 5,
-      "r": 3
-     },
-     {
-      "type": "mage",
-      "c": 7,
-      "r": 6
-     },
-     {
-      "type": "moth",
-      "c": 2,
-      "r": 8
-     }
-    ],
-    [
-     {
-      "type": "skeleton",
-      "c": 0,
-      "r": 4,
-      "elite": true
-     },
-     {
-      "type": "goblin",
-      "c": 8,
-      "r": 1
-     },
-     {
-      "type": "bat",
-      "c": 0,
-      "r": 2
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 603885288,
+   "seed": 3323900842,
    "budget": 21
   }
  ],
@@ -168,10 +177,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.62,
-  "expert": 0.995,
+  "moyen": 0.725,
+  "expert": 1,
   "band": "Normal",
   "ok": true,
-  "avgSeconds": 87
+  "avgSeconds": 89
  }
 }
