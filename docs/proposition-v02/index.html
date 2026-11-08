@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ombrelune 0.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;0,800;1,500&display=swap" rel="stylesheet">
+<style>
+/* Théâtre d'ombres (docs/ART.md) : une feuille de papier posée sur la scène ; vermillon pour l'action, jade pour les héros,
+   or à la feuille pour les récompenses. Une colonne de lecture, des planches de captures qui s'alignent en grille. */
+:root {
+  --ink: #1b1418;
+  --ink-2: #40333a;
+  --paper: #efe3c6;
+  --cut: #fff4d6;
+  --vermilion: #d8431f;
+  --jade: #2b8a74;
+  --gold: #c9a13b;
+  --curtain: #2b1317;
+  --display: 'IM Fell English SC', Georgia, serif;
+  --body: 'Alegreya Sans', 'Segoe UI', sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { background: var(--curtain); }
+body { margin: 0; background: var(--curtain); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.5; }
+.sheet { max-width: 980px; margin: 24px auto; padding: 36px clamp(16px, 4vw, 48px) 48px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 8px 8px 0 rgba(0,0,0,.45); }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(38px, 7vw, 60px); line-height: 1; }
+h2 { font-size: 30px; margin: 44px 0 6px; padding-bottom: 4px; border-bottom: 2px solid var(--ink); display: flex; align-items: baseline; gap: 12px; }
+h2 .n { font-family: var(--body); font-size: 14px; font-weight: 800; color: var(--vermilion); }
+h3 { font-size: 21px; margin-bottom: 4px; }
+p { margin: 8px 0; max-width: 68ch; }
+.lead { font-size: 19px; color: var(--ink-2); font-style: italic; max-width: 60ch; }
+.play { display: inline-flex; align-items: center; gap: 10px; margin: 18px 0 4px; padding: 12px 22px; font-family: var(--display); font-size: 22px; color: var(--cut); background: var(--vermilion); border: 2.5px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); text-decoration: none; }
+.play:focus-visible, a:focus-visible { outline: 3px solid var(--jade); outline-offset: 3px; }
+.note { font-size: 14px; color: var(--ink-2); font-style: italic; }
+.heroes { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; margin-top: 14px; }
+.card { background: var(--cut); border: 2.5px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.card img { width: 100%; height: auto; border: 2px solid var(--ink); display: block; }
+.tag { align-self: flex-start; font-size: 13px; font-weight: 800; color: var(--cut); background: var(--jade); padding: 0 8px; }
+.card p { font-size: 15px; margin: 0; }
+.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin: 14px 0; }
+.shots figure { margin: 0; }
+.shots img { width: 100%; height: auto; border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); display: block; }
+figcaption { font-size: 13px; color: var(--ink-2); margin-top: 6px; font-style: italic; }
+.wide img { width: 100%; height: auto; border: 2px solid var(--ink); display: block; }
+ul { padding-left: 20px; max-width: 70ch; }
+li { margin: 4px 0; }
+.scroll { overflow-x: auto; margin: 12px 0; }
+table { border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; min-width: 560px; }
+th, td { border: 1.5px solid var(--ink); padding: 6px 10px; text-align: left; }
+th { background: var(--ink); color: var(--paper); font-weight: 700; }
+td.num { text-align: right; }
+.ask { background: var(--ink); color: var(--paper); padding: 16px 20px; margin-top: 14px; border-left: 8px solid var(--vermilion); }
+.ask h3 { color: var(--gold); }
+.ask li { max-width: none; }
+.rar { font-weight: 800; }
+.r-c { color: var(--ink-2); } .r-r { color: var(--jade); } .r-e, .r-l { color: #8a6a14; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="sheet">
+  <h1>Ombrelune 0.2</h1>
+  <p class="lead">Trois héros qui ne se jouent pas pareil, de l’équipement à gagner, cinq nouveaux monstres et des raisons de revenir chaque jour.</p>
+  <a class="play" href="{{PLAY_URL}}">Jouer au prototype ›</a>
+  <p class="note">Le prototype web tourne sur la même simulation que l’app iOS. Pour tout voir vite : jouer quelques niveaux, ouvrir l’écran Héros (bouton « Essayer » sur les héros verrouillés), l’équipement, les quêtes et le bestiaire depuis la carte.</p>
+
+  <h2><span class="n">1</span>Trois héros, trois façons de jouer</h2>
+  <p>Jusqu’ici, les trois héros partageaient le fil de découpe ; seuls leur tir et un petit pouvoir de départ changeaient. Chacun a désormais sa mécanique, sa famille de six pouvoirs (la première carte de chaque choix) et une aide à l’écran les premières fois.</p>
+  <div class="heroes">
+    <div class="card"><img src="combat-scout.jpg" alt="L’Éclaireuse referme une boucle de fil autour d’un ennemi"><span class="tag">Ciseaux de lune</span><h3>L’Éclaireuse</h3><p>Elle entoure ses ennemis de son fil : la boucle refermée les découpe du papier. Inchangée, c’est la référence.</p></div>
+    <div class="card"><img src="combat-monk.jpg" alt="Le Moine du vent libère une bourrasque en s’arrêtant"><span class="tag">Élan et bourrasque</span><h3>Le Moine du vent</h3><p>Courir charge l’élan (anneau à ses pieds). S’arrêter le libère : dégâts autour de lui, ennemis repoussés, tireurs interrompus, projectiles dissipés. Un jeu de va-et-vient.</p></div>
+    <div class="card"><img src="combat-ember.jpg" alt="Le Sorcier de braise laisse une traînée de feu"><span class="tag">Traînée de braises</span><h3>Le Sorcier de braise</h3><p>Ses pas laissent des braises qui brûlent les ennemis au sol ; ses projectiles font couver leur cible. On attire les poursuivants dans le feu ; les volants lui échappent.</p></div>
+  </div>
+  <p>Le Moine se débloque au niveau 40 (ou avec l’offre de départ), le Sorcier au niveau 100. Avant, on peut les essayer dans une salle d’entraînement, et la carte montre leur médaillon sur le niveau qui les donne.</p>
+
+  <h2><span class="n">2</span>De l’équipement à gagner</h2>
+  <p>En plus des talents, quatre emplacements : <b>aiguille</b> (dégâts), <b>cape</b> (PV), <b>masque</b> (cadence) et <b>talisman</b> (puissance de la mécanique du héros). 24 objets, chacun avec une statistique secondaire et une ligne d’histoire, en quatre raretés : <span class="rar r-c">commun</span>, <span class="rar r-r">rare</span>, <span class="rar r-e">épique</span>, <span class="rar r-l">légendaire</span>.</p>
+  <ul>
+    <li><b>Aucun hasard, aucun achat</b> : six niveaux par chapitre donnent un objet précis à leur première victoire, annoncé d’avance sur la carte et avant le niveau. Les boss donnent un objet épique ; le boss de fin de royaume, un légendaire.</li>
+    <li><b>Éclats</b> : chaque victoire en donne, même rejouée. Avec l’or, ils améliorent les objets ; recycler un objet en rend.</li>
+    <li>À la victoire, la carte de l’objet se retourne, avec un bouton « Équiper » s’il est meilleur.</li>
+  </ul>
+  <div class="shots">
+    <figure><img src="gear.jpg" alt="Écran d’équipement : quatre emplacements autour du héros, inventaire"><figcaption>Équipement porté et inventaire</figcaption></figure>
+    <figure><img src="gear-item.jpg" alt="Fiche d’un objet épique"><figcaption>Fiche d’objet : comparer, améliorer, recycler</figcaption></figure>
+    <figure><img src="victory.jpg" alt="Écran de victoire avec un objet gagné"><figcaption>Victoire : l’objet se révèle</figcaption></figure>
+    <figure><img src="map.jpg" alt="Carte avec les objets annoncés sur les niveaux"><figcaption>La carte annonce le butin et les héros</figcaption></figure>
+  </div>
+
+  <h2><span class="n">3</span>Cinq nouveaux monstres</h2>
+  <p>Les chapitres 11 à 15 n’introduisaient plus aucun ennemi. Ils en ont maintenant un chacun, avec une mécanique nouvelle, toujours télégraphiée :</p>
+  <ul>
+    <li><b>Lampion</b> : il fonce, s’arrête et gonfle pendant 0,8 s avant d’exploser. L’abattre à temps l’éteint.</li>
+    <li><b>Araignée tisseuse</b> : sa toile ralentit l’héroïne ; la tuer fait tomber ses toiles.</li>
+    <li><b>Scarabée-bouclier</b> : son bouclier arrête les aiguilles de face. Il faut le contourner ou passer par la mécanique du héros.</li>
+    <li><b>Montreur d’ombres</b> : il garde ses distances et invoque des ombres rapides.</li>
+    <li><b>Spectre de papier</b> : sa marque apparaît au sol, il s’y téléporte et tire en anneau.</li>
+  </ul>
+  <div class="wide"><img src="monstres.jpg" alt="Planche des six nouvelles marionnettes dans tous leurs états"></div>
+  <div class="shots"><figure><img src="combat-new.jpg" alt="Combat au niveau 262 avec les nouveaux ennemis"><figcaption>Niveau 262 : toile, montreur d’ombres</figcaption></figure><figure><img src="bestiary.jpg" alt="Bestiaire"><figcaption>Bestiaire : chaque créature, son comportement, une astuce</figcaption></figure><figure><img src="prelevel.jpg" alt="Avant le niveau : nouveau monstre, héros, butin"><figcaption>Avant le niveau : le nouveau venu, le héros, le butin</figcaption></figure><figure><img src="quests.jpg" alt="Quêtes du jour"><figcaption>Trois quêtes par jour</figcaption></figure></div>
+
+  <h2><span class="n">4</span>Des raisons de revenir</h2>
+  <ul>
+    <li><b>Quêtes du jour</b> : trois par jour, tirées de la date (gagner avec tel héros, rejouer un niveau, 3 étoiles, un boss…), plus un bonus pour les trois.</li>
+    <li><b>Bestiaire</b> à compléter (21 créatures, silhouettes tant qu’on ne les a pas croisées).</li>
+    <li><b>Ce qui vient se voit</b> : objets et héros sur la carte, nouveau monstre présenté avant son niveau, écran « Nouveau héros ! » au déblocage.</li>
+    <li><b>Rejouer rapporte</b> : éclats à chaque victoire, quêtes qui demandent de changer de héros.</li>
+  </ul>
+
+  <h2><span class="n">5</span>Mesuré par les bots</h2>
+  <p>Les 300 niveaux ont été régénérés et revalidés : les bots modélisent désormais l’équipement attendu comme ils modélisaient les talents (sans cela, l’équipement aurait fait passer le bot moyen de 41 % à 70 % sur les niveaux difficiles).</p>
+  {{BALANCE}}
+
+  <div class="ask">
+    <h3>À décider ensemble</h3>
+    <ul>
+      {{ASKS}}
+    </ul>
+  </div>
+
+  <h2><span class="n">6</span>Ce qui reste</h2>
+  <ul>
+    <li><b>Port iOS</b> de tout ceci (simulation Swift au bit près, rendu, écrans, sauvegarde, traductions) : la liste exacte est prête (<code>docs/PORT_IOS_V02.md</code>). Rien n’a encore été compilé côté iOS.</li>
+    <li>Atlas iOS des six nouvelles marionnettes.</li>
+    <li>Une recette à la main des trois héros : les bots disent si c’est faisable, pas si c’est agréable.</li>
+  </ul>
+</main>
+</body>
+</html>

@@ -84,3 +84,14 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] Fil court et progressif (retour de test) : 2,2 s au départ, Fil long +40 % × 3, talent Encre lente, une carte de fil par tirage, aiguilles à 30 % ; 300 niveaux recalés, traces régénérées sous Rosetta (DECISIONS #71, #72)
 - [ ] Profilage sur iPhone 11 (§11)
 - [ ] Conditions d'utilisation et politique de confidentialité définitives (liens sous l'offre d'abonnement)
+
+## V0.2 — Héros, équipement, bestiaire (retour du porteur du projet : « plus complet, plus envie d'y revenir »)
+- [x] Héros à mécanique propre : Moine du vent (élan et bourrasque), Sorcier de braise (traînée de braises), familles de 6 pouvoirs chacune, bots qui les jouent, aide en jeu (DECISIONS #74)
+- [x] Cinq ennemis pour les chapitres 11 à 15 : lampion, araignée tisseuse, scarabée-bouclier, montreur d'ombres (et ses ombres), spectre de papier ; marionnettes (`art/src/monsters2.ts`) (DECISIONS #73)
+- [x] Équipement : 4 emplacements, 24 objets, 4 raretés, butin annoncé par niveau (sans hasard), éclats, amélioration, recyclage ; écran d'équipement, butin sur la carte, au pré-niveau et à la victoire (DECISIONS #75)
+- [x] Bots et générateur calibrés avec l'équipement attendu ; 300 niveaux régénérés (`levels:gen --revalidate`)
+- [x] Quêtes du jour, bestiaire, essai des héros verrouillés, déblocage en jouant (niveaux 40 et 100), médaillon des héros sur la carte, écran « Nouveau héros » (DECISIONS #76, #77)
+- [x] Tests vitest des mécaniques signature, des nouveaux ennemis et de l'équipement (`sim/test/heroes.test.ts`)
+- [ ] Port iOS de la version 0.2 : cœur Swift (parité), rendu SpriteKit, écrans SwiftUI, sauvegarde, chaînes en/es — liste exacte dans `docs/PORT_IOS_V02.md`
+- [ ] Atlas iOS des six nouvelles marionnettes (`pnpm art:atlas`)
+- [ ] Recette humaine des trois héros (ressenti, lisibilité de l'élan et des braises) et des nouveaux ennemis
