@@ -211,7 +211,7 @@ export const EMBER = {
   /** rayon d'une braise (pt), ajouté au rayon de l'ennemi */
   radius: 13,
   /** dégâts par seconde de la brûlure, × dégâts du héros / 100 */
-  dps: 28,
+  dps: 21,
   /** durée de la brûlure après avoir quitté les braises (s) */
   linger: 1.2,
   /** Combustion : explosion d'un ennemi mort en brûlant (fraction de ses PV max, plafond × dégâts / 100) et rayon */
