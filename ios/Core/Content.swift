@@ -4,6 +4,8 @@ import Foundation
 
 public enum MinionType: String, Codable, CaseIterable, Sendable {
     case goblin, mushroom, wolf, skeleton, jelly, jellySmall, totem, bat, mage, moth, snipper
+    // chapitres 11 à 15 (DECISIONS #73) ; `shade` : ombre invoquée par le montreur (jamais tirée par le générateur)
+    case lantern, weaver, beetle, puppeteer, shade, specter
 }
 
 public struct EnemyDef: Sendable {
@@ -35,11 +37,17 @@ public enum Bestiary {
         case .mage: EnemyDef(type: .mage, name: "Mage de braise", hp: 340, contact: 50, speed: 50, radius: 15, flying: false, shotDmg: 60, cost: 5, period: 3.4, range: (110, 280))
         case .moth: EnemyDef(type: .moth, name: "Mite de papier", hp: 100, contact: 40, speed: 105, radius: 12, flying: true, shotDmg: 0, cost: 2, period: 0.6, range: nil)
         case .snipper: EnemyDef(type: .snipper, name: "Crabe-ciseaux", hp: 320, contact: 90, speed: 62, radius: 16, flying: false, shotDmg: 0, cost: 3, period: 3, range: nil)
+        case .lantern: EnemyDef(type: .lantern, name: "Lampion", hp: 150, contact: 0, speed: 112, radius: 13, flying: false, shotDmg: 120, cost: 2, period: 0, range: nil)
+        case .weaver: EnemyDef(type: .weaver, name: "Araignée tisseuse", hp: 240, contact: 50, speed: 70, radius: 14, flying: false, shotDmg: 0, cost: 3, period: 3.6, range: (130, 270))
+        case .beetle: EnemyDef(type: .beetle, name: "Scarabée-bouclier", hp: 420, contact: 55, speed: 45, radius: 18, flying: false, shotDmg: 0, cost: 4, period: 3.6, range: nil)
+        case .puppeteer: EnemyDef(type: .puppeteer, name: "Montreur d'ombres", hp: 300, contact: 40, speed: 55, radius: 15, flying: false, shotDmg: 0, cost: 4, period: 6.5, range: (150, 300))
+        case .shade: EnemyDef(type: .shade, name: "Ombre", hp: 70, contact: 50, speed: 122, radius: 10, flying: false, shotDmg: 0, cost: 0, period: 0, range: nil)
+        case .specter: EnemyDef(type: .specter, name: "Spectre de papier", hp: 260, contact: 50, speed: 32, radius: 14, flying: true, shotDmg: 65, cost: 4, period: 3.8, range: nil)
         }
     }
 
     /// Ordre d'apparition : un nouveau type par chapitre (DECISIONS #29, #32).
-    public static let unlockOrder: [MinionType] = [.goblin, .bat, .jelly, .moth, .snipper, .mushroom, .wolf, .skeleton, .totem, .mage]
+    public static let unlockOrder: [MinionType] = [.goblin, .bat, .jelly, .moth, .snipper, .mushroom, .wolf, .skeleton, .totem, .mage, .lantern, .weaver, .beetle, .puppeteer, .specter]
 
     public static func unlocked(chapter: Int) -> [MinionType] { Array(unlockOrder.prefix(min(unlockOrder.count, max(0, chapter)))) }
 
@@ -61,7 +69,12 @@ public enum Bestiary {
         case .totem: 0.6
         case .bat: 0.8
         case .mage: 0.6
-        case .jellySmall: 0
+        case .lantern: 0.7
+        case .weaver: 0.6
+        case .beetle: 0.5
+        case .puppeteer: 0.45
+        case .specter: 0.55
+        case .jellySmall, .shade: 0
         }
     }
 }
@@ -139,7 +152,11 @@ public enum Bosses {
 // MARK: - Pouvoirs
 
 public enum Rarity: String, Codable, Sendable { case common, rare, epic }
-public enum PowerFamily: String, Codable, Sendable { case thread, shot, power, element, defense, mobility }
+public enum PowerFamily: String, Codable, Sendable {
+    case thread, wind, ember, shot, power, element, defense, mobility
+    /// Familles « signature » : propres à un héros (première carte de chaque tirage, DECISIONS #71 et #74).
+    public var isSignature: Bool { self == .thread || self == .wind || self == .ember }
+}
 
 public enum PowerID: String, Codable, CaseIterable, Sendable {
     case multishot, rearShot, diagonals, sideShots, ricochet, pierce, wallBounce
@@ -148,6 +165,9 @@ public enum PowerID: String, Codable, CaseIterable, Sendable {
     case orb, shield, lifesteal, maxHp
     case speed, dodge, flashStep, magnet
     case longThread, steelThread, barbedThread, sharpScissors, echoCut, confetti
+    // famille Vent (Moine du vent) et famille Braise (Sorcier de braise), DECISIONS #74
+    case bigGust, keenGust, quickMomentum, eyeOfStorm, whirlwind, featherStep
+    case liveEmbers, blaze, wideTrail, combustion, ashWard, furnace
 }
 
 public struct PowerDef: Sendable, Identifiable {
@@ -161,7 +181,7 @@ public struct PowerDef: Sendable, Identifiable {
 }
 
 public enum Powers {
-    /// 24 pouvoirs (DECISIONS #28), dans l'ordre de `POWERS` (l'ordre compte pour les offres à graine).
+    /// 36 pouvoirs (DECISIONS #28, #74), dans l'ordre de `POWERS` (l'ordre compte pour les offres à graine).
     public static let all: [PowerDef] = [
         PowerDef(id: .longThread, name: "Fil long", family: .thread, rarity: .common, maxStacks: 3, desc: "Le fil dure 40 % plus longtemps"),
         PowerDef(id: .sharpScissors, name: "Ciseaux affûtés", family: .thread, rarity: .common, maxStacks: 3, desc: "+30 % de dégâts de découpe"),
@@ -187,6 +207,19 @@ public enum Powers {
         PowerDef(id: .maxHp, name: "PV max +20 %", family: .defense, rarity: .common, maxStacks: 3, desc: "+20 % PV max et soigne d’autant"),
         PowerDef(id: .speed, name: "Vitesse +20 %", family: .mobility, rarity: .common, maxStacks: 2, desc: "Déplacement 20 % plus rapide"),
         PowerDef(id: .dodge, name: "Esquive", family: .mobility, rarity: .rare, maxStacks: 1, desc: "10 % de chances d’éviter un coup"),
+        // Ajoutés à la fin : le tirage de l'Éclaireuse (famille Fil) reste identique au bit près (DECISIONS #74).
+        PowerDef(id: .bigGust, name: "Grand souffle", family: .wind, rarity: .common, maxStacks: 3, desc: "Bourrasque 25 % plus large"),
+        PowerDef(id: .keenGust, name: "Rafale tranchante", family: .wind, rarity: .common, maxStacks: 3, desc: "+35 % de dégâts de bourrasque"),
+        PowerDef(id: .quickMomentum, name: "Élan rapide", family: .wind, rarity: .common, maxStacks: 2, desc: "L’élan se charge 35 % plus vite"),
+        PowerDef(id: .eyeOfStorm, name: "Œil du cyclone", family: .wind, rarity: .rare, maxStacks: 1, desc: "Renvoie les projectiles pris dans la bourrasque"),
+        PowerDef(id: .whirlwind, name: "Tourbillon", family: .wind, rarity: .rare, maxStacks: 1, desc: "La bourrasque laisse un tourbillon qui aspire"),
+        PowerDef(id: .featherStep, name: "Pas de plume", family: .wind, rarity: .epic, maxStacks: 1, desc: "Invulnérable 0,6 s après une bourrasque"),
+        PowerDef(id: .liveEmbers, name: "Braises vives", family: .ember, rarity: .common, maxStacks: 3, desc: "La traînée dure 35 % plus longtemps"),
+        PowerDef(id: .blaze, name: "Brasier", family: .ember, rarity: .common, maxStacks: 3, desc: "+35 % de dégâts de brûlure"),
+        PowerDef(id: .wideTrail, name: "Traînée large", family: .ember, rarity: .common, maxStacks: 2, desc: "Traînée 40 % plus large"),
+        PowerDef(id: .combustion, name: "Combustion", family: .ember, rarity: .rare, maxStacks: 1, desc: "Un ennemi qui meurt en brûlant explose"),
+        PowerDef(id: .ashWard, name: "Cendres ardentes", family: .ember, rarity: .rare, maxStacks: 1, desc: "Les projectiles ennemis brûlent dans la traînée"),
+        PowerDef(id: .furnace, name: "Fournaise", family: .ember, rarity: .epic, maxStacks: 1, desc: "La traînée ralentit de 35 % et brûle 2 × plus"),
     ]
 
     private static let byID: [PowerID: PowerDef] = Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
@@ -203,20 +236,29 @@ public enum HeroID: String, Codable, CaseIterable, Sendable {
     case scout, windMonk, emberSorcerer
 }
 
+/// Mécanique signature (DECISIONS #74) : fil (Éclaireuse), élan et bourrasque (Moine), traînée de braises (Sorcier).
+public enum HeroKind: String, Codable, Sendable { case thread, gust, ember }
+
 public struct HeroDef: Sendable {
     public let id: HeroID
     public let name: String
-    /// Petit pouvoir de départ propre.
+    public let kind: HeroKind
+    /// Famille de pouvoirs signature (première carte de chaque tirage).
+    public let family: PowerFamily
+    /// Petit pouvoir de départ propre (aucun depuis la 0.2).
     public let startPower: PowerID?
     public let shotShape: String
+    /// Nom de la mécanique et phrase d'accroche (écrans).
+    public let mechanic: String
+    public let pitch: String
 }
 
 public enum Heroes {
     public static func def(_ id: HeroID) -> HeroDef {
         switch id {
-        case .scout: HeroDef(id: .scout, name: "L'Éclaireuse", startPower: nil, shotShape: "arrow")
-        case .windMonk: HeroDef(id: .windMonk, name: "Moine du vent", startPower: .speed, shotShape: "gust")
-        case .emberSorcerer: HeroDef(id: .emberSorcerer, name: "Sorcier de braise", startPower: .flame, shotShape: "ember")
+        case .scout: HeroDef(id: .scout, name: "L'Éclaireuse", kind: .thread, family: .thread, startPower: nil, shotShape: "arrow", mechanic: "Ciseaux de lune", pitch: "Entoure tes ennemis de ton fil : la boucle refermée les découpe.")
+        case .windMonk: HeroDef(id: .windMonk, name: "Moine du vent", kind: .gust, family: .wind, startPower: nil, shotShape: "gust", mechanic: "Élan et bourrasque", pitch: "Cours pour prendre de l’élan, arrête-toi : la bourrasque balaie tout autour de toi.")
+        case .emberSorcerer: HeroDef(id: .emberSorcerer, name: "Sorcier de braise", kind: .ember, family: .ember, startPower: nil, shotShape: "ember", mechanic: "Traînée de braises", pitch: "Tes pas laissent des braises : attire tes poursuivants dans le feu.")
         }
     }
 }

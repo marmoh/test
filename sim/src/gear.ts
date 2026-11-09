@@ -58,8 +58,8 @@ export const SLOT_MAIN: Record<GearSlot, GearStat> = { needle: 'dmg', cloak: 'hp
 export const MAX_LEVEL: Record<GearRarity, number> = { common: 10, rare: 20, epic: 30, legendary: 40 };
 
 /** Statistique principale au niveau 1 et gain par niveau (fractions), pour un multiplicateur d'emplacement de 1. */
-const MAIN_BASE: Record<GearRarity, number> = { common: 0.02, rare: 0.035, epic: 0.055, legendary: 0.08 };
-const MAIN_PER_LEVEL = 0.0025;
+const MAIN_BASE: Record<GearRarity, number> = { common: 0.015, rare: 0.025, epic: 0.035, legendary: 0.045 };
+const MAIN_PER_LEVEL = 0.001;
 /** Le masque (cadence) vaut moins, le talisman (signature) plus. */
 const SLOT_MULT: Record<GearSlot, number> = { needle: 1, cloak: 1, mask: 0.6, charm: 1.2 };
 
@@ -69,29 +69,29 @@ export const GEAR: GearDef[] = [
   { id: 'boneNeedle', name: "Aiguille d'os", slot: 'needle', rarity: 'common', sub: { stat: 'hp', value: 0.02 }, lore: 'Taillée dans un os de marionnette brisée.' },
   { id: 'crowPin', name: 'Épingle de corbeau', slot: 'needle', rarity: 'rare', sub: { stat: 'crit', value: 0.03 }, lore: 'Le corbeau ne rate jamais un œil.' },
   { id: 'moonNeedle', name: 'Aiguille lunaire', slot: 'needle', rarity: 'rare', sub: { stat: 'sig', value: 0.05 }, lore: 'Trempée dans le premier quartier.' },
-  { id: 'amberSting', name: "Dard d'ambre", slot: 'needle', rarity: 'epic', sub: { stat: 'rate', value: 0.05 }, lore: "Arraché au Scorpion d'ambre, encore tiède." },
-  { id: 'throneNeedle', name: 'Aiguille du Trône de lune', slot: 'needle', rarity: 'legendary', sub: { stat: 'crit', value: 0.05 }, lore: "Celle qui a découpé la lune dans l'écran." },
+  { id: 'amberSting', name: "Dard d'ambre", slot: 'needle', rarity: 'epic', sub: { stat: 'rate', value: 0.04 }, lore: "Arraché au Scorpion d'ambre, encore tiède." },
+  { id: 'throneNeedle', name: 'Aiguille du Trône de lune', slot: 'needle', rarity: 'legendary', sub: { stat: 'crit', value: 0.03 }, lore: "Celle qui a découpé la lune dans l'écran." },
   // Capes (PV)
   { id: 'juteCloak', name: 'Cape de jute', slot: 'cloak', rarity: 'common', sub: null, lore: 'Rêche, chaude, increvable.' },
   { id: 'feltCloak', name: 'Cape de feutre', slot: 'cloak', rarity: 'common', sub: { stat: 'dmg', value: 0.02 }, lore: 'Le feutre étouffe les pas.' },
   { id: 'crowCloak', name: 'Cape de corbeau', slot: 'cloak', rarity: 'rare', sub: { stat: 'speed', value: 0.03 }, lore: 'Mille plumes de papier noir.' },
   { id: 'mistMantle', name: 'Manteau de brume', slot: 'cloak', rarity: 'rare', sub: { stat: 'dodge', value: 0.03 }, lore: 'On le voit, puis on ne le voit plus.' },
-  { id: 'marshCloak', name: 'Cape des marais', slot: 'cloak', rarity: 'epic', sub: { stat: 'sig', value: 0.06 }, lore: 'Tissée par la Reine des marais pour son champion.' },
-  { id: 'starryMantle', name: 'Manteau de nuit étoilée', slot: 'cloak', rarity: 'legendary', sub: { stat: 'dmg', value: 0.05 }, lore: 'Chaque étoile est un trou de lumière.' },
+  { id: 'marshCloak', name: 'Cape des marais', slot: 'cloak', rarity: 'epic', sub: { stat: 'sig', value: 0.04 }, lore: 'Tissée par la Reine des marais pour son champion.' },
+  { id: 'starryMantle', name: 'Manteau de nuit étoilée', slot: 'cloak', rarity: 'legendary', sub: { stat: 'dmg', value: 0.03 }, lore: 'Chaque étoile est un trou de lumière.' },
   // Masques (cadence)
   { id: 'paperMask', name: 'Masque de papier', slot: 'mask', rarity: 'common', sub: null, lore: 'Deux trous, un sourire, beaucoup de courage.' },
   { id: 'foxMask', name: 'Masque de renard', slot: 'mask', rarity: 'common', sub: { stat: 'speed', value: 0.02 }, lore: 'Le renard file entre les ombres.' },
   { id: 'owlMask', name: 'Masque de chouette', slot: 'mask', rarity: 'rare', sub: { stat: 'crit', value: 0.03 }, lore: 'Il voit dans le noir des coulisses.' },
   { id: 'wolfMask', name: 'Masque de loup', slot: 'mask', rarity: 'rare', sub: { stat: 'dmg', value: 0.03 }, lore: "Pris au Loup d'ombre, crocs compris." },
-  { id: 'emberMask', name: 'Masque de braise', slot: 'mask', rarity: 'epic', sub: { stat: 'sig', value: 0.06 }, lore: 'Ses yeux fument encore.' },
-  { id: 'eclipseMask', name: 'Masque de la lune noire', slot: 'mask', rarity: 'legendary', sub: { stat: 'crit', value: 0.05 }, lore: 'Quand il le porte, la scène retient son souffle.' },
+  { id: 'emberMask', name: 'Masque de braise', slot: 'mask', rarity: 'epic', sub: { stat: 'sig', value: 0.04 }, lore: 'Ses yeux fument encore.' },
+  { id: 'eclipseMask', name: 'Masque de la lune noire', slot: 'mask', rarity: 'legendary', sub: { stat: 'crit', value: 0.03 }, lore: 'Quand il le porte, la scène retient son souffle.' },
   // Talismans (signature)
   { id: 'spool', name: 'Bobine de fil', slot: 'charm', rarity: 'common', sub: null, lore: 'Le premier outil de tout marionnettiste.' },
   { id: 'windBell', name: 'Grelot de vent', slot: 'charm', rarity: 'common', sub: { stat: 'speed', value: 0.02 }, lore: 'Il tinte avant la bourrasque.' },
   { id: 'emberJar', name: 'Braise captive', slot: 'charm', rarity: 'rare', sub: { stat: 'dmg', value: 0.03 }, lore: 'Une braise qui ne veut pas mourir.' },
   { id: 'paperCrane', name: 'Grue de papier', slot: 'charm', rarity: 'rare', sub: { stat: 'dodge', value: 0.025 }, lore: 'Pliée mille fois, elle porte chance.' },
-  { id: 'waxHeart', name: 'Cœur de cire', slot: 'charm', rarity: 'epic', sub: { stat: 'hp', value: 0.05 }, lore: 'Il bat au rythme de la rampe.' },
-  { id: 'eclipseCharm', name: 'Éclipse', slot: 'charm', rarity: 'legendary', sub: { stat: 'rate', value: 0.05 }, lore: "Un disque d'encre devant la lune." },
+  { id: 'waxHeart', name: 'Cœur de cire', slot: 'charm', rarity: 'epic', sub: { stat: 'hp', value: 0.04 }, lore: 'Il bat au rythme de la rampe.' },
+  { id: 'eclipseCharm', name: 'Éclipse', slot: 'charm', rarity: 'legendary', sub: { stat: 'rate', value: 0.03 }, lore: "Un disque d'encre devant la lune." },
 ];
 
 export const GEAR_BY_ID: Record<string, GearDef> = Object.fromEntries(GEAR.map((g) => [g.id, g]));
@@ -168,7 +168,9 @@ export function levelLoot(n: number): { id: string; level: number } | null {
   if (!rarity) return null;
   let index = 0;
   for (let k = 1; k < n; k++) if (lootRarity(k)) index++;
-  const slot = SLOTS[index % 4];
+  // 6 objets par chapitre : décalage d'un emplacement par chapitre, pour que les boss (épiques, légendaires)
+  // tombent tour à tour sur les quatre emplacements (DECISIONS #79)
+  const slot = SLOTS[(index + Math.ceil(n / 20) - 1) % 4];
   const pool = GEAR.filter((g) => g.slot === slot && g.rarity === rarity);
   const def = pool[hash32(n) % pool.length];
   // un objet trouvé loin dans la saga arrive déjà un peu amélioré
@@ -187,21 +189,23 @@ export function replayShards(n: number): number {
 }
 
 /**
- * Puissance d'équipement attendue au niveau n (modèle des bots, comme `expectedTalentRank`) : le meilleur butin
- * des niveaux déjà gagnés dans chaque emplacement, amélioré à mi-chemin de son maximum.
+ * Puissance d'équipement attendue au niveau n (modèle des bots, comme `expectedTalentRank`) : dans chaque emplacement,
+ * l'objet le plus fort des niveaux déjà gagnés (statistique principale + secondaire), amélioré à mi-chemin de son
+ * maximum. Un joueur garde son meilleur objet : la puissance attendue ne baisse jamais.
  */
 export function expectedGear(n: number): GearItem[] {
-  const best = new Map<GearSlot, { def: GearDef; level: number }>();
-  const order = { common: 0, rare: 1, epic: 2, legendary: 3 };
+  const best = new Map<GearSlot, { def: GearDef; level: number; value: number }>();
   for (let k = 1; k < n; k++) {
     const l = levelLoot(k);
     if (!l) continue;
     const def = GEAR_BY_ID[l.id];
+    const level = Math.max(l.level, Math.round(MAX_LEVEL[def.rarity] / 2));
+    const value = mainValue(def, level) + (def.sub ? def.sub.value : 0);
     const cur = best.get(def.slot);
-    if (!cur || order[def.rarity] > order[cur.def.rarity]) best.set(def.slot, { def, level: l.level });
+    if (!cur || value > cur.value) best.set(def.slot, { def, level, value });
   }
   const out: GearItem[] = [];
   let uid = 1;
-  for (const [, v] of best) out.push({ uid: uid++, id: v.def.id, level: Math.max(v.level, Math.round(MAX_LEVEL[v.def.rarity] / 2)) });
+  for (const [, v] of best) out.push({ uid: uid++, id: v.def.id, level: v.level });
   return out;
 }

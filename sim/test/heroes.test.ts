@@ -175,9 +175,9 @@ describe('Équipement (DECISIONS #75)', () => {
 
   it('un objet par emplacement, statistique principale qui monte avec le niveau', () => {
     const g = gearStats([{ uid: 1, id: 'crowPin', level: 1 }, { uid: 2, id: 'sewingNeedle', level: 10 }, { uid: 3, id: 'juteCloak', level: 1 }]);
-    expect(g.dmg).toBeCloseTo(0.035, 6); // la deuxième aiguille est ignorée
+    expect(g.dmg).toBeCloseTo(0.025, 6); // la deuxième aiguille est ignorée
     expect(g.crit).toBeCloseTo(0.03, 6);
-    expect(g.hp).toBeCloseTo(0.02, 6);
+    expect(g.hp).toBeCloseTo(0.015, 6);
     const hi = gearStats([{ uid: 1, id: 'crowPin', level: 20 }]);
     expect(hi.dmg).toBeGreaterThan(g.dmg);
   });
@@ -197,6 +197,9 @@ describe('Équipement (DECISIONS #75)', () => {
     expect(GEAR_BY_ID[levelLoot(3)!.id].slot).toBe('needle');
     expect(lootRarity(60)).toBe('legendary');
     expect(lootRarity(40)).toBe('epic');
+    // les objets de boss (épiques, légendaires) tombent tour à tour sur les quatre emplacements
+    const bossSlots = new Set([20, 40, 60, 80].map((k) => GEAR_BY_ID[levelLoot(k)!.id].slot));
+    expect(bossSlots.size).toBe(4);
   });
 
   it('coûts d’amélioration croissants, recyclage qui rend la moitié des éclats investis', () => {
@@ -215,11 +218,15 @@ describe('Équipement (DECISIONS #75)', () => {
   it('équipement attendu (modèle des bots) qui progresse avec la saga', () => {
     const p = (n: number) => {
       const g = gearStats(expectedGear(n));
-      return g.dmg + g.hp + g.rate + g.sig;
+      return g.dmg + g.hp + g.rate + g.sig + g.crit + g.dodge + g.speed;
     };
     expect(expectedGear(1)).toEqual([]);
     expect(p(100)).toBeGreaterThan(p(20));
-    expect(p(300)).toBeGreaterThanOrEqual(p(100));
+    // on garde son meilleur objet : la puissance attendue ne baisse jamais, et sans saut brutal (DECISIONS #79)
+    for (let n = 2; n <= 300; n++) {
+      expect(p(n)).toBeGreaterThanOrEqual(p(n - 1) - 1e-9);
+      expect(p(n) - p(n - 1)).toBeLessThan(0.07);
+    }
   });
 });
 
