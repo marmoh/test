@@ -350,7 +350,8 @@ final class EnemyNode: SKNode {
             sprite.texture = tex
             if !outline.isHidden, outline.parent != nil { outline.texture = tex }
         }
-        let facing = e.state == .charge ? atan2(e.aim.y, e.aim.x) : atan2(hero.y - e.pos.y, hero.x - e.pos.x)
+        // le scarabée regarde où pointe son bouclier (simulation), pas l'héroïne
+        let facing = e.state == .charge || (e.boss == nil && e.type == .beetle) ? atan2(e.aim.y, e.aim.x) : atan2(hero.y - e.pos.y, hero.x - e.pos.x)
         let flip: CGFloat = cos(facing) < 0 ? -1 : 1
         // recul au coup porté (fin d'anticipation)
         var kick = 0.0
@@ -370,7 +371,7 @@ final class EnemyNode: SKNode {
         sprite.colorBlendFactor = CGFloat(flash * 0.85)
         frost.isHidden = e.slowT <= 0
         for (i, f) in burns.enumerated() {
-            f.isHidden = e.burnT <= 0
+            f.isHidden = e.burnT <= 0 && e.emberT <= 0
             if !f.isHidden { f.yScale = CGFloat(0.8 + 0.25 * sin(t * 14 + Double(i) * 2)) }
         }
         for (i, d) in poisons.enumerated() {
@@ -468,6 +469,10 @@ final class HazardNode: SKNode {
         }
         isHidden = false
         zRotation = 0
+        if let slow = z.slow, slow > 0 { return updateWeb(z, now: now) }
+        if z.src == "specter" { return updateMark(z, now: now, t: t) }
+        web.isHidden = true
+        mark.isHidden = true
         let scale = CGFloat(z.radius / 44)
         if now < z.activeAt {
             // le disque plein se referme vers le centre jusqu'à l'impact
@@ -506,6 +511,91 @@ final class HazardNode: SKNode {
         } else {
             showFallbackCircle(z.radius, fill: Ink.danger.withAlphaComponent(0.35 * fade))
         }
+        return false
+    }
+
+    // MARK: version 0.2 (DECISIONS #73)
+
+    private let web = SKShapeNode()
+    private let webBall = SKShapeNode(circleOfRadius: 8)
+    private let mark = SKShapeNode()
+    private let markCore = SKShapeNode()
+
+    /// Toile de l'araignée tisseuse : boule qui tombe (télégraphe), puis toile d'encre qui ralentit.
+    private func updateWeb(_ z: Hazard, now: Double) -> Bool {
+        sprite.isHidden = true
+        fallback.isHidden = true
+        mark.isHidden = true
+        if web.parent == nil {
+            web.fillColor = .clear
+            web.lineCap = .round
+            addChild(web)
+            webBall.fillColor = Ink.cut
+            webBall.strokeColor = Ink.ink
+            webBall.lineWidth = 1.5
+            web.addChild(webBall)
+        }
+        web.isHidden = false
+        let r = z.radius
+        if now < z.activeAt {
+            let k = min(1, (now - z.born) / max(0.01, z.activeAt - z.born))
+            web.path = CGPath(ellipseIn: CGRect(x: -r, y: -r, width: 2 * r, height: 2 * r), transform: nil).copy(dashingWithPhase: 0, lengths: [3, 4])
+            web.strokeColor = Ink.ink.withAlphaComponent(0.7)
+            web.fillColor = .clear
+            web.lineWidth = 1.5
+            web.alpha = 1
+            webBall.isHidden = false
+            webBall.position = CGPoint(x: 0, y: 40 * (1 - k))
+            webBall.setScale(CGFloat((6 + 4 * k) / 8))
+            return false
+        }
+        webBall.isHidden = true
+        web.alpha = CGFloat(max(0, min(1, min((z.endAt - now) * 1.5, (now - z.activeAt) * 6))))
+        let p = CGMutablePath()
+        let spokes = 10
+        for i in 0..<spokes {
+            let a = Double(i) * .pi * 2 / Double(spokes) + z.born
+            p.move(to: .zero)
+            p.addLine(to: CGPoint(x: cos(a) * r, y: -sin(a) * r))
+        }
+        for ring in 1...4 {
+            let rr = r * Double(ring) / 4.3
+            for i in 0...spokes {
+                let a = Double(i) * .pi * 2 / Double(spokes) + z.born
+                let sag = i % 2 == 1 ? 0.92 : 1
+                let pt = CGPoint(x: cos(a) * rr * sag, y: -sin(a) * rr * sag)
+                if i == 0 { p.move(to: pt) } else { p.addLine(to: pt) }
+            }
+        }
+        web.path = p
+        web.strokeColor = Ink.ink.withAlphaComponent(0.75)
+        web.fillColor = Ink.ink.withAlphaComponent(0.08)
+        web.lineWidth = 1.1
+        return false
+    }
+
+    /// Marque d'arrivée du spectre : découpe en pointillés vermillon qui se resserre.
+    private func updateMark(_ z: Hazard, now: Double, t: Double) -> Bool {
+        sprite.isHidden = true
+        fallback.isHidden = true
+        web.isHidden = true
+        if mark.parent == nil {
+            mark.fillColor = .clear
+            mark.strokeColor = Ink.danger
+            mark.lineWidth = 2
+            addChild(mark)
+            markCore.strokeColor = .clear
+            markCore.fillColor = Ink.ink
+            addChild(markCore)
+        }
+        mark.isHidden = false
+        markCore.isHidden = false
+        let k = min(1, (now - z.born) / max(0.01, z.activeAt - z.born))
+        let r = z.radius * (1.6 - 0.6 * k)
+        mark.path = CGPath(ellipseIn: CGRect(x: -r, y: -r, width: 2 * r, height: 2 * r), transform: nil).copy(dashingWithPhase: 0, lengths: [4, 5])
+        mark.zRotation = CGFloat(-t * 3)
+        markCore.path = CGPath(ellipseIn: CGRect(x: -z.radius * 0.7, y: -z.radius * 0.45, width: z.radius * 1.4, height: z.radius * 0.9), transform: nil)
+        markCore.alpha = CGFloat(0.25 + 0.5 * k)
         return false
     }
 

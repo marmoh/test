@@ -110,7 +110,7 @@ final class CombatSession: Identifiable {
         guard scene == nil else { return }
         var cfg = config
         if cfg.scrollPending {
-            let offer = LevelGen.scrollOffer(level)
+            let offer = LevelGen.scrollOffer(level, signature: Heroes.def(cfg.heroId).family)
             cfg.scroll = await ask(offer, owned: [:], title: String(localized: "Parchemin : pouvoir de départ"))
             cfg.scrollPending = false
         }
