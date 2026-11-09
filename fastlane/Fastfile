@@ -183,6 +183,26 @@ platform :ios do
     end
   end
 
+  desc "Écrit la note « Quoi tester » (français) d'un build : fastlane testflight_notes build:2 file:fastlane/testflight/2.txt"
+  lane :testflight_notes do |options|
+    version = options[:build].to_s
+    text = File.read(File.expand_path(options[:file].to_s, File.join(__dir__, ".."))).strip
+    UI.user_error!("Note vide") if text.empty?
+    UI.user_error!("Note trop longue (#{text.length} > 4000)") if text.length > 4000
+    build = asc(:get, "/v1/builds?filter[app]=#{app_id}&filter[version]=#{version}")["data"].first
+    UI.user_error!("Build #{version} introuvable") unless build
+    existing = asc(:get, "/v1/builds/#{build['id']}/betaBuildLocalizations")["data"].find { |l| l.dig("attributes", "locale") == LOCALE }
+    if existing
+      asc(:patch, "/v1/betaBuildLocalizations/#{existing['id']}",
+          { data: { type: "betaBuildLocalizations", id: existing["id"], attributes: { whatsNew: text } } })
+    else
+      asc(:post, "/v1/betaBuildLocalizations",
+          { data: { type: "betaBuildLocalizations", attributes: { locale: LOCALE, whatsNew: text },
+                    relationships: { build: { data: { type: "builds", id: build["id"] } } } } })
+    end
+    UI.success("Note « Quoi tester » du build #{version} (#{LOCALE}) : #{existing ? 'mise à jour' : 'créée'}")
+  end
+
   desc "Crée les achats intégrés du .storekit (prix France, tous les pays, texte français)"
   lane :products do
     existing = asc_all("/v1/apps/#{app_id}/inAppPurchasesV2?limit=200").map { |p| p.dig("attributes", "productId") }

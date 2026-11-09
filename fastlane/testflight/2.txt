@@ -1,0 +1,7 @@
+Nouveau fil, court et progressif :
+- au départ, le fil dure 2,2 s (au lieu de 6) : de petits cercles autour d'un ou deux ennemis ;
+- carte Fil long : +40 % de durée par prise, jusqu'à 3 prises ; chaque tirage propose une carte de la famille Fil ;
+- nouveau talent permanent Encre lente (écran Héros) : +6 % de durée du fil par rang ;
+- aiguilles renforcées : 30 % des dégâts au lieu de 10 %.
+
+À tester : la taille des cercles au début, la montée en puissance au fil des salles, et l'intérêt des aiguilles par rapport au fil.
