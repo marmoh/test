@@ -22,7 +22,7 @@ enum TalentKind: String, CaseIterable, Identifiable {
         case .strength: String(localized: "+2 % dégâts", comment: "Talent Force, par rang")
         case .agility: String(localized: "+1,5 % cadence", comment: "Talent Agilité, par rang")
         case .fortune: String(localized: "+5 % or", comment: "Talent Fortune, par rang")
-        case .ink: String(localized: "+6 % durée du fil", comment: "Talent Encre lente, par rang")
+        case .ink: String(localized: "+6 % durée du fil (Éclaireuse)", comment: "Talent Encre lente, par rang")
         }
     }
 
@@ -96,7 +96,7 @@ final class Progress {
         var chests: [(index: Int, rewards: [Reward])] = []
     }
 
-    /// Enregistre une tentative : étoiles, déblocage, lunes du pass, coffres d'étoiles (crédités), héros débloqué.
+    /// Enregistre une tentative : étoiles, déblocage, lunes du pass, coffres d'étoiles (crédités).
     @discardableResult
     func record(level n: Int, won: Bool, stars: Int, wallet: Wallet, now: Date = Date()) -> AttemptOutcome {
         var out = AttemptOutcome()
@@ -119,7 +119,7 @@ final class Progress {
             out.tierAfter = d.seasonPass.tier
         }
         for c in out.chests { wallet.grant(c.rewards) }
-        if won && n >= HeroUnlock.emberUnlockLevel { wallet.unlockHero(.emberSorcerer) }
+        // héros débloqués en jouant (niveaux 40 et 100, DECISIONS #77) : inscrits par `Meta.syncHeroUnlocks`
         return out
     }
 
