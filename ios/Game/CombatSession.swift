@@ -20,6 +20,10 @@ struct CombatResult: Equatable {
     var kills: Int
     var continues: Int
     var maxHp: Double
+    /// Ennemis vaincus par type (`Enemy.typeName`, « boss:<archétype> » pour un boss) : quêtes et bestiaire (DECISIONS #76).
+    var killsByType: [String: Int] = [:]
+    /// Découpes, ennemis touchés par une bourrasque, ennemis mis à brûler (quête « mécanique signature »).
+    var signatureHits = 0
 }
 
 enum DefeatChoice { case revive, retry, map }

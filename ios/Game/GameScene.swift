@@ -27,12 +27,22 @@ final class GameScene: SKScene {
         var skin: SkinID?
         /// Graine de la tentative (aléas de combat), comme `Date.now() & 0xffff` du web.
         var attemptSalt = Int.random(in: 0...0xffff)
+        /// Équipement porté (DECISIONS #75) ; `.none` en tournoi.
+        var gear: GearStats = .none
+        /// Essai d'un héros verrouillé (DECISIONS #77) : ni vie retirée ni récompense.
+        var trial = false
+        /// Aides écrites de la mécanique signature (désactivées en tournoi).
+        var tutorialHints = true
     }
 
     static let hudTop: CGFloat = 54
 
     let config: Config
     weak var hooks: CombatHooks?
+    /// Ennemis vaincus par type et touches de la mécanique signature depuis le début de la tentative
+    /// (repris dans `CombatResult` à la victoire ; lus par l'app à la défaite pour les quêtes et le bestiaire).
+    private(set) var killsByType: [String: Int] = [:]
+    private(set) var signatureHits = 0
     private weak var audio: AudioService?
     private weak var haptics: HapticsService?
 
