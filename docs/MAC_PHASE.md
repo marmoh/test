@@ -356,6 +356,19 @@ Ce qui se passe sur le site d'Apple n'arrive qu'une fois le SDK choisi et branch
 4. Questionnaire d'âge : cocher la présence de publicités ; notes de vérification : « Publicité uniquement à la
    demande du joueur (feuille des vies), jamais en combat ni pour les membres de l'Ordre. »
 
+## 14 bis. Version 0.2.0 (3) — à envoyer sur TestFlight
+
+Préparée dans le dépôt (branche `claude/admiring-bell-xob5wg`, PR marmoh/test#2) : `MARKETING_VERSION` 0.2.0, build 3.
+Le cœur Swift est vérifié au bit près sous Linux ; **les écrans SwiftUI et le rendu SpriteKit n'ont jamais été
+compilés** : le premier `xcodebuild` peut demander quelques corrections (points fragiles : `docs/PORT_IOS_V02.md`).
+
+```
+git fetch origin && git checkout claude/admiring-bell-xob5wg && git pull
+cd ios && xcodegen generate && cd ..
+xcodebuild -project ios/Ombrelune.xcodeproj -scheme Ombrelune -destination 'generic/platform=iOS Simulator' build
+LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 fastlane beta
+```
+
 ## 15. fastlane (API App Store Connect)
 
 Clé d'API d'équipe : `fastlane/.env` (`ASC_KEY_ID`, `ASC_ISSUER_ID`, ignoré par git) et
