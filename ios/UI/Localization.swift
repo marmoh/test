@@ -35,6 +35,13 @@ enum Fmt {
         }
         return String(format: "%d:%02d", m, r)
     }
+
+    /// Bonus en pour cent : « +4,8 % », « +4.8% » (une décimale sous 10 % si elle compte, comme `pct` du web).
+    static func pct(_ v: Double) -> String {
+        let x = v * 100
+        let digits = x < 10 && Swift.abs(x - x.rounded()) > 0.001 ? 1 : 0
+        return "+" + v.formatted(.percent.precision(.fractionLength(digits))).replacingOccurrences(of: "\u{202F}", with: "\u{00A0}")
+    }
 }
 
 // MARK: - pouvoirs (§6)
@@ -67,7 +74,19 @@ extension PowerID {
         case .maxHp: String(localized: "PV max +20 %", comment: "Pouvoir")
         case .speed: String(localized: "Vitesse +20 %", comment: "Pouvoir")
         case .dodge: String(localized: "Esquive", comment: "Pouvoir ; aussi affiché en combat quand un coup est esquivé")
-        default: Powers.def(self).name
+        case .bigGust: String(localized: "Grand souffle", comment: "Pouvoir du Moine du vent")
+        case .keenGust: String(localized: "Rafale tranchante", comment: "Pouvoir du Moine du vent")
+        case .quickMomentum: String(localized: "Élan rapide", comment: "Pouvoir du Moine du vent")
+        case .eyeOfStorm: String(localized: "Œil du cyclone", comment: "Pouvoir du Moine du vent")
+        case .whirlwind: String(localized: "Tourbillon", comment: "Pouvoir du Moine du vent")
+        case .featherStep: String(localized: "Pas de plume", comment: "Pouvoir du Moine du vent")
+        case .liveEmbers: String(localized: "Braises vives", comment: "Pouvoir du Sorcier de braise")
+        case .blaze: String(localized: "Brasier", comment: "Pouvoir du Sorcier de braise")
+        case .wideTrail: String(localized: "Traînée large", comment: "Pouvoir du Sorcier de braise")
+        case .combustion: String(localized: "Combustion", comment: "Pouvoir du Sorcier de braise")
+        case .ashWard: String(localized: "Cendres ardentes", comment: "Pouvoir du Sorcier de braise")
+        case .furnace: String(localized: "Fournaise", comment: "Pouvoir du Sorcier de braise")
+        case .rearShot, .sideShots, .wallBounce, .blast, .flashStep, .magnet: Powers.def(self).name
         }
     }
 
@@ -97,7 +116,19 @@ extension PowerID {
         case .maxHp: String(localized: "+20 % PV max et soigne d’autant", comment: "Description du pouvoir PV max")
         case .speed: String(localized: "Déplacement 20 % plus rapide", comment: "Description du pouvoir Vitesse")
         case .dodge: String(localized: "10 % de chances d’éviter un coup", comment: "Description du pouvoir Esquive")
-        default: Powers.def(self).desc
+        case .bigGust: String(localized: "Bourrasque 25 % plus large", comment: "Description du pouvoir Grand souffle")
+        case .keenGust: String(localized: "+35 % de dégâts de bourrasque", comment: "Description du pouvoir Rafale tranchante")
+        case .quickMomentum: String(localized: "L’élan se charge 35 % plus vite", comment: "Description du pouvoir Élan rapide")
+        case .eyeOfStorm: String(localized: "Renvoie les projectiles pris dans la bourrasque", comment: "Description du pouvoir Œil du cyclone")
+        case .whirlwind: String(localized: "La bourrasque laisse un tourbillon qui aspire", comment: "Description du pouvoir Tourbillon")
+        case .featherStep: String(localized: "Invulnérable 0,6 s après une bourrasque", comment: "Description du pouvoir Pas de plume")
+        case .liveEmbers: String(localized: "La traînée dure 35 % plus longtemps", comment: "Description du pouvoir Braises vives")
+        case .blaze: String(localized: "+35 % de dégâts de brûlure", comment: "Description du pouvoir Brasier")
+        case .wideTrail: String(localized: "Traînée 40 % plus large", comment: "Description du pouvoir Traînée large")
+        case .combustion: String(localized: "Un ennemi qui meurt en brûlant explose", comment: "Description du pouvoir Combustion")
+        case .ashWard: String(localized: "Les projectiles ennemis brûlent dans la traînée", comment: "Description du pouvoir Cendres ardentes")
+        case .furnace: String(localized: "La traînée ralentit de 35 % et brûle 2 × plus", comment: "Description du pouvoir Fournaise")
+        case .rearShot, .sideShots, .wallBounce, .blast, .flashStep, .magnet: Powers.def(self).desc
         }
     }
 }
@@ -118,6 +149,58 @@ extension MinionType {
         case .mage: String(localized: "Mage de braise", comment: "Ennemi")
         case .moth: String(localized: "Mite de papier", comment: "Ennemi")
         case .snipper: String(localized: "Crabe-ciseaux", comment: "Ennemi")
+        case .lantern: String(localized: "Lampion", comment: "Ennemi (chapitre 11)")
+        case .weaver: String(localized: "Araignée tisseuse", comment: "Ennemi (chapitre 12)")
+        case .beetle: String(localized: "Scarabée-bouclier", comment: "Ennemi (chapitre 13)")
+        case .puppeteer: String(localized: "Montreur d’ombres", comment: "Ennemi (chapitre 14)")
+        case .shade: String(localized: "Ombre", comment: "Ennemi invoqué par le montreur d’ombres")
+        case .specter: String(localized: "Spectre de papier", comment: "Ennemi (chapitre 15)")
+        }
+    }
+
+    /// Comportement (bestiaire, présentation d'un nouvel ennemi), `LORE[type].what` du web.
+    var loreWhat: String {
+        switch self {
+        case .goblin: String(localized: "Lance une pierre visée toutes les 3 s.", comment: "Bestiaire : comportement du gobelin")
+        case .bat: String(localized: "Vole en zigzag, puis pique en ligne droite.", comment: "Bestiaire : comportement de la chauve-souris")
+        case .jelly: String(localized: "Te poursuit et se divise en deux à sa mort.", comment: "Bestiaire : comportement de la gelée")
+        case .moth: String(localized: "File vers le fil de l’Éclaireuse et le grignote.", comment: "Bestiaire : comportement de la mite")
+        case .snipper: String(localized: "Sa charge tranche le fil de découpe.", comment: "Bestiaire : comportement du crabe-ciseaux")
+        case .mushroom: String(localized: "Immobile, lâche un anneau de huit spores.", comment: "Bestiaire : comportement du champignon")
+        case .wolf: String(localized: "Charge en ligne droite après 0,6 s.", comment: "Bestiaire : comportement du loup")
+        case .skeleton: String(localized: "Tire trois flèches en éventail.", comment: "Bestiaire : comportement de l’archer squelette")
+        case .totem: String(localized: "Étoile de six projectiles qui tourne.", comment: "Bestiaire : comportement du totem")
+        case .mage: String(localized: "Pose une flaque de feu là où tu te tiens.", comment: "Bestiaire : comportement du mage")
+        case .lantern: String(localized: "Fonce sur toi, s’arrête et explose.", comment: "Bestiaire : comportement du lampion")
+        case .weaver: String(localized: "Crache une toile qui te ralentit.", comment: "Bestiaire : comportement de l’araignée")
+        case .beetle: String(localized: "Son bouclier arrête les aiguilles de face.", comment: "Bestiaire : comportement du scarabée")
+        case .puppeteer: String(localized: "Garde ses distances et invoque des ombres.", comment: "Bestiaire : comportement du montreur d’ombres")
+        case .shade: String(localized: "Ombre rapide et fragile, invoquée par le montreur.", comment: "Bestiaire : comportement de l’ombre")
+        case .specter: String(localized: "S’efface, réapparaît près de toi et tire en anneau.", comment: "Bestiaire : comportement du spectre")
+        case .jellySmall: String(localized: "Morceau de gelée, rapide.", comment: "Bestiaire : comportement de la petite gelée")
+        }
+    }
+
+    /// Astuce (bestiaire, présentation d'un nouvel ennemi), `LORE[type].tip` du web.
+    var loreTip: String {
+        switch self {
+        case .goblin: String(localized: "Il ne recule pas : entoure-le.", comment: "Bestiaire : astuce contre le gobelin")
+        case .bat: String(localized: "La ligne du piqué s’annonce : pas de côté.", comment: "Bestiaire : astuce contre la chauve-souris")
+        case .jelly: String(localized: "Garde de la place pour les petites gelées.", comment: "Bestiaire : astuce contre la gelée")
+        case .moth: String(localized: "Les aiguilles lui font trois fois plus mal.", comment: "Bestiaire : astuce contre la mite")
+        case .snipper: String(localized: "Ferme ta boucle avant sa charge, ou esquive-la.", comment: "Bestiaire : astuce contre le crabe-ciseaux")
+        case .mushroom: String(localized: "Les spores passent entre leurs intervalles.", comment: "Bestiaire : astuce contre le champignon")
+        case .wolf: String(localized: "Sors de la bande hachurée, il passe tout droit.", comment: "Bestiaire : astuce contre le loup")
+        case .skeleton: String(localized: "De loin, l’éventail s’ouvre : reste à distance.", comment: "Bestiaire : astuce contre l’archer squelette")
+        case .totem: String(localized: "Tourne avec l’étoile pour rester entre deux branches.", comment: "Bestiaire : astuce contre le totem")
+        case .mage: String(localized: "Ne t’arrête pas sur un cercle qui se referme.", comment: "Bestiaire : astuce contre le mage")
+        case .lantern: String(localized: "Abats-le pendant qu’il gonfle : il s’éteint sans exploser.", comment: "Bestiaire : astuce contre le lampion")
+        case .weaver: String(localized: "Tuer l’araignée fait disparaître ses toiles.", comment: "Bestiaire : astuce contre l’araignée")
+        case .beetle: String(localized: "Contourne-le, ou frappe avec ta mécanique : le bouclier n’y peut rien.", comment: "Bestiaire : astuce contre le scarabée")
+        case .puppeteer: String(localized: "Vise-le en premier : sans lui, plus d’ombres.", comment: "Bestiaire : astuce contre le montreur d’ombres")
+        case .shade: String(localized: "Une bourrasque ou une boucle en emporte plusieurs.", comment: "Bestiaire : astuce contre l’ombre")
+        case .specter: String(localized: "Sa marque s’annonce au sol : éloigne-toi d’elle.", comment: "Bestiaire : astuce contre le spectre")
+        case .jellySmall: String(localized: "Il ne se divise plus.", comment: "Bestiaire : astuce contre la petite gelée")
         }
     }
 }
@@ -132,6 +215,26 @@ extension BossArchetype {
         case .ashlord: String(localized: "Seigneur des cendres", comment: "Boss du royaume 5")
         }
     }
+
+    var loreWhat: String {
+        switch self {
+        case .treant: String(localized: "Boss de la Forêt : onde de choc, anneaux, pluie de graines.", comment: "Bestiaire : attaques du Treant colossal")
+        case .queen: String(localized: "Boss du Marais : flaques, anneaux, petites gelées.", comment: "Bestiaire : attaques de la Reine des marais")
+        case .scorpion: String(localized: "Boss du Désert : charges et éventails.", comment: "Bestiaire : attaques du Scorpion d’ambre")
+        case .wyvern: String(localized: "Boss du Givre : vole, pluie de glace, charges.", comment: "Bestiaire : attaques de la Wyverne de givre")
+        case .ashlord: String(localized: "Boss des Cendres : flaques, mages, onde de choc.", comment: "Bestiaire : attaques du Seigneur des cendres")
+        }
+    }
+
+    var loreTip: String {
+        switch self {
+        case .treant: String(localized: "Il reprend son souffle après chaque attaque.", comment: "Bestiaire : astuce contre le Treant colossal")
+        case .queen: String(localized: "Garde un chemin sec pour bouger.", comment: "Bestiaire : astuce contre la Reine des marais")
+        case .scorpion: String(localized: "Après une charge, il est à découvert.", comment: "Bestiaire : astuce contre le Scorpion d’ambre")
+        case .wyvern: String(localized: "Elle survole les obstacles : ne t’y cache pas.", comment: "Bestiaire : astuce contre la Wyverne de givre")
+        case .ashlord: String(localized: "Abats ses mages avant qu’ils ne remplissent la salle.", comment: "Bestiaire : astuce contre le Seigneur des cendres")
+        }
+    }
 }
 
 extension HeroID {
@@ -143,21 +246,155 @@ extension HeroID {
         }
     }
 
-    /// Condition de déblocage (`HeroUnlock.label`).
+    /// Condition de déblocage (`heroUnlockText` du web, DECISIONS #77).
     var unlockText: String {
         switch self {
         case .scout: String(localized: "Disponible", comment: "Héros déjà débloqué")
-        case .windMonk: String(localized: "Offre de départ", comment: "Héros débloqué par l’offre de départ (boutique)")
-        case .emberSorcerer: String(localized: "Terminer le Marais (niv. 120)", comment: "Condition de déblocage du Sorcier de braise")
+        case .windMonk: String(localized: "Terminer le niveau \(HeroUnlocks.level(self)) · ou offre de départ", comment: "Condition de déblocage du Moine du vent : numéro du niveau")
+        case .emberSorcerer: String(localized: "Terminer le niveau \(HeroUnlocks.level(self))", comment: "Condition de déblocage d’un héros : numéro du niveau")
         }
     }
 
-    /// Présentation courte (`HeroUnlock.blurb`).
-    var blurbText: String {
+    /// Nom de la mécanique signature (`HeroDef.mechanic`).
+    var mechanicText: String {
         switch self {
-        case .scout: String(localized: "Aiguilles de lune. Aucune faiblesse, aucune fioriture.")
-        case .windMonk: String(localized: "Rafales d’air. Commence avec Vitesse +20 %.")
-        case .emberSorcerer: String(localized: "Braises. Commence avec Flamme.")
+        case .scout: String(localized: "Ciseaux de lune", comment: "Mécanique de l’Éclaireuse")
+        case .windMonk: String(localized: "Élan et bourrasque", comment: "Mécanique du Moine du vent")
+        case .emberSorcerer: String(localized: "Traînée de braises", comment: "Mécanique du Sorcier de braise")
+        }
+    }
+
+    /// Phrase d'accroche (`HeroDef.pitch`).
+    var pitchText: String {
+        switch self {
+        case .scout: String(localized: "Entoure tes ennemis de ton fil : la boucle refermée les découpe.", comment: "Présentation de l’Éclaireuse")
+        case .windMonk: String(localized: "Cours pour prendre de l’élan, arrête-toi : la bourrasque balaie tout autour de toi.", comment: "Présentation du Moine du vent")
+        case .emberSorcerer: String(localized: "Tes pas laissent des braises : attire tes poursuivants dans le feu.", comment: "Présentation du Sorcier de braise")
+        }
+    }
+}
+
+// MARK: - équipement (DECISIONS #75)
+
+extension GearSlot {
+    var title: String {
+        switch self {
+        case .needle: String(localized: "Aiguille", comment: "Emplacement d’équipement (arme)")
+        case .cloak: String(localized: "Cape", comment: "Emplacement d’équipement")
+        case .mask: String(localized: "Masque", comment: "Emplacement d’équipement")
+        case .charm: String(localized: "Talisman", comment: "Emplacement d’équipement")
+        }
+    }
+}
+
+extension GearRarity {
+    var title: String {
+        switch self {
+        case .common: String(localized: "Commun", comment: "Rareté d’un pouvoir")
+        case .rare: String(localized: "Rare", comment: "Rareté d’un pouvoir")
+        case .epic: String(localized: "Épique", comment: "Rareté d’un pouvoir")
+        case .legendary: String(localized: "Légendaire", comment: "Rareté d’un pouvoir")
+        }
+    }
+}
+
+extension GearStat {
+    var title: String {
+        switch self {
+        case .dmg: String(localized: "Dégâts", comment: "Statistique d’équipement")
+        case .hp: String(localized: "PV", comment: "Statistique d’équipement (points de vie)")
+        case .rate: String(localized: "Cadence", comment: "Statistique d’équipement (cadence de tir)")
+        case .speed: String(localized: "Vitesse", comment: "Statistique d’équipement")
+        case .crit: String(localized: "Critique", comment: "Statistique d’équipement")
+        case .dodge: String(localized: "Esquive", comment: "Pouvoir ; aussi affiché en combat quand un coup est esquivé")
+        case .sig: String(localized: "Signature", comment: "Statistique d’équipement : puissance de la mécanique du héros")
+        }
+    }
+
+    /// « Dégâts +4,8 % » (`statLine` du web).
+    func line(_ v: Double) -> String { "\(title) \(Fmt.pct(v))" }
+}
+
+extension GearDef {
+    /// Nom affiché ; un objet inconnu garde le libellé du cœur.
+    var title: String {
+        switch id {
+        case "sewingNeedle": String(localized: "Aiguille de couturière", comment: "Objet (aiguille)")
+        case "boneNeedle": String(localized: "Aiguille d’os", comment: "Objet (aiguille)")
+        case "crowPin": String(localized: "Épingle de corbeau", comment: "Objet (aiguille)")
+        case "moonNeedle": String(localized: "Aiguille lunaire", comment: "Objet (aiguille)")
+        case "amberSting": String(localized: "Dard d’ambre", comment: "Objet (aiguille)")
+        case "throneNeedle": String(localized: "Aiguille du Trône de lune", comment: "Objet légendaire (aiguille)")
+        case "juteCloak": String(localized: "Cape de jute", comment: "Objet (cape)")
+        case "feltCloak": String(localized: "Cape de feutre", comment: "Objet (cape)")
+        case "crowCloak": String(localized: "Cape de corbeau", comment: "Objet (cape)")
+        case "mistMantle": String(localized: "Manteau de brume", comment: "Objet (cape)")
+        case "marshCloak": String(localized: "Cape des marais", comment: "Objet (cape)")
+        case "starryMantle": String(localized: "Manteau de nuit étoilée", comment: "Objet légendaire (cape)")
+        case "paperMask": String(localized: "Masque de papier", comment: "Objet (masque)")
+        case "foxMask": String(localized: "Masque de renard", comment: "Objet (masque)")
+        case "owlMask": String(localized: "Masque de chouette", comment: "Objet (masque)")
+        case "wolfMask": String(localized: "Masque de loup", comment: "Objet (masque)")
+        case "emberMask": String(localized: "Masque de braise", comment: "Objet (masque)")
+        case "eclipseMask": String(localized: "Masque de la lune noire", comment: "Objet légendaire (masque)")
+        case "spool": String(localized: "Bobine de fil", comment: "Objet (talisman)")
+        case "windBell": String(localized: "Grelot de vent", comment: "Objet (talisman)")
+        case "emberJar": String(localized: "Braise captive", comment: "Objet (talisman)")
+        case "paperCrane": String(localized: "Grue de papier", comment: "Objet (talisman)")
+        case "waxHeart": String(localized: "Cœur de cire", comment: "Objet (talisman)")
+        case "eclipseCharm": String(localized: "Éclipse", comment: "Objet légendaire (talisman)")
+        default: name
+        }
+    }
+
+    /// Ligne d'ambiance.
+    var loreText: String {
+        switch id {
+        case "sewingNeedle": String(localized: "Elle a cousu plus de rideaux que de batailles.", comment: "Ambiance de l’Aiguille de couturière")
+        case "boneNeedle": String(localized: "Taillée dans un os de marionnette brisée.", comment: "Ambiance de l’Aiguille d’os")
+        case "crowPin": String(localized: "Le corbeau ne rate jamais un œil.", comment: "Ambiance de l’Épingle de corbeau")
+        case "moonNeedle": String(localized: "Trempée dans le premier quartier.", comment: "Ambiance de l’Aiguille lunaire")
+        case "amberSting": String(localized: "Arraché au Scorpion d’ambre, encore tiède.", comment: "Ambiance du Dard d’ambre")
+        case "throneNeedle": String(localized: "Celle qui a découpé la lune dans l’écran.", comment: "Ambiance de l’Aiguille du Trône de lune")
+        case "juteCloak": String(localized: "Rêche, chaude, increvable.", comment: "Ambiance de la Cape de jute")
+        case "feltCloak": String(localized: "Le feutre étouffe les pas.", comment: "Ambiance de la Cape de feutre")
+        case "crowCloak": String(localized: "Mille plumes de papier noir.", comment: "Ambiance de la Cape de corbeau")
+        case "mistMantle": String(localized: "On le voit, puis on ne le voit plus.", comment: "Ambiance du Manteau de brume")
+        case "marshCloak": String(localized: "Tissée par la Reine des marais pour son champion.", comment: "Ambiance de la Cape des marais")
+        case "starryMantle": String(localized: "Chaque étoile est un trou de lumière.", comment: "Ambiance du Manteau de nuit étoilée")
+        case "paperMask": String(localized: "Deux trous, un sourire, beaucoup de courage.", comment: "Ambiance du Masque de papier")
+        case "foxMask": String(localized: "Le renard file entre les ombres.", comment: "Ambiance du Masque de renard")
+        case "owlMask": String(localized: "Il voit dans le noir des coulisses.", comment: "Ambiance du Masque de chouette")
+        case "wolfMask": String(localized: "Pris au Loup d’ombre, crocs compris.", comment: "Ambiance du Masque de loup")
+        case "emberMask": String(localized: "Ses yeux fument encore.", comment: "Ambiance du Masque de braise")
+        case "eclipseMask": String(localized: "Quand il le porte, la scène retient son souffle.", comment: "Ambiance du Masque de la lune noire")
+        case "spool": String(localized: "Le premier outil de tout marionnettiste.", comment: "Ambiance de la Bobine de fil")
+        case "windBell": String(localized: "Il tinte avant la bourrasque.", comment: "Ambiance du Grelot de vent")
+        case "emberJar": String(localized: "Une braise qui ne veut pas mourir.", comment: "Ambiance de la Braise captive")
+        case "paperCrane": String(localized: "Pliée mille fois, elle porte chance.", comment: "Ambiance de la Grue de papier")
+        case "waxHeart": String(localized: "Il bat au rythme de la rampe.", comment: "Ambiance du Cœur de cire")
+        case "eclipseCharm": String(localized: "Un disque d’encre devant la lune.", comment: "Ambiance de l’Éclipse")
+        default: lore
+        }
+    }
+}
+
+// MARK: - quêtes du jour (DECISIONS #76)
+
+extension QuestDef {
+    var text: String {
+        switch id {
+        case "win3": String(localized: "Gagne 3 niveaux", comment: "Quête du jour")
+        case "kills60": String(localized: "Vaincs 60 ennemis", comment: "Quête du jour")
+        case "stars": String(localized: "Termine 2 niveaux avec 3 étoiles", comment: "Quête du jour")
+        case "replay": String(localized: "Rejoue un niveau déjà gagné", comment: "Quête du jour")
+        case "boss": String(localized: "Terrasse un boss", comment: "Quête du jour")
+        case "sig": String(localized: "Frappe 25 fois avec ta mécanique (découpes, bourrasques, ennemis brûlés)", comment: "Quête du jour")
+        case "scoutWin": String(localized: "Gagne 2 niveaux avec l’Éclaireuse", comment: "Quête du jour")
+        case "monkWin": String(localized: "Gagne 2 niveaux avec le Moine du vent", comment: "Quête du jour")
+        case "emberWin": String(localized: "Gagne 2 niveaux avec le Sorcier de braise", comment: "Quête du jour")
+        case "clean": String(localized: "Gagne un niveau en gardant plus de 90 % de tes PV", comment: "Quête du jour")
+        default: id
         }
     }
 }

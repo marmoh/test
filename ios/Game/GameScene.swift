@@ -27,12 +27,22 @@ final class GameScene: SKScene {
         var skin: SkinID?
         /// Graine de la tentative (aléas de combat), comme `Date.now() & 0xffff` du web.
         var attemptSalt = Int.random(in: 0...0xffff)
+        /// Équipement porté (DECISIONS #75) ; `.none` en tournoi.
+        var gear: GearStats = .none
+        /// Essai d'un héros verrouillé (DECISIONS #77) : ni vie retirée ni récompense.
+        var trial = false
+        /// Aides écrites de la mécanique signature (désactivées en tournoi).
+        var tutorialHints = true
     }
 
     static let hudTop: CGFloat = 54
 
     let config: Config
     weak var hooks: CombatHooks?
+    /// Ennemis vaincus par type et touches de la mécanique signature depuis le début de la tentative
+    /// (repris dans `CombatResult` à la victoire ; lus par l'app à la défaite pour les quêtes et le bestiaire).
+    private(set) var killsByType: [String: Int] = [:]
+    private(set) var signatureHits = 0
     private weak var audio: AudioService?
     private weak var haptics: HapticsService?
 
@@ -52,6 +62,7 @@ final class GameScene: SKScene {
     private let groundLayer = SKNode()
     private let entities = SKNode()
     private let threadNode = ThreadNode()
+    private let signature: SignatureNode
     private let heroNode: HeroNode
     private var enemyNodes: [Int: EnemyNode] = [:]
     private var hazardNodes: [ObjectIdentifier: HazardNode] = [:]
@@ -81,6 +92,9 @@ final class GameScene: SKScene {
     private var transition = 0.0
     private var dotAcc: [Int: Double] = [:]
     private var lastSnipText = -9.0
+    private var lastBlockText = -9.0
+    /// Sorcier : ennemis déjà comptés comme « mis à brûler » (quêtes)
+    private var burning = Set<Int>()
     private var scale: CGFloat = 1
     private var observers: [NSObjectProtocol] = []
 
@@ -90,13 +104,15 @@ final class GameScene: SKScene {
         self.haptics = haptics
         theme = KingdomTheme.of(kingdom: config.level.kingdom)
         hero = LevelRunner.makeHero(talents: config.talents, heroId: config.heroId, autoFire: config.autoFire,
-                                    potion: config.potion, aegis: config.aegis, scroll: config.scroll)
+                                    potion: config.potion, aegis: config.aegis, scroll: config.scroll,
+                                    gear: config.mode.isTournament ? .none : config.gear)
         powerRng = Rng(seed: config.level.powerSeed)
         let room = config.level.rooms[0]
         let tpl = config.templates[room.template] ?? config.templates.values.first!
         world = World(RoomSetup(arena: Arena(tpl), D: config.level.D, waves: room.waves, boss: room.boss,
                                 seed: seedOf(room.seed, config.attemptSalt)), hero: hero)
         arenaNode = ArenaNode(template: tpl, kingdom: config.level.kingdom)
+        signature = SignatureNode(light: theme.light)
         heroNode = HeroNode(heroId: config.heroId, dragonSkin: config.dragonSkin, skin: config.skin)
         projectileLayer = ProjectileLayer(heroId: config.heroId)
         orbFrames = TextureBank.shared.frames(TextureBank.shared.vfx, "heal_orb")
@@ -126,6 +142,8 @@ final class GameScene: SKScene {
         stage.addChild(groundLayer)
         threadNode.zPosition = 20
         stage.addChild(threadNode)
+        signature.zPosition = 15
+        stage.addChild(signature)
         entities.zPosition = 100
         stage.addChild(entities)
         entities.addChild(heroNode)
@@ -264,6 +282,8 @@ final class GameScene: SKScene {
         corpses.removeAll()
         projectileLayer.clear()
         threadNode.clearAll()
+        signature.clear()
+        burning.removeAll()
         prev.removeAll()
         dotAcc.removeAll()
         portalOpen = 0
@@ -278,7 +298,7 @@ final class GameScene: SKScene {
     private func nextRoom() async {
         busy = true
         let i = roomIdx + 1
-        let offer = LevelGen.offerPowers(&powerRng, owned: hero.powers)
+        let offer = LevelGen.offerPowers(&powerRng, owned: hero.powers, signature: Heroes.def(config.heroId).family)
         let pick = await hooks?.choosePower(offer, hero: hero, room: i) ?? offer[0]
         if destroyed { return }
         hero.grant(pick)
@@ -297,7 +317,8 @@ final class GameScene: SKScene {
         fx.slowmo = 1.2
         audio?.play(.win)
         let r = CombatResult(won: true, stars: Formulas.stars(won: true, hpFrac: hpFrac), hpFrac: hpFrac, hpLeft: max(0, hero.hp),
-                             seconds: seconds, kills: kills + world.kills, continues: continues, maxHp: hero.stats.maxHp)
+                             seconds: seconds, kills: kills + world.kills, continues: continues, maxHp: hero.stats.maxHp,
+                             killsByType: killsByType, signatureHits: signatureHits)
         Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(1.3))
             guard let self, !self.destroyed else { return }
@@ -313,7 +334,8 @@ final class GameScene: SKScene {
         if config.mode.isTournament {
             // tournoi : pas de « continuer », l'essai s'arrête
             hooks?.tournamentOver(CombatResult(won: false, stars: 0, hpFrac: 0, hpLeft: 0, seconds: seconds,
-                                               kills: kills + world.kills, continues: continues, maxHp: hero.stats.maxHp))
+                                               kills: kills + world.kills, continues: continues, maxHp: hero.stats.maxHp,
+                                               killsByType: killsByType, signatureHits: signatureHits))
             return
         }
         let choice = await hooks?.defeat(continuesUsed: continues) ?? .map
@@ -475,6 +497,9 @@ final class GameScene: SKScene {
                 audio?.play(.shoot)
             case let .kill(x, y, type):
                 let big = type == "boss"
+                // quêtes et bestiaire : le boss compte sous son archétype (comme le web)
+                let key = big ? (config.level.rooms[roomIdx].boss?.archetype.rawValue ?? "boss") : type
+                killsByType[key, default: 0] += 1
                 fx.scraps(x, y, big ? 34 : 10, power: big ? 1.6 : 1)
                 fx.ring(x, y, color: Ink.ink, size: big ? 140 : 30, life: big ? 0.7 : 0.3)
                 fx.shake(big ? 0.9 : 0.12)
@@ -500,6 +525,7 @@ final class GameScene: SKScene {
             case let .wave(index):
                 if index > 0 { banner.show(String(localized: "Vague \(index + 1)", comment: "Bandeau : nouvelle vague d’ennemis"), sub: "", startAt: 0.25) }
             case let .cut(poly, n, echo):
+                signatureHits += n
                 threadNode.addCut(poly: poly, echo: echo, t: time, paper: theme.paper)
                 var cx = 0.0, cy = 0.0
                 for v in poly { cx += v.x; cy += v.y }
@@ -522,10 +548,50 @@ final class GameScene: SKScene {
                     lastSnipText = time
                 }
                 audio?.play(.snip)
+            case let .gust(x, y, r, m, n):
+                signatureHits += n
+                signature.addGust(x: x, y: y, r: r, m: m, t: time)
+                fx.ring(x, y, color: Ink.ink, size: r, life: 0.35)
+                fx.burst(x, y, color: Ink.cut, 10 + Int((m * 10).rounded()), speed: 260 * (0.6 + m), kind: .dot, size: 2.4, life: 0.4)
+                if n > 0 {
+                    fx.shake(0.12 + 0.1 * Double(min(4, n)))
+                    fx.hitStop(0.02 + 0.015 * Double(min(4, n)))
+                    if n > 1 {
+                        fx.text(x, y - 34, String(localized: "Bourrasque ×\(n)", comment: "Combat : une bourrasque du Moine touche plusieurs ennemis"),
+                                color: n > 2 ? Ink.danger : Ink.ink, size: 18)
+                    }
+                }
+                if config.haptics { haptics?.cut(multi: n > 1) }
+                audio?.play(.gust)
+            case let .block(x, y):
+                fx.burst(x, y, color: Ink.gold, 5, speed: 140, kind: .spark, size: 2, life: 0.25)
+                if time - lastBlockText > 1.5 {
+                    fx.text(x, y - 10, String(localized: "Bouclier", comment: "Combat : aiguille arrêtée par le bouclier du scarabée"), color: Ink.ink2, size: 12)
+                    lastBlockText = time
+                }
+                audio?.play(.block)
+            case let .blink(x, y, fromX, fromY):
+                fx.scraps(fromX, fromY, 8, power: 0.8)
+                fx.burst(x, y, color: Ink.ink2, 6, speed: 60, kind: .dot, size: 3, life: 0.4)
+                audio?.play(.blink)
+            case let .boom(x, y, r, by):
+                let col = by == "lantern" ? Ink.danger : Ink.gold
+                fx.ring(x, y, color: col, size: r, life: 0.4)
+                fx.burst(x, y, color: col, 14, speed: 220, kind: .spark, size: 2.6, life: 0.4)
+                fx.scraps(x, y, 8)
+                fx.shake(by == "lantern" ? 0.35 : 0.2)
+                audio?.play(.boom)
             case .cleared:
                 fx.text(K.arenaW / 2, K.arenaH * 0.42, String(localized: "Salle nettoyée", comment: "Combat : tous les ennemis de la salle sont vaincus"), color: Ink.ink, size: 22)
                 fx.scraps(K.arenaW / 2, 14, 14)
                 audio?.play(.clear)
+            }
+        }
+        // Sorcier : chaque ennemi qui prend feu dans la traînée compte pour les quêtes
+        if w.hero.kind == .ember {
+            for e in w.enemies where e.emberT > 0.7 && !burning.contains(e.id) {
+                burning.insert(e.id)
+                signatureHits += 1
             }
         }
         // nombres de dégâts et flash d'impact
@@ -618,7 +684,10 @@ final class GameScene: SKScene {
         let hp = lerp(w.hero, w.hero.pos, a)
         threadNode.updateCuts(t: t)
         threadNode.update(world: w, hp: hp, t: t,
-                          showHint: config.level.n <= 3 && !config.mode.isTournament && w.hero.cuts == 0 && !w.cleared && !w.enemies.isEmpty)
+                          showHint: w.hero.kind == .thread && config.tutorialHints && config.level.n <= 3 && !config.mode.isTournament
+                              && w.hero.cuts == 0 && !w.cleared && !w.enemies.isEmpty)
+        // élan, bourrasques, tourbillons, braises (Moine et Sorcier)
+        signature.update(world: w, hp: hp, t: t, hints: config.tutorialHints && !config.mode.isTournament, level: config.level.n)
 
         // héroïne
         heroNode.position = scenePoint(hp.x, hp.y)

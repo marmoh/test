@@ -3,7 +3,7 @@
  * de choix des pouvoirs. Un bot ne « voit » une menace qu'après son temps de
  * réaction ; à la première vue, il tire au sort s'il l'esquivera (précision).
  */
-import { HERO, CELL, ARENA_W, ARENA_H, COLS, ROWS, THREAD } from './constants.js';
+import { HERO, CELL, ARENA_W, ARENA_H, COLS, ROWS, THREAD, GUST } from './constants.js';
 import { BOSSES, ENEMIES, type MinionType, type PowerId } from './content.js';
 import type { ChoiceContext, Controller } from './level.js';
 import { Rng } from './rng.js';
@@ -26,9 +26,13 @@ export const BOTS: Record<BotName, BotProfile> = {
 
 /** « Dégâts d'abord » : ordre de préférence du bot moyen. */
 const DAMAGE_FIRST: PowerId[] = [
-  'damage', 'sharpScissors', 'echoCut', 'attackSpeed', 'multishot', 'crit', 'confetti', 'ricochet', 'chain', 'pierce',
-  'diagonals', 'flame', 'poison', 'eliteSlayer', 'barbedThread', 'longThread', 'steelThread', 'orb', 'frost', 'maxHp',
-  'lifesteal', 'shield', 'speed', 'dodge', 'sideShots', 'rearShot', 'blast', 'wallBounce', 'flashStep', 'magnet',
+  // familles signature du Moine et du Sorcier glissées à leur rang : l'ordre relatif des pouvoirs de l'Éclaireuse
+  // (les seuls qu'on lui propose) ne change pas
+  'damage', 'keenGust', 'blaze', 'sharpScissors', 'echoCut', 'bigGust', 'wideTrail', 'attackSpeed', 'multishot', 'crit',
+  'confetti', 'combustion', 'whirlwind', 'ricochet', 'chain', 'pierce', 'diagonals', 'flame', 'poison', 'furnace',
+  'eliteSlayer', 'eyeOfStorm', 'barbedThread', 'longThread', 'liveEmbers', 'quickMomentum', 'steelThread', 'orb', 'frost',
+  'maxHp', 'lifesteal', 'shield', 'featherStep', 'ashWard', 'speed', 'dodge', 'sideShots', 'rearShot', 'blast',
+  'wallBounce', 'flashStep', 'magnet',
 ];
 
 /**
@@ -40,6 +44,8 @@ const VALUE: Record<PowerId, number> = {
   maxHp: 6.5, shield: 6.5, orb: 5.5, flame: 5.5, poison: 5.5, eliteSlayer: 4.5, sideShots: 3, frost: 5, blast: 4.5,
   dodge: 5, rearShot: 3, lifesteal: 4, wallBounce: 3, flashStep: 3.5, speed: 5, magnet: 2,
   sharpScissors: 8.5, echoCut: 9, longThread: 6.5, steelThread: 5.5, barbedThread: 4.5, confetti: 7,
+  bigGust: 7, keenGust: 8.5, quickMomentum: 6, eyeOfStorm: 7, whirlwind: 7.5, featherStep: 6.5,
+  liveEmbers: 6.5, blaze: 8.5, wideTrail: 7, combustion: 7.5, ashWard: 6, furnace: 8,
 };
 
 /** Directions des échantillons d'une boucle (cos, sin entrelacés). */
@@ -96,7 +102,7 @@ const LOOP_SHOOTER_R = 46;
  * Rayon minimal par type : tireurs visés (le tir à bout portant doit passer derrière l'héroïne qui tourne) et
  * anneaux (champignon 8 spores, totem 6 runes : assez d'écart entre deux projectiles pour s'y glisser).
  */
-const LOOP_TYPE_R: Partial<Record<string, number>> = { goblin: LOOP_SHOOTER_R, skeleton: 76, mushroom: 66, totem: 58 };
+const LOOP_TYPE_R: Partial<Record<string, number>> = { goblin: LOOP_SHOOTER_R, skeleton: 76, mushroom: 66, totem: 58, weaver: LOOP_SHOOTER_R, puppeteer: 56, specter: 60 };
 /** Points de la boucle (sur LOOP_K) qui peuvent tomber dans un obstacle ou hors de l'arène. */
 const LOOP_RING_SLACK = 3;
 /**
@@ -107,7 +113,9 @@ const LOOP_K = 24;
 const LOOP_BULGE = [0, 12, 24, 36, 50, 66];
 const SIM_STEP = 0.05;
 const SIM_STEPS = Math.round(PLAN_T[PLAN_T.length - 1] / SIM_STEP);
-const CHASERS = new Set(['jelly', 'jellySmall', 'wolf', 'snipper', 'bat', 'moth']);
+/** Tireurs qui gardent leurs distances (reculent quand on approche). */
+const RANGED = new Set(['goblin', 'skeleton', 'mage', 'weaver', 'puppeteer']);
+const CHASERS = new Set(['jelly', 'jellySmall', 'wolf', 'snipper', 'bat', 'moth', 'beetle', 'shade', 'lantern']);
 /**
  * Jamais au centre d'une boucle : la mite (elle file vers le fil et le mange : on l'abat aux aiguilles, sauf
  * avec le Fil d'acier) et le squelette (éventail de 3 flèches à bout portant : on le laisse aux aiguilles).
@@ -599,7 +607,7 @@ export class Bot implements Controller {
       const lim = reach + rr + sp * CONTACT_HORIZON;
       if ((e.pos.x - hp.x) ** 2 + (e.pos.y - hp.y) ** 2 > lim * lim) continue;
       // sens du déplacement prévu en boucle : les tireurs reculent quand l'héroïne s'approche, les autres foncent
-      const flee = e.type === 'goblin' || e.type === 'skeleton' || e.type === 'mage' ? -1 : 1;
+      const flee = RANGED.has(e.type) ? -1 : 1;
       ch.push(e.pos.x, e.pos.y, sp, rr, e.state === 'spawn' ? e.t : 0, e.contact, flee);
       this.chE.push(e);
     }
@@ -620,7 +628,8 @@ export class Bot implements Controller {
 
     // Ciseaux de lune : suivre la boucle en cours (ou en planifier une) tant que le danger le permet
     let loopScore = Infinity;
-    const lp = this.loopTick(w);
+    // les boucles ne servent qu'aux Ciseaux de lune (DECISIONS #74)
+    const lp = h.kind === 'thread' ? this.loopTick(w) : null;
     if (lp) {
       loopStep(lp, lp, hp.x, hp.y, this.ldir);
       // approche sans ligne droite jusqu'au cercle : on contourne l'obstacle
@@ -670,7 +679,7 @@ export class Bot implements Controller {
       for (const e of chasers) {
         if (e.speed <= 0 && e.state !== 'charge') continue;
         // distance de confort ≈ ce que l'ennemi parcourt en ~1 s (les tireurs gardent d'eux-mêmes leurs distances)
-        const ranged = e.type === 'goblin' || e.type === 'skeleton' || e.type === 'mage';
+        const ranged = RANGED.has(e.type);
         const keep = e.radius + HERO.radius + (ranged ? 30 : 25 + e.speed);
         const dx = x - e.pos.x;
         const dy = y - e.pos.y;
@@ -683,6 +692,26 @@ export class Bot implements Controller {
         if (noProgress || !w.arena.lineOfSight(this.probe, tgt.pos)) c += 1.5;
       }
       if (goalDir && dir) c -= (dir.x * goalDir.x + dir.y * goalDir.y) * 1.2;
+      // Moine : élan chargé, se rapprocher d'un ennemi (sans aller au contact) pour la bourrasque
+      if (h.kind === 'gust' && h.momentum >= 0.45 && dir) {
+        let bd = Infinity;
+        for (const e of w.enemies) {
+          if (e.state === 'spawn') continue;
+          const d = Math.hypot(e.pos.x - x, e.pos.y - y) - e.radius;
+          if (d < bd) bd = d;
+        }
+        if (bd < 240) c -= 0.8 * Math.min(1, Math.max(0, (240 - bd) / 150));
+      }
+      // Sorcier : frôler les ennemis au sol (à ~40 pt) pour poser des braises sous leurs pieds
+      if (h.kind === 'ember' && dir) {
+        let bd = Infinity;
+        for (const e of w.enemies) {
+          if (e.state === 'spawn' || e.flying) continue;
+          const d = Math.abs(Math.hypot(e.pos.x - x, e.pos.y - y) - e.radius - 40);
+          if (d < bd) bd = d;
+        }
+        if (bd < 160) c -= 0.6 * (1 - bd / 160);
+      }
       return c;
     };
 
@@ -700,9 +729,18 @@ export class Bot implements Controller {
     const stay = this.paths[0];
     const stayD = this.danger(stay, 0, now);
     const stayC = placeCost(hp.x, hp.y, null);
-    if (stayD === 0 && stayC < 0.5 && !wantLos && !lp) return { mx: 0, my: 0, touching: false };
+    // Moine du vent : élan chargé et ennemis à portée de bourrasque → s'arrêter (si l'arrêt est sûr)
+    if (h.kind === 'gust' && h.moving && h.momentum >= 0.55 && h.gustCd <= 0 && stayD < 0.05) {
+      const r = (GUST.radius + GUST.radiusPerMomentum * h.momentum) * h.stats.gustRadiusMult - 8;
+      let inR = 0;
+      for (const e of w.enemies) if (e.state !== 'spawn' && Math.hypot(e.pos.x - hp.x, e.pos.y - hp.y) < r + e.radius) inR++;
+      if (inR >= 1) return { mx: 0, my: 0, touching: false };
+    }
+    // Sorcier de braise : il ne sème des braises qu'en marchant, il préfère tourner autour des poursuivants
+    const emberRun = h.kind === 'ember' && w.enemies.some((e) => e.contact > 0 && e.speed > 0 && !e.flying);
+    if (stayD === 0 && stayC < 0.5 && !wantLos && !lp && !emberRun) return { mx: 0, my: 0, touching: false };
     // sans tir auto, on ne tire qu'à l'arrêt : forte prime à l'immobilité ; avec, une simple préférence (anti-agitation)
-    let bestScore = stayD * 10 + stayC - (h.autoFire ? STAY_BONUS_AUTOFIRE : STAY_BONUS_MANUAL);
+    let bestScore = stayD * 10 + stayC - (h.autoFire ? STAY_BONUS_AUTOFIRE : STAY_BONUS_MANUAL) + (emberRun ? 0.6 : 0);
     if (this.stuckT > 0.3) bestScore += 2;
 
     let best: Pt | null = null;
@@ -1030,7 +1068,7 @@ export class Bot implements Controller {
         let fy = 0;
         let nf = 0;
         for (const m of members) {
-          if (m.type !== 'goblin' && m.type !== 'skeleton' && m.type !== 'mage') continue;
+          if (!RANGED.has(m.type)) continue;
           const ux = (m.pos.x - hp.x) / (Math.hypot(m.pos.x - hp.x, m.pos.y - hp.y) || 1);
           const uy = (m.pos.y - hp.y) / (Math.hypot(m.pos.x - hp.x, m.pos.y - hp.y) || 1);
           const run = m.speed * (Math.min(dh - r, 60) / v);

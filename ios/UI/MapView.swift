@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// Carte saga (§12.1, port de `web/src/map.ts`) : chemin sinueux à défilement vertical à travers les 5 royaumes,
-/// 300 nœuds (étoiles, crâne des niveaux difficiles, boss), avatar de l'héroïne sur le niveau courant,
-/// vies et gemmes en haut, bandeaux du tournoi et du pass, navigation basse.
+/// 300 nœuds (étoiles, crâne des niveaux difficiles, boss, objet annoncé, médaillon du héros à débloquer), avatar de
+/// l'héroïne sur le niveau courant, vies et gemmes en haut, étiquettes Quêtes et Bestiaire, bandeaux du tournoi et du
+/// pass, navigation basse.
 @MainActor
 struct MapScreen: View {
     @Environment(AppModel.self) private var app
@@ -13,7 +14,8 @@ struct MapScreen: View {
                 .ignoresSafeArea(edges: .bottom)
             VStack(spacing: 8) {
                 TopBar()
-                HStack(alignment: .top) {
+                HStack(alignment: .top, spacing: 12) {
+                    SideTags()
                     if app.wallet.weeklyGemsClaimable() && app.subscribed {
                         TributeTag { app.claimTribute() }
                     }
@@ -152,7 +154,10 @@ struct MapChunk: View {
         ZStack(alignment: .topLeading) {
             Canvas { ctx, size in draw(ctx, size) }
             ForEach(first...last, id: \.self) { n in
-                MapNode(n: n, current: current, stars: app.progress.stars(n)) { onSelect(n) }
+                let stars = app.progress.stars(n)
+                MapNode(n: n, current: current, stars: stars,
+                        lootID: stars == 0 ? Gear.levelLoot(n)?.id : nil,
+                        medal: HeroUnlocks.hero(at: n, owned: app.wallet.heroes)) { onSelect(n) }
                     .position(local(n))
             }
             if (first...last).contains(current) {
@@ -280,12 +285,17 @@ struct MapChunk: View {
     }
 }
 
-/// Nœud de niveau : numéro, étoiles, crâne (difficile), boss (couronne et portrait).
+/// Nœud de niveau : numéro, étoiles, crâne (difficile), boss (couronne et portrait), objet de la première victoire
+/// (losange de rareté), médaillon du héros que ce niveau débloque.
 @MainActor
 struct MapNode: View {
     let n: Int
     let current: Int
     let stars: Int
+    /// Objet annoncé (niveau pas encore gagné).
+    var lootID: String?
+    /// Héros débloqué par la victoire de ce niveau (DECISIONS #77).
+    var medal: HeroID?
     let action: () -> Void
 
     var body: some View {
@@ -324,6 +334,13 @@ struct MapNode: View {
                         InkIcon(name: "ui_skull", size: 22, fallback: "exclamationmark.triangle.fill").offset(x: r - 1, y: -r + 3)
                     }
                 }
+                if let lootID, let def = Gear.byID[lootID] {
+                    // l'objet des prochains niveaux ; plus loin, un simple losange de rareté
+                    LootMark(def: def, near: n <= current + 25).offset(x: r - 4, y: -r - 4)
+                }
+                if let medal {
+                    HeroMedal(hero: medal).offset(x: -r - 34, y: -4)
+                }
                 if !locked && n < current {
                     HStack(spacing: -2) {
                         ForEach(0..<3, id: \.self) { i in
@@ -352,7 +369,124 @@ extension MapNode {
         if kind == .hard { parts.append(String(localized: "difficile", comment: "VoiceOver : niveau difficile sur la carte")) }
         parts.append(locked ? String(localized: "verrouillé", comment: "VoiceOver : niveau pas encore débloqué")
                             : String(localized: "\(stars) étoiles", comment: "VoiceOver : étoiles obtenues sur un niveau"))
+        if let lootID, let def = Gear.byID[lootID] {
+            parts.append(String(localized: "butin : \(def.title)", comment: "VoiceOver : objet de la première victoire d’un niveau"))
+        }
+        if let medal {
+            parts.append(String(localized: "débloque \(medal.title)", comment: "VoiceOver : héros débloqué par ce niveau"))
+        }
         return parts.joined(separator: ", ")
+    }
+}
+
+/// Losange de l'objet annoncé : cadre de rareté et icône ; légendaire, il se balance.
+@MainActor
+struct LootMark: View {
+    let def: GearDef
+    let near: Bool
+    @State private var bob = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        let col: Color = def.rarity == .common ? Theme.ink2 : def.rarity.color
+        Group {
+            if near {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 3).fill(Theme.cut)
+                    RoundedRectangle(cornerRadius: 3).strokeBorder(col, lineWidth: def.rarity == .common ? 1.6 : 2.6)
+                }
+                .frame(width: 24, height: 24)
+                .rotationEffect(.degrees(45))
+                .overlay(GearIcon(id: def.id, size: 20))
+            } else {
+                Rectangle().fill(col).frame(width: 10, height: 10)
+                    .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.2))
+                    .rotationEffect(.degrees(45))
+            }
+        }
+        .offset(y: bob ? -3 : 1)
+        .onAppear {
+            guard near, def.rarity == .legendary, !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) { bob = true }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+/// Médaillon du héros que débloque ce nœud : portrait cerclé d'or, ruban « Héros ».
+@MainActor
+struct HeroMedal: View {
+    let hero: HeroID
+    @State private var bob = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack {
+            Circle().fill(Theme.ink).frame(width: 42, height: 42).offset(x: 2, y: 2)
+            Circle().fill(Theme.cut).frame(width: 42, height: 42)
+            Puppet(name: hero.rawValue, size: 38).clipShape(Circle())
+            Circle().strokeBorder(Theme.goldLeaf, lineWidth: 3).frame(width: 42, height: 42)
+            Text("Héros")
+                .font(Theme.text(10, weight: .heavy)).foregroundStyle(Theme.goldLeaf)
+                .textCase(.uppercase)
+                .frame(width: 48, height: 13)
+                .background(Theme.ink)
+                .offset(y: 22)
+        }
+        .offset(y: bob ? -3 : 1)
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true)) { bob = true }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+/// Étiquettes de papier « Quêtes » (pastille : récompenses à réclamer) et « Bestiaire », à gauche de la carte.
+@MainActor
+struct SideTags: View {
+    @Environment(AppModel.self) private var app
+
+    var body: some View {
+        let n = app.meta.questsToClaim
+        VStack(spacing: 10) {
+            tag("Quêtes", icon: "ui_scroll", sys: "scroll.fill", badge: n) { app.sheet = .quests }
+                .rotationEffect(.degrees(-2))
+                .accessibilityLabel(n > 0 ? String(localized: "Quêtes du jour, \(n) à réclamer", comment: "VoiceOver : étiquette des quêtes, récompenses à réclamer")
+                                          : String(localized: "Quêtes du jour"))
+            tag("Bestiaire", icon: "ui_skull", sys: "pawprint.fill", badge: 0) { app.sheet = .bestiary }
+                .rotationEffect(.degrees(1.5))
+        }
+    }
+
+    private func tag(_ title: LocalizedStringKey, icon: String, sys: String, badge: Int, action: @escaping () -> Void) -> some View {
+        Button {
+            app.audio.play(.tap)
+            action()
+        } label: {
+            VStack(spacing: 0) {
+                InkIcon(name: icon, size: 28, fallback: sys)
+                Text(title).font(Theme.text(11.5, weight: .heavy))
+            }
+            .foregroundStyle(Theme.ink)
+            .frame(width: 62)
+            .padding(.vertical, 5)
+            .background(Theme.paper)
+            .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2))
+            .background(Theme.ink.offset(x: 3, y: 3))
+            .overlay(alignment: .topTrailing) {
+                if badge > 0 {
+                    Text(verbatim: "\(badge)").font(Theme.text(12, weight: .heavy)).foregroundStyle(Theme.cut)
+                        .frame(minWidth: 20, minHeight: 20)
+                        .background(Theme.vermilion)
+                        .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2))
+                        .offset(x: 8, y: -8)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 

@@ -1,5 +1,8 @@
 /** §12.6 Écrans secondaires : Héros et talents, Boutique, Tournoi, Réglages (feuilles depuis la carte). */
-import { HEROES, type HeroId } from '../../sim/src/content.js';
+import { HEROES, POWER_BY_ID, type HeroId, type PowerId } from '../../sim/src/content.js';
+import { heroUnlocked, heroUnlockText, todayStall, buyStall, buyShards } from './meta.js';
+import { gearPanel, itemCard, gearIcon } from './gearui.js';
+import { GEAR_BY_ID, SHARD_PACK } from '../../sim/src/gear.js';
 import { TALENTS } from '../../sim/src/constants.js';
 import { tournamentScore } from '../../sim/src/formulas.js';
 import { INK_UI, INK_POWERS, iconURL } from '../../art/src/icons.js';
@@ -16,45 +19,89 @@ import { SKINS, PREMIUM_TRACK, PASS, type SkinId } from './season.js';
 import { skinPreview } from './skins.js';
 import { passSheet } from './pass.js';
 
-// ───────────────────────────── Héros et talents ─────────────────────────────
+// ───────────────────────────── Héros, équipement et talents ─────────────────────────────
 
-const HERO_UNLOCK: Record<HeroId, string> = { scout: 'Disponible', windMonk: 'Offre de départ', emberSorcerer: 'Terminer le Marais (niv. 120)' };
-const HERO_BLURB: Record<HeroId, string> = {
-  scout: 'Flèches de lune. Aucune faiblesse, aucune fioriture.',
-  windMonk: 'Rafales d’air. Commence avec Vitesse +15 %.',
-  emberSorcerer: 'Braises. Commence avec Flamme.',
+/** Les trois premières cartes de la famille signature de chaque héros (aperçu de sa mécanique). */
+const HERO_POWERS: Record<HeroId, PowerId[]> = {
+  scout: ['longThread', 'sharpScissors', 'echoCut'],
+  windMonk: ['bigGust', 'whirlwind', 'eyeOfStorm'],
+  emberSorcerer: ['liveEmbers', 'combustion', 'furnace'],
 };
 
-export function heroesSheet(onChange: () => void): void {
+let trialHandler: ((id: HeroId) => void) | null = null;
+/** Branché par main.ts : lance un essai du héros (salle d'entraînement, sans récompense). */
+export function onHeroTrial(fn: (id: HeroId) => void): void {
+  trialHandler = fn;
+}
+
+export type HeroTab = 'heroes' | 'gear' | 'talents';
+
+export function heroesSheet(onChange: () => void, tab: HeroTab = 'heroes'): void {
   const s = save();
-  const talentRow = (k: keyof typeof s.talents, name: string, per: string, icon: string) => {
-    const r = s.talents[k];
-    const max = r >= TALENTS.maxRank;
-    return `<div class="talent" data-k="${k}"><img src="${iconURL(icon)}"/><div class="tinfo"><b>${name}</b><small>${per} par rang</small><div class="pips">${Array.from({ length: 10 }, (_, i) => `<i class="${i < r ? 'on' : ''}"></i>`).join('')}</div></div><button class="btn small buy" ${max || s.gold < talentCost(r) ? 'disabled' : ''}>${max ? 'Max' : `<img src="${iconURL(INK_UI.coin)}"/>${talentCost(r)}`}</button></div>`;
-  };
-  const { o } = sheet(
+  const { o, close } = sheet(
     'heroes',
     'Héros',
-    `<div class="hero-cards">${(Object.keys(HEROES) as HeroId[])
-      .map((id) => {
-        const owned = s.heroes.includes(id);
-        return `<button class="hero-card${s.heroId === id ? ' sel' : ''}${owned ? '' : ' locked'}" data-id="${id}"><div class="hc-sprite" data-sprite="${id}"></div><b>${HEROES[id].name}</b><small>${owned ? HERO_BLURB[id] : HERO_UNLOCK[id]}</small></button>`;
-      })
-      .join('')}</div>
+    `<div class="tabs" role="tablist"><button data-tab="heroes" role="tab">Héros</button><button data-tab="gear" role="tab">Équipement</button><button data-tab="talents" role="tab">Talents</button></div><div class="tab-body"></div>`,
+  );
+  const body = o.querySelector<HTMLElement>('.tab-body')!;
+  const show = (t: HeroTab) => {
+    o.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((b) => {
+      b.classList.toggle('on', b.dataset.tab === t);
+      b.setAttribute('aria-selected', String(b.dataset.tab === t));
+    });
+    if (t === 'heroes') heroesPanel(body, onChange, close);
+    else if (t === 'gear') gearPanel(body, onChange);
+    else talentsPanel(body, onChange);
+    body.scrollTop = 0;
+  };
+  o.querySelectorAll<HTMLButtonElement>('.tabs button').forEach((b) => b.addEventListener('click', () => (sfx('tap'), show(b.dataset.tab as HeroTab))));
+  show(tab);
+  void s;
+}
+
+function heroesPanel(body: HTMLElement, onChange: () => void, close: () => Promise<void>): void {
+  const s = save();
+  const ids = Object.keys(HEROES) as HeroId[];
+  body.innerHTML = `<div class="hero-list">${ids
+    .map((id) => {
+      const h = HEROES[id];
+      const owned = heroUnlocked(id);
+      const sel = s.heroId === id;
+      return `<div class="hero-row${sel ? ' sel' : ''}${owned ? '' : ' locked'}" data-id="${id}">
+        <div class="hr-sprite" data-sprite="${id}"></div>
+        <div class="hr-txt"><b>${h.name}</b><span class="hr-mech">${h.mechanic}</span><small>${h.pitch}</small>
+          <div class="hr-pows">${HERO_POWERS[id].map((p) => `<img src="${iconURL(INK_POWERS[p])}" title="${POWER_BY_ID[p].name}" alt="${POWER_BY_ID[p].name}"/>`).join('')}</div>
+          ${owned ? '' : `<em class="hr-lock">${heroUnlockText(id)}</em>`}</div>
+        <div class="hr-act">${owned ? (sel ? '<span class="hr-chosen">Choisi</span>' : '<button class="btn primary small pick">Choisir</button>') : '<button class="btn ghost small try">Essayer</button>'}</div>
+      </div>`;
+    })
+    .join('')}</div>
     ${
       subscribed()
         ? `<label class="toggle parure"><span>Parure du Dragon<small>Apparence exclusive de l’Ordre du Dragon</small></span><input type="checkbox" class="skin" ${s.subscription.skin ? 'checked' : ''}/><i></i></label>`
         : `<p class="fine left parure-locked"><img src="${iconURL(INK_UI.crown)}" alt=""/> Parure du Dragon : apparence réservée aux membres de l’Ordre du Dragon.</p>`
     }
     <h3 class="sec">Apparences <small>pass de saison · cosmétiques</small></h3>
-    <div class="skins">${skinCards()}</div>
-    <h3 class="sec">Talents permanents <small>désactivés en tournoi</small></h3>
-    <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', INK_UI.heart)}${talentRow('strength', 'Force', '+2 % dégâts', INK_UI.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', INK_UI.coin)}${talentRow('fortune', 'Fortune', '+5 % or', INK_UI.chest)}${talentRow('ink', 'Encre lente', '+6 % durée du fil', INK_POWERS.longThread)}</div>
-    <p class="fine">Or disponible : <b>${s.gold}</b></p>`,
-  );
-  o.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 92, 2.1, 'idle', { aiming: true, facing: 0.15 })));
+    <div class="skins">${skinCards()}</div>`;
+  body.querySelectorAll<HTMLElement>('[data-sprite]').forEach((d) => d.appendChild(liveSprite(d.dataset.sprite!, 84, 2, 'idle', { aiming: true, facing: 0.15 })));
+  body.querySelectorAll<HTMLElement>('.hero-row').forEach((row) => {
+    const id = row.dataset.id as HeroId;
+    row.querySelector('.pick')?.addEventListener('click', () => {
+      s.heroId = id;
+      persist();
+      sfx('star');
+      heroesPanel(body, onChange, close);
+      onChange();
+    });
+    row.querySelector('.try')?.addEventListener('click', async () => {
+      if (!trialHandler) return toast(heroUnlockText(id));
+      sfx('tap');
+      await close();
+      trialHandler(id);
+    });
+  });
   const bindSkins = () =>
-    o.querySelectorAll<HTMLButtonElement>('.skin-card').forEach((b) =>
+    body.querySelectorAll<HTMLButtonElement>('.skin-card').forEach((b) =>
       b.addEventListener('click', () => {
         const id = (b.dataset.skin || null) as SkinId | null;
         if (id && !s.skins.includes(id)) {
@@ -66,31 +113,32 @@ export function heroesSheet(onChange: () => void): void {
         persist();
         clearPortraits();
         sfx('tap');
-        o.querySelector('.skins')!.innerHTML = skinCards();
+        body.querySelector('.skins')!.innerHTML = skinCards();
         bindSkins();
         onChange();
       }),
     );
   bindSkins();
-  o.querySelector<HTMLInputElement>('.skin')?.addEventListener('change', (e) => {
+  body.querySelector<HTMLInputElement>('.skin')?.addEventListener('change', (e) => {
     s.subscription.skin = (e.target as HTMLInputElement).checked;
     persist();
     clearPortraits();
     sfx('tap');
     onChange();
   });
-  o.querySelectorAll<HTMLButtonElement>('.hero-card').forEach((b) =>
-    b.addEventListener('click', () => {
-      const id = b.dataset.id as HeroId;
-      if (!s.heroes.includes(id)) return toast(HERO_UNLOCK[id]);
-      s.heroId = id;
-      persist();
-      o.querySelectorAll('.hero-card').forEach((c) => c.classList.toggle('sel', c === b));
-      sfx('tap');
-      onChange();
-    }),
-  );
-  o.querySelectorAll<HTMLElement>('.talent').forEach((row) =>
+}
+
+function talentsPanel(body: HTMLElement, onChange: () => void): void {
+  const s = save();
+  const talentRow = (k: keyof typeof s.talents, name: string, per: string, icon: string) => {
+    const r = s.talents[k];
+    const max = r >= TALENTS.maxRank;
+    return `<div class="talent" data-k="${k}"><img src="${iconURL(icon)}"/><div class="tinfo"><b>${name}</b><small>${per} par rang</small><div class="pips">${Array.from({ length: 10 }, (_, i) => `<i class="${i < r ? 'on' : ''}"></i>`).join('')}</div></div><button class="btn small buy" ${max || s.gold < talentCost(r) ? 'disabled' : ''}>${max ? 'Max' : `<img src="${iconURL(INK_UI.coin)}"/>${talentCost(r)}`}</button></div>`;
+  };
+  body.innerHTML = `<p class="fine left">Les talents valent pour tous les héros et toute la partie. Désactivés en tournoi.</p>
+    <div class="talents">${talentRow('vigor', 'Vigueur', '+2 % PV', INK_UI.heart)}${talentRow('strength', 'Force', '+2 % dégâts', INK_UI.star)}${talentRow('agility', 'Agilité', '+1,5 % cadence', INK_UI.coin)}${talentRow('fortune', 'Fortune', '+5 % or', INK_UI.chest)}${talentRow('ink', 'Encre lente', '+6 % durée du fil (Éclaireuse)', INK_POWERS.longThread)}</div>
+    <p class="fine">Or disponible : <b class="gold-left">${s.gold}</b></p>`;
+  body.querySelectorAll<HTMLElement>('.talent').forEach((row) =>
     row.querySelector('.buy')!.addEventListener('click', () => {
       const k = row.dataset.k as keyof typeof s.talents;
       const cost = talentCost(s.talents[k]);
@@ -99,15 +147,9 @@ export function heroesSheet(onChange: () => void): void {
       s.talents[k]++;
       persist();
       sfx('star');
-      row.querySelectorAll('.pips i')[s.talents[k] - 1]?.classList.add('on', 'pop');
-      const btn = row.querySelector<HTMLButtonElement>('.buy')!;
-      const r = s.talents[k];
-      btn.innerHTML = r >= TALENTS.maxRank ? 'Max' : `<img src="${iconURL(INK_UI.coin)}"/>${talentCost(r)}`;
-      o.querySelectorAll<HTMLElement>('.talent').forEach((tr) => {
-        const kk = tr.dataset.k as keyof typeof s.talents;
-        tr.querySelector<HTMLButtonElement>('.buy')!.disabled = s.talents[kk] >= TALENTS.maxRank || s.gold < talentCost(s.talents[kk]);
-      });
-      o.querySelector('.fine b')!.textContent = String(s.gold);
+      talentsPanel(body, onChange);
+      body.querySelectorAll('.talent')
+        .forEach((tr) => (tr as HTMLElement).dataset.k === k && tr.querySelectorAll('.pips i')[s.talents[k] - 1]?.classList.add('pop'));
       onChange();
     }),
   );
@@ -149,6 +191,12 @@ export function shopSheet(onChange: () => void): void {
     `<div class="offer starter${s.starterPack ? ' owned' : ''}"><div class="ribbon">Une seule fois</div><div class="of-sprite" data-sprite="windMonk"></div><div><b>Offre de départ</b><small>300 gemmes · Moine du vent · 5 bonus</small></div><button class="btn primary small" data-buy="starter" ${s.starterPack ? 'disabled' : ''}>${s.starterPack ? 'Acquise' : '2,99 €'}</button></div>
     <div class="offer dragon"><img src="${iconURL(INK_UI.crown)}"/><div><b>Ordre du Dragon</b><small>Vies illimitées · ${DRAGON.weeklyGems} gemmes/semaine · +25 % or · apparence exclusive</small><small class="trial">${subscribed() ? 'Tu es membre de l’Ordre.' : s.subscription.trialUsed ? '4,99 €/mois ou 39,99 €/an' : 'Essai gratuit de 3 jours, puis 4,99 €/mois ou 39,99 €/an'}</small></div><button class="btn primary small dragon-open">${subscribed() ? 'Gérer' : 'Découvrir'}</button></div>
     <div class="offer pass-offer"><img src="${iconURL(INK_UI.chest)}" alt=""/><div><b>Pass de saison ${s.pass.season}</b><small>${s.pass.premium ? 'Piste premium débloquée · réclame tes récompenses' : `30 paliers · 3 apparences · piste premium ${PASS.price}`}</small></div><button class="btn primary small pass-open">${s.pass.premium ? 'Ouvrir' : 'Voir'}</button></div>
+    <h3 class="sec">Étal du colporteur <small>change chaque jour</small></h3>
+    <div class="stall">${todayStall()
+      .map((o, i) => `<div class="stall-item${o.bought ? ' sold' : ''}">${itemCard(GEAR_BY_ID[o.id], o.level, 'mini')}<small class="st-lvl">Niveau ${o.level}</small><button class="btn ${o.bought ? 'ghost' : 'primary'} small" data-stall="${i}" ${o.bought ? 'disabled' : ''}>${o.bought ? 'Acheté' : `<img src="${iconURL(INK_UI.gem)}" alt=""/>${o.price}`}</button></div>`)
+      .join('')}</div>
+    <button class="btn ghost shard-pack" data-shards="1"><img src="${gearIcon('shard')}" alt=""/> Sac de ${SHARD_PACK.shards} éclats <em><img src="${iconURL(INK_UI.gem)}"/>${SHARD_PACK.gems}</em></button>
+    <p class="fine left">Trois objets précis chaque jour, visibles avant l’achat. Les objets légendaires ne se gagnent qu’en battant les boss de fin de royaume.</p>
     <h3 class="sec">Gemmes</h3>
     <div class="gem-grid">${PRODUCTS.map((p, i) => `<button class="gem-pack" data-buy="${p.id}"><div class="gp-gems" style="--n:${i + 1}">${`<img src="${iconURL(INK_UI.gem)}"/>`.repeat(i + 1)}</div><b>${p.note}</b><span class="price">${p.price}</span></button>`).join('')}</div>
     <h3 class="sec">Avec tes gemmes</h3>
@@ -156,7 +204,7 @@ export function shopSheet(onChange: () => void): void {
     <button class="btn ghost" data-spend="potion"><img src="${iconURL(INK_UI.potion)}"/> Potion <em><img src="${iconURL(INK_UI.coin)}"/>150</em></button>
     <button class="btn ghost" data-spend="scroll"><img src="${iconURL(INK_UI.scroll)}"/> Parchemin <em><img src="${iconURL(INK_UI.gem)}"/>${BONUS_PRICE.scroll.amount}</em></button>
     <button class="btn ghost" data-spend="aegis"><img src="${iconURL(INK_UI.aegis)}"/> Égide <em><img src="${iconURL(INK_UI.coin)}"/>200</em></button></div>
-    <p class="fine">Prototype web : les achats réels passent par StoreKit 2 dans l’app iOS. Ici, ils sont simulés. Aucun objet aléatoire. Publicité seulement si tu la demandes, contre une vie.</p>`,
+    <p class="fine">Prototype web : les achats réels passent par StoreKit 2 dans l’app iOS. Ici, ils sont simulés. Aucun objet aléatoire : tout ce qui s’achète est montré avant. Publicité seulement si tu la demandes, contre une vie.</p>`,
   );
   // §11 : la boutique est l'un des trois endroits où l'offre d'abonnement est présentée
   o.querySelector('.dragon-open')!.addEventListener('click', () => openDragon('shop', onChange));
@@ -184,6 +232,26 @@ export function shopSheet(onChange: () => void): void {
       onChange();
     }),
   );
+  o.querySelectorAll<HTMLButtonElement>('[data-stall]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const r = buyStall(Number(b.dataset.stall));
+      if (r === 'gems') return toast('Pas assez de gemmes');
+      if (r !== 'ok') return;
+      sfx('loot');
+      toast('Objet ajouté à ton équipement ✓');
+      b.disabled = true;
+      b.className = 'btn ghost small';
+      b.textContent = 'Acheté';
+      b.closest('.stall-item')?.classList.add('sold');
+      onChange();
+    }),
+  );
+  o.querySelector<HTMLButtonElement>('[data-shards]')!.addEventListener('click', () => {
+    if (!buyShards()) return toast('Pas assez de gemmes');
+    sfx('tap');
+    toast(`+${SHARD_PACK.shards} éclats ✓`);
+    onChange();
+  });
   o.querySelectorAll<HTMLButtonElement>('[data-spend]').forEach((b) =>
     b.addEventListener('click', () => {
       const k = b.dataset.spend!;

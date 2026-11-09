@@ -198,18 +198,21 @@ public enum LevelGen {
     }
 
     /// Offre de 3 pouvoirs distincts (tirage à graine), sans pouvoir déjà au maximum.
-    public static func offerPowers(_ rng: inout Rng, owned: [PowerID: Int], count: Int = 3) -> [PowerID] {
+    public static func offerPowers(_ rng: inout Rng, owned: [PowerID: Int], count: Int = 3, signature: PowerFamily = .thread) -> [PowerID] {
         var offer: [PowerID] = []
+        // les familles signature des autres héros ne sont jamais proposées (DECISIONS #74) ; pour l'Éclaireuse, le
+        // filtrage retire les pouvoirs ajoutés après elle : ses tirages restent identiques au bit près
+        func own(_ p: PowerDef) -> Bool { p.family == signature || !p.family.isSignature }
         func eligible(_ id: PowerID) -> Bool { !offer.contains(id) && (owned[id] ?? 0) < Powers.def(id).maxStacks }
         let rarities: [Rarity] = [.common, .rare, .epic]
-        // 1re carte : famille Fil tant qu'il en reste une à prendre (DECISIONS #71)
+        // 1re carte : famille signature du héros tant qu'il en reste une à prendre (DECISIONS #71, #74)
         for k in 0..<count {
             let r = rng.weighted([RarityWeights.common, RarityWeights.rare, RarityWeights.epic])
             let rarity = rarities[r]
-            func family(_ p: PowerDef) -> Bool { k > 0 || p.family == .thread }
+            func family(_ p: PowerDef) -> Bool { own(p) && (k > 0 || p.family == signature) }
             var pool = Powers.all.filter { $0.rarity == rarity && family($0) && eligible($0.id) }
             if pool.isEmpty && k == 0 { pool = Powers.all.filter { family($0) && eligible($0.id) } }
-            if pool.isEmpty { pool = Powers.all.filter { eligible($0.id) } }
+            if pool.isEmpty { pool = Powers.all.filter { own($0) && eligible($0.id) } }
             if pool.isEmpty { break }
             offer.append(rng.pick(pool).id)
         }
@@ -217,9 +220,9 @@ public enum LevelGen {
     }
 
     /// Offre du Parchemin (bonus avant niveau) : comme le web, graine `powerSeed ^ 0x5c`.
-    public static func scrollOffer(_ level: LevelDef) -> [PowerID] {
+    public static func scrollOffer(_ level: LevelDef, signature: PowerFamily = .thread) -> [PowerID] {
         var rng = Rng(UInt32(truncatingIfNeeded: level.powerSeed) ^ 0x5c)
-        return offerPowers(&rng, owned: [:])
+        return offerPowers(&rng, owned: [:], signature: signature)
     }
 }
 
@@ -244,6 +247,8 @@ public extension Controller {
 
 public struct RunOptions {
     public var talents: Talents = .none
+    /// Équipement porté (DECISIONS #75).
+    public var gear: GearStats = .none
     public var heroId: HeroID = .scout
     public var attemptSeed = 0
     public var potion = false
@@ -267,14 +272,16 @@ public struct RunResult: Equatable {
     public var hitsTaken: Int
     public var timeout: Bool
     public var cuts: Int
+    public var gusts: Int
     public var dmgBy: DamageBySource
 }
 
 public enum LevelRunner {
     /// Prépare l'héroïne d'une tentative : héros, parchemin, potion, égide (identique à `runLevel` et au web).
-    public static func makeHero(talents: Talents, heroId: HeroID, autoFire: Bool, potion: Bool, aegis: Bool, scroll: PowerID?) -> HeroState {
-        let hero = HeroState(talents: talents, powers: [:], autoFire: autoFire)
-        if let sp = Heroes.def(heroId).startPower { hero.grant(sp) }
+    public static func makeHero(talents: Talents, heroId: HeroID, autoFire: Bool, potion: Bool, aegis: Bool, scroll: PowerID?, gear: GearStats = .none) -> HeroState {
+        let def = Heroes.def(heroId)
+        let hero = HeroState(talents: talents, powers: [:], autoFire: autoFire, kind: def.kind, gear: gear)
+        if let sp = def.startPower { hero.grant(sp) }
         if let scroll { hero.grant(scroll) }
         if potion {
             hero.stats.maxHp = DMath.round(hero.stats.maxHp * 1.25)
@@ -285,7 +292,8 @@ public enum LevelRunner {
     }
 
     public static func run(_ level: LevelDef, templates: [String: RoomTemplate], controller: Controller, options opt: RunOptions = RunOptions()) -> RunResult {
-        let hero = makeHero(talents: opt.talents, heroId: opt.heroId, autoFire: opt.autoFire, potion: opt.potion, aegis: opt.aegis, scroll: opt.scroll)
+        let hero = makeHero(talents: opt.talents, heroId: opt.heroId, autoFire: opt.autoFire, potion: opt.potion, aegis: opt.aegis, scroll: opt.scroll, gear: opt.gear)
+        let family = Heroes.def(opt.heroId).family
         var powerRng = Rng(seed: level.powerSeed)
         var t = 0.0
         var kills = 0
@@ -294,7 +302,7 @@ public enum LevelRunner {
             let room = level.rooms[i]
             if i > 0 {
                 hero.hp = DMath.min(hero.stats.maxHp, hero.hp + hero.stats.maxHp * K.healBetweenRooms)
-                let offer = LevelGen.offerPowers(&powerRng, owned: hero.powers)
+                let offer = LevelGen.offerPowers(&powerRng, owned: hero.powers, signature: family)
                 var pick = controller.choosePower(offer, ChoiceContext(level: level, nextRoom: i, hero: hero))
                 if !offer.contains(pick), let first = offer.first { pick = first }
                 hero.grant(pick)
@@ -323,6 +331,6 @@ public enum LevelRunner {
         let hpLeft = DMath.max(0, hero.hp)
         let hpFrac = hpLeft / hero.stats.maxHp
         return RunResult(won: won, hpFrac: hpFrac, hpLeft: hpLeft, seconds: seconds, kills: kills, stars: Formulas.stars(won: won, hpFrac: hpFrac),
-                         roomsCleared: rooms, powers: powers, hitsTaken: hero.hitsTaken, timeout: timeout, cuts: hero.cuts, dmgBy: hero.dmgBy)
+                         roomsCleared: rooms, powers: powers, hitsTaken: hero.hitsTaken, timeout: timeout, cuts: hero.cuts, gusts: hero.gusts, dmgBy: hero.dmgBy)
     }
 }

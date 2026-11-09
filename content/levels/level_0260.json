@@ -6,85 +6,72 @@
  "kind": "boss",
  "D": 10.655,
  "mult": 1.55,
- "budgetScale": 0.683,
- "seed": 25,
- "powerSeed": 2350153143,
+ "budgetScale": 0.873,
+ "seed": 16,
+ "powerSeed": 549091081,
  "rooms": [
   {
-   "template": "room_14",
+   "template": "room_18",
    "waves": [
     [
      {
-      "type": "jelly",
-      "c": 2,
-      "r": 9
-     },
-     {
-      "type": "snipper",
-      "c": 7,
-      "r": 7
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 3507795778,
-   "budget": 7
-  },
-  {
-   "template": "room_04",
-   "waves": [
-    [
-     {
-      "type": "snipper",
-      "c": 1,
-      "r": 4,
+      "type": "skeleton",
+      "c": 0,
+      "r": 2,
       "elite": true
      }
     ]
    ],
    "boss": null,
-   "seed": 252092465,
-   "budget": 8
+   "seed": 3108395215,
+   "budget": 9
   },
   {
-   "template": "room_03",
+   "template": "room_05",
    "waves": [
     [
      {
-      "type": "bat",
-      "c": 5,
-      "r": 3
-     },
-     {
-      "type": "jelly",
-      "c": 4,
-      "r": 5
-     },
-     {
-      "type": "goblin",
-      "c": 6,
-      "r": 4
-     },
-     {
-      "type": "bat",
-      "c": 6,
-      "r": 3
+      "type": "totem",
+      "c": 3,
+      "r": 2,
+      "elite": true
      }
     ]
    ],
    "boss": null,
-   "seed": 1974291600,
-   "budget": 9
+   "seed": 2694570458,
+   "budget": 10
   },
   {
-   "template": "room_12",
+   "template": "room_17",
+   "waves": [
+    [
+     {
+      "type": "bat",
+      "c": 6,
+      "r": 2
+     },
+     {
+      "type": "weaver",
+      "c": 2,
+      "r": 9,
+      "elite": true
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 1254985896,
+   "budget": 12
+  },
+  {
+   "template": "room_01",
    "waves": [],
    "boss": {
     "archetype": "ashlord",
     "variant": 0,
-    "hpMult": 0.683
+    "hpMult": 0.873
    },
-   "seed": 3122227316,
+   "seed": 3986565318,
    "budget": 0
   }
  ],
@@ -95,9 +82,9 @@
  "validation": {
   "games": 200,
   "moyen": 0.33,
-  "expert": 0.765,
+  "expert": 0.77,
   "band": "Boss",
   "ok": true,
-  "avgSeconds": 74
+  "avgSeconds": 68
  }
 }

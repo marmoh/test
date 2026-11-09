@@ -6,9 +6,9 @@
  "kind": "boss",
  "D": 12.034,
  "mult": 1.55,
- "budgetScale": 0.565,
- "seed": 38,
- "powerSeed": 1111487949,
+ "budgetScale": 0.751,
+ "seed": 19,
+ "powerSeed": 2610543134,
  "rooms": [
   {
    "template": "room_21",
@@ -17,69 +17,78 @@
      {
       "type": "mushroom",
       "c": 6,
-      "r": 3
+      "r": 2
      },
      {
-      "type": "snipper",
-      "c": 6,
-      "r": 8
+      "type": "beetle",
+      "c": 3,
+      "r": 1
      }
     ]
    ],
    "boss": null,
-   "seed": 2193303553,
-   "budget": 6
+   "seed": 719922183,
+   "budget": 7
   },
   {
-   "template": "room_24",
+   "template": "room_06",
    "waves": [
     [
      {
-      "type": "jelly",
+      "type": "bat",
+      "c": 3,
+      "r": 7
+     },
+     {
+      "type": "bat",
       "c": 0,
       "r": 2
      },
      {
-      "type": "skeleton",
-      "c": 1,
-      "r": 2
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 1530612918,
-   "budget": 7
-  },
-  {
-   "template": "room_04",
-   "waves": [
-    [
-     {
-      "type": "moth",
-      "c": 5,
-      "r": 1,
-      "elite": true
-     },
-     {
-      "type": "wolf",
-      "c": 3,
+      "type": "mage",
+      "c": 2,
       "r": 8
      }
     ]
    ],
    "boss": null,
-   "seed": 1400377552,
-   "budget": 8
+   "seed": 1080586582,
+   "budget": 9
   },
   {
-   "template": "room_03",
+   "template": "room_10",
+   "waves": [
+    [
+     {
+      "type": "jelly",
+      "c": 3,
+      "r": 2
+     },
+     {
+      "type": "puppeteer",
+      "c": 1,
+      "r": 5
+     },
+     {
+      "type": "bat",
+      "c": 7,
+      "r": 9
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 503176022,
+   "budget": 10
+  },
+  {
+   "template": "room_01",
    "waves": [],
    "boss": {
     "archetype": "ashlord",
     "variant": 2,
-    "hpMult": 0.565
+    "hpMult": 0.751
    },
-   "seed": 574650025,
+   "seed": 2755802896,
    "budget": 0
   }
  ],
@@ -89,10 +98,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.345,
-  "expert": 0.845,
+  "moyen": 0.34,
+  "expert": 0.755,
   "band": "Boss",
   "ok": true,
-  "avgSeconds": 69
+  "avgSeconds": 68
  }
 }

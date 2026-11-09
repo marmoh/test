@@ -6,151 +6,196 @@
  "kind": "hard",
  "D": 7.634,
  "mult": 1.35,
- "budgetScale": 0.745,
- "seed": 36,
- "powerSeed": 2231930920,
+ "budgetScale": 1.091,
+ "seed": 8,
+ "powerSeed": 3624055002,
  "rooms": [
   {
-   "template": "room_06",
+   "template": "room_12",
    "waves": [
     [
      {
-      "type": "wolf",
+      "type": "snipper",
       "c": 7,
-      "r": 0
-     },
-     {
-      "type": "wolf",
-      "c": 8,
       "r": 4
      },
      {
-      "type": "goblin",
-      "c": 3,
-      "r": 8
+      "type": "bat",
+      "c": 8,
+      "r": 0
+     }
+    ],
+    [
+     {
+      "type": "jelly",
+      "c": 5,
+      "r": 5,
+      "elite": true
      },
      {
+      "type": "mushroom",
+      "c": 4,
+      "r": 3,
+      "elite": true
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 90535190,
+   "budget": 22
+  },
+  {
+   "template": "room_15",
+   "waves": [
+    [
+     {
+      "type": "jelly",
+      "c": 3,
+      "r": 2,
+      "elite": true
+     },
+     {
+      "type": "bat",
+      "c": 8,
+      "r": 9
+     },
+     {
+      "type": "goblin",
+      "c": 5,
+      "r": 8
+     }
+    ],
+    [
+     {
+      "type": "jelly",
+      "c": 2,
+      "r": 3
+     },
+     {
+      "type": "jelly",
+      "c": 8,
+      "r": 7,
+      "elite": true
+     }
+    ]
+   ],
+   "boss": null,
+   "seed": 3498169095,
+   "budget": 25
+  },
+  {
+   "template": "room_22",
+   "waves": [
+    [
+     {
       "type": "skeleton",
+      "c": 3,
+      "r": 9
+     },
+     {
+      "type": "bat",
+      "c": 0,
+      "r": 5,
+      "elite": true
+     },
+     {
+      "type": "totem",
       "c": 4,
       "r": 7
      },
      {
       "type": "bat",
-      "c": 1,
-      "r": 9,
-      "elite": true
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 126560060,
-   "budget": 15
-  },
-  {
-   "template": "room_20",
-   "waves": [
-    [
-     {
-      "type": "totem",
-      "c": 5,
-      "r": 2,
-      "elite": true
-     }
-    ],
-    [
-     {
-      "type": "wolf",
-      "c": 2,
-      "r": 4,
-      "elite": true
-     }
-    ]
-   ],
-   "boss": null,
-   "seed": 2685537597,
-   "budget": 17
-  },
-  {
-   "template": "room_17",
-   "waves": [
-    [
-     {
-      "type": "snipper",
-      "c": 1,
-      "r": 2
-     },
-     {
-      "type": "bat",
-      "c": 7,
+      "c": 8,
       "r": 6
      },
      {
-      "type": "goblin",
+      "type": "totem",
       "c": 4,
-      "r": 5
-     },
-     {
-      "type": "moth",
-      "c": 4,
-      "r": 4,
-      "elite": true
+      "r": 6
      }
     ],
     [
      {
-      "type": "goblin",
-      "c": 7,
-      "r": 7
+      "type": "snipper",
+      "c": 6,
+      "r": 8
      },
      {
       "type": "snipper",
-      "c": 7,
+      "c": 2,
+      "r": 6
+     },
+     {
+      "type": "bat",
+      "c": 2,
       "r": 1
      },
      {
-      "type": "snipper",
-      "c": 8,
-      "r": 8
+      "type": "totem",
+      "c": 4,
+      "r": 7
      }
     ]
    ],
    "boss": null,
-   "seed": 2157902711,
-   "budget": 20
+   "seed": 3863147320,
+   "budget": 29
   },
   {
-   "template": "room_16",
+   "template": "room_21",
    "waves": [
     [
      {
-      "type": "jelly",
+      "type": "snipper",
       "c": 8,
-      "r": 9,
-      "elite": true
+      "r": 7
      },
      {
-      "type": "jelly",
+      "type": "mushroom",
       "c": 6,
-      "r": 1
-     }
-    ],
-    [
+      "r": 2
+     },
      {
       "type": "mushroom",
       "c": 4,
       "r": 2,
       "elite": true
+     }
+    ],
+    [
+     {
+      "type": "skeleton",
+      "c": 7,
+      "r": 8
      },
      {
-      "type": "mushroom",
-      "c": 1,
-      "r": 5
+      "type": "bat",
+      "c": 6,
+      "r": 1
+     },
+     {
+      "type": "wolf",
+      "c": 4,
+      "r": 7
+     }
+    ],
+    [
+     {
+      "type": "skeleton",
+      "c": 5,
+      "r": 7,
+      "elite": true
+     },
+     {
+      "type": "jelly",
+      "c": 4,
+      "r": 2
      }
     ]
    ],
    "boss": null,
-   "seed": 542470534,
-   "budget": 22
+   "seed": 3444856623,
+   "budget": 33
   }
  ],
  "stars": {
@@ -159,10 +204,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.41,
-  "expert": 0.97,
+  "moyen": 0.37,
+  "expert": 0.89,
   "band": "Difficile",
   "ok": true,
-  "avgSeconds": 99
+  "avgSeconds": 145
  }
 }

@@ -178,3 +178,59 @@ public enum ThreadTuning {
     public static let confettiFrac: Double = 0.4
     public static let confettiRadius: Double = 72
 }
+
+/// Moine du vent — Élan et bourrasque (DECISIONS #74) : `GUST` de `sim/src/constants.ts`.
+public enum GustK {
+    /// secondes de course pour charger l'élan de 0 à 1
+    public static let chargeTime: Double = 0.9
+    /// perte d'élan par seconde à l'arrêt (si la bourrasque n'a pas eu lieu)
+    public static let decay: Double = 1.5
+    /// élan minimal pour déclencher une bourrasque
+    public static let minMomentum: Double = 0.3
+    /// rayon (pt) : base + perMomentum × élan
+    public static let radius: Double = 62
+    public static let radiusPerMomentum: Double = 58
+    /// dégâts à élan plein, × dégâts du héros / 100
+    public static let damage: Double = 130
+    /// recul (pt) à élan plein
+    public static let knockback: Double = 46
+    /// délai minimal entre deux bourrasques (s)
+    public static let cooldown: Double = 0.35
+    /// Tourbillon : durée, rayon d'aspiration, dégâts par seconde (× dégâts / 100), vitesse d'aspiration
+    public static let whirlLife: Double = 1.6
+    public static let whirlRadius: Double = 90
+    public static let whirlDps: Double = 60
+    public static let whirlPull: Double = 70
+    /// Pas de plume : invulnérabilité après une bourrasque (s)
+    public static let featherInvuln: Double = 0.6
+}
+
+/// Sorcier de braise — Traînée de braises (DECISIONS #74) : `EMBER` de `sim/src/constants.ts`.
+public enum EmberK {
+    public static let spacing: Double = 12
+    /// durée de vie d'une braise (s)
+    public static let life: Double = 1.8
+    public static let maxPoints = 120
+    /// rayon d'une braise (pt), ajouté au rayon de l'ennemi
+    public static let radius: Double = 13
+    /// dégâts par seconde de la brûlure, × dégâts du héros / 100
+    public static let dps: Double = 21
+    /// durée de la brûlure après avoir quitté les braises (s)
+    public static let linger: Double = 1.2
+    /// Combustion : fraction des PV max, plafond × dégâts / 100, rayon
+    public static let combustFrac: Double = 0.35
+    public static let combustCap: Double = 260
+    public static let combustRadius: Double = 70
+    /// les projectiles du sorcier font couver leur cible : fraction de la brûlure et durée
+    public static let needleFrac: Double = 0.4
+    public static let needleLinger: Double = 0.6
+    /// Fournaise : ralentissement des ennemis dans la traînée
+    public static let furnaceSlow: Double = 0.35
+}
+
+extension K {
+    /// Aiguilles du Moine et du Sorcier (DECISIONS #74).
+    public static let signatureNeedleMult: Double = 0.65
+    /// Toile de l'araignée tisseuse : ralentit l'héroïne (DECISIONS #73).
+    public static let webSlow: Double = 0.45
+}

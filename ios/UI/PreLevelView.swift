@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Pré-niveau (§12.2, `preLevel` du web) : objectif, étoiles obtenues, ennemis rencontrés, bonus à équiper
+/// Pré-niveau (§12.2, `preLevel` du web) : objectif, étoiles obtenues, ennemis rencontrés (le nouvel ennemi de la
+/// salle tutoriel est présenté), héros (un toucher passe au suivant), butin de la première victoire, bonus à équiper
 /// (Potion, Parchemin, Égide), JOUER. Une vie n'est retirée qu'en cas de défaite.
 @MainActor
 struct PreLevelView: View {
@@ -12,6 +13,8 @@ struct PreLevelView: View {
         let level = app.content?.level(n)
         let info = Formulas.levelInfo(n)
         let boss = level?.bossRoom?.boss
+        // ennemi présenté par ce niveau (salle tutoriel du début de chapitre)
+        let fresh = info.position == 1 ? Bestiary.newEnemy(at: info.chapter) : nil
         VStack(spacing: 0) {
             SheetHeader(title: "Niveau \(n)", badge: badge(info.kind))
             ScrollView {
@@ -34,7 +37,7 @@ struct PreLevelView: View {
                                 ForEach(level.enemyTypes, id: \.self) { t in
                                     Puppet(name: t.rawValue, size: 56)
                                         .background(Circle().fill(Theme.cut))
-                                        .overlay(Circle().strokeBorder(Theme.ink, lineWidth: 2))
+                                        .overlay(Circle().strokeBorder(t == fresh ? Theme.vermilion : Theme.ink, lineWidth: t == fresh ? 3 : 2))
                                         .accessibilityLabel(t.title)
                                 }
                             }
@@ -42,6 +45,12 @@ struct PreLevelView: View {
                             .padding(.vertical, 4)
                         }
                     }
+                    if let fresh { newFoe(fresh).padding(.horizontal, 20) }
+                    HStack(alignment: .top, spacing: 8) {
+                        heroChip
+                        LootPreview(n: n)
+                    }
+                    .padding(.horizontal, 20)
                     HStack(spacing: 10) {
                         ForEach(BonusKind.allCases, id: \.self) { b in bonusButton(b) }
                     }
@@ -79,6 +88,54 @@ struct PreLevelView: View {
                           comment: "Objectif d’un niveau de boss : nombre de salles, nom du boss")
         }
         return String(localized: "Traverse \(level.rooms.count) salles.", comment: "Objectif d’un niveau : nombre de salles")
+    }
+
+    /// Nouvel ennemi : nom, comportement et astuce (`LORE` du web).
+    private func newFoe(_ t: MinionType) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(t.title).font(Theme.display(17)).foregroundStyle(Theme.paper)
+            Text(verbatim: "\(t.loreWhat) \(t.loreTip)").font(Theme.note(13)).foregroundStyle(Theme.paper3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 8).padding(.leading, 12).padding(.trailing, 10)
+        .background(Theme.ink)
+        .overlay(alignment: .leading) { Rectangle().fill(Theme.vermilion).frame(width: 6) }
+        .overlay(alignment: .topTrailing) {
+            Text("Nouveau", comment: "Pré-niveau : ennemi présenté pour la première fois").font(Theme.text(11, weight: .heavy)).foregroundStyle(Theme.cut)
+                .padding(.horizontal, 8)
+                .background(Theme.vermilion)
+                .rotationEffect(.degrees(3))
+                .offset(x: -10, y: -9)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Héros joué : un toucher passe au héros débloqué suivant.
+    private var heroChip: some View {
+        let h = app.currentHero
+        return Button {
+            app.cycleHero()
+        } label: {
+            HStack(spacing: 6) {
+                Puppet(name: h.rawValue, size: 42)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Héros").font(Theme.text(10.5, weight: .heavy)).foregroundStyle(Theme.ink2).textCase(.uppercase)
+                    Text(h.title).font(Theme.text(14, weight: .bold)).lineLimit(1).minimumScaleFactor(0.75)
+                    Text(h.mechanicText).font(Theme.text(11.5, weight: .heavy)).foregroundStyle(Theme.jade).lineLimit(1).minimumScaleFactor(0.75)
+                }
+                Spacer(minLength: 0)
+                Text(verbatim: "⇄").font(Theme.text(18, weight: .bold)).foregroundStyle(Theme.vermilion)
+            }
+            .foregroundStyle(Theme.ink)
+            .padding(.horizontal, 8).padding(.vertical, 6)
+            .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
+            .background(Theme.cut)
+            .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "Héros : \(h.title), \(h.mechanicText)", comment: "VoiceOver : héros joué au pré-niveau"))
+        .accessibilityHint(Text("Changer de héros", comment: "VoiceOver : un toucher passe au héros suivant"))
     }
 
     private func bonusButton(_ b: BonusKind) -> some View {

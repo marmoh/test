@@ -20,6 +20,10 @@ struct CombatResult: Equatable {
     var kills: Int
     var continues: Int
     var maxHp: Double
+    /// Ennemis vaincus par type (`Enemy.typeName`, « boss:<archétype> » pour un boss) : quêtes et bestiaire (DECISIONS #76).
+    var killsByType: [String: Int] = [:]
+    /// Découpes, ennemis touchés par une bourrasque, ennemis mis à brûler (quête « mécanique signature »).
+    var signatureHits = 0
 }
 
 enum DefeatChoice { case revive, retry, map }
@@ -106,7 +110,7 @@ final class CombatSession: Identifiable {
         guard scene == nil else { return }
         var cfg = config
         if cfg.scrollPending {
-            let offer = LevelGen.scrollOffer(level)
+            let offer = LevelGen.scrollOffer(level, signature: Heroes.def(cfg.heroId).family)
             cfg.scroll = await ask(offer, owned: [:], title: String(localized: "Parchemin : pouvoir de départ"))
             cfg.scrollPending = false
         }

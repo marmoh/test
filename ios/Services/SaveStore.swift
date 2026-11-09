@@ -16,7 +16,8 @@ extension UserDefaults: BlobStore {
 /// Sauvegarde locale (§13) : un seul fichier JSON lisible, `Application Support/Ombrelune/save.json`,
 /// écrit atomiquement à chaque modification, avec une section par service :
 /// `progress` (étoiles, niveaux, talents, héros, tournoi, pass de saison), `wallet` (or, gemmes, bonus, héros
-/// débloqués, registre des transactions créditées, droits), `lives` (vies avec horodatage, publicités vues).
+/// débloqués, registre des transactions créditées, droits), `lives` (vies avec horodatage, publicités vues),
+/// `gear` (objets, porté par emplacement, éclats, étal du jour), `quests` (quêtes du jour), `bestiary` (créatures vaincues).
 /// Synchronisée avec iCloud Key-Value (`CloudSync`) : fusion section par section (voir `SaveMerge`).
 @MainActor
 final class SaveStore: BlobStore {
@@ -153,7 +154,17 @@ enum SaveMerge {
                 m.heroes = a.heroes.union(b.heroes)
                 return (try? enc.encode(m)) ?? local
             }
+        case Meta.questsKey:
+            // même jour : meilleur avancement, récompenses réclamées réunies (jamais réclamées deux fois)
+            if let a = try? dec.decode(QuestState.self, from: local), let b = try? dec.decode(QuestState.self, from: remote) {
+                return (try? enc.encode(a.merged(with: b))) ?? local
+            }
+        case Meta.bestiaryKey:
+            if let a = try? dec.decode([String: Int].self, from: local), let b = try? dec.decode([String: Int].self, from: remote) {
+                return (try? enc.encode(BestiaryBook.merged(a, b))) ?? local
+            }
         default:
+            // `gear` : le plus récent l'emporte (les uid des objets ne se fusionnent pas d'un appareil à l'autre)
             break
         }
         return remoteStamp > localStamp ? remote : local

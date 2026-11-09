@@ -1,7 +1,7 @@
 /** Écran de combat : la simulation TS rendue en Canvas 2D, avec interpolation et motion design. */
 import { Arena, type RoomTemplate } from '../../sim/src/arena.js';
 import { FloatingAnchor } from '../../sim/src/controls.js';
-import { SIM_DT, HERO, HEAL_BETWEEN_ROOMS } from '../../sim/src/constants.js';
+import { SIM_DT, HERO, HEAL_BETWEEN_ROOMS, EMBER, GUST } from '../../sim/src/constants.js';
 import { HEROES, type PowerId } from '../../sim/src/content.js';
 import { offerPowers, talentsForLevel, type LevelDef } from '../../sim/src/level.js';
 import { stars as starsOf } from '../../sim/src/formulas.js';
@@ -22,6 +22,9 @@ export interface CombatResult {
   seconds: number;
   kills: number;
   continues: number;
+  /** bestiaire et quêtes (DECISIONS #76) */
+  killsByType?: Record<string, number>;
+  signatureHits?: number;
 }
 
 export interface CombatHooks {
@@ -44,6 +47,10 @@ export interface CombatOptions {
   haptics?: boolean;
   heroId?: 'scout' | 'windMonk' | 'emberSorcerer';
   talents?: import('../../sim/src/hero.js').Talents;
+  /** Équipement porté (DECISIONS #75). */
+  gear?: import('../../sim/src/gear.js').GearStats;
+  /** Tournoi : mêmes conditions pour tous (aide de départ masquée). */
+  tutorialHints?: boolean;
   /** démo : un bot joue à la place du joueur */
   demoBot?: { input(w: World): { mx: number; my: number; touching: boolean }; beginRoom?(w: World): void };
 }
@@ -106,8 +113,8 @@ export class Combat {
     this.amb = new Ambience(AW, AH, this.theme.moteKind, INK2);
 
     const talents = opt.talents ?? talentsForLevel(opt.level.n);
-    this.hero = newHero(talents, {}, opt.autoFire);
     const hd = HEROES[opt.heroId ?? 'scout'];
+    this.hero = newHero(talents, {}, opt.autoFire, { kind: hd.kind, gear: opt.gear });
     if (hd.startPower) grantPower(this.hero, hd.startPower);
     if (opt.scroll) grantPower(this.hero, opt.scroll);
     if (opt.potion) {
@@ -127,9 +134,14 @@ export class Combat {
   }
 
   /** Chiffres de la tentative en cours (score de tournoi). */
-  stats(): { kills: number; seconds: number; maxHp: number } {
-    return { kills: this.kills + (this.world?.kills ?? 0), seconds: this.seconds, maxHp: this.hero.stats.maxHp };
+  stats(): { kills: number; seconds: number; maxHp: number; killsByType: Record<string, number>; signatureHits: number } {
+    return { kills: this.kills + (this.world?.kills ?? 0), seconds: this.seconds, maxHp: this.hero.stats.maxHp, killsByType: { ...this.killsByType }, signatureHits: this.signatureHits };
   }
+
+  /** Bestiaire et quêtes : ennemis vaincus par type, coups de la mécanique signature. */
+  private killsByType: Record<string, number> = {};
+  private signatureHits = 0;
+  private burning = new Set<number>();
 
   destroy(): void {
     this.destroyed = true;
@@ -165,7 +177,7 @@ export class Combat {
   private async nextRoom(): Promise<void> {
     this.busy = true;
     const i = this.roomIdx + 1;
-    const offer = offerPowers(this.powerRng, this.hero.powers);
+    const offer = offerPowers(this.powerRng, this.hero.powers, 3, HEROES[this.opt.heroId ?? 'scout'].family);
     const pick = await this.hooks.choosePower(offer, this.hero, i);
     if (this.destroyed) return;
     grantPower(this.hero, pick);
@@ -185,7 +197,7 @@ export class Combat {
     sfx('win');
     setTimeout(() => {
       if (this.destroyed) return;
-      this.hooks.finish({ won: true, stars: starsOf(true, hpFrac), hpFrac, seconds: this.seconds, kills: this.kills + this.world.kills, continues: this.continues });
+      this.hooks.finish({ won: true, stars: starsOf(true, hpFrac), hpFrac, seconds: this.seconds, kills: this.kills + this.world.kills, continues: this.continues, killsByType: { ...this.killsByType }, signatureHits: this.signatureHits });
     }, 1300);
   }
 
@@ -325,6 +337,8 @@ export class Combat {
           break;
         case 'kill': {
           const big = ev.type === 'boss';
+          const key = big ? (this.opt.level.rooms[this.roomIdx].boss?.archetype ?? 'boss') : ev.type;
+          this.killsByType[key] = (this.killsByType[key] ?? 0) + 1;
           // la marionnette se déchire : chutes de papier
           fx.scraps(ev.x, ev.y, big ? 34 : 10, big ? 1.6 : 1);
           fx.ring(ev.x, ev.y, INK, big ? 140 : 30, big ? 0.7 : 0.3);
@@ -356,6 +370,7 @@ export class Combat {
           if (ev.index > 0) this.banner = { text: `Vague ${ev.index + 1}`, sub: '', t: 0.25 };
           break;
         case 'cut': {
+          this.signatureHits += ev.hits;
           this.cuts.push({ poly: ev.poly, t0: this.time, hits: ev.hits, echo: ev.echo });
           const c = centroid(ev.poly);
           if (ev.hits > 0) {
@@ -376,11 +391,55 @@ export class Combat {
           }
           sfx('snip');
           break;
+        case 'gust': {
+          this.signatureHits += ev.hits;
+          this.gustsFx.push({ x: ev.x, y: ev.y, r: ev.r, m: ev.m, t0: this.time });
+          fx.ring(ev.x, ev.y, INK, ev.r, 0.35);
+          fx.burst(ev.x, ev.y, CUT, 10 + Math.round(ev.m * 10), 260 * (0.6 + ev.m), 'dot', 2.4, 0.4);
+          if (ev.hits > 0) {
+            fx.shake(0.12 + 0.1 * Math.min(4, ev.hits));
+            fx.hitStop(0.02 + 0.015 * Math.min(4, ev.hits));
+            if (ev.hits > 1) fx.text(ev.x, ev.y - 34, `Bourrasque ×${ev.hits}`, ev.hits > 2 ? DANGER : INK, 18);
+          }
+          if (this.opt.haptics !== false) navigator.vibrate?.(ev.hits > 1 ? [10, 20, 14] : 10);
+          sfx('gust');
+          break;
+        }
+        case 'block':
+          fx.burst(ev.x, ev.y, GOLD_LEAF, 5, 140, 'spark', 2, 0.25);
+          if (this.time - this.lastBlockText > 1.5) {
+            fx.text(ev.x, ev.y - 10, 'Bouclier', INK2, 12);
+            this.lastBlockText = this.time;
+          }
+          sfx('block');
+          break;
+        case 'blink':
+          fx.scraps(ev.fromX, ev.fromY, 8, 0.8);
+          fx.puff(ev.x, ev.y, INK2, 6, 10);
+          sfx('blink');
+          break;
+        case 'boom':
+          fx.ring(ev.x, ev.y, ev.by === 'lantern' ? DANGER : GOLD_LEAF, ev.r, 0.4);
+          fx.burst(ev.x, ev.y, ev.by === 'lantern' ? DANGER : GOLD_LEAF, 14, 220, 'spark', 2.6, 0.4);
+          fx.scraps(ev.x, ev.y, 8, 1);
+          fx.shake(ev.by === 'lantern' ? 0.35 : 0.2);
+          sfx('boom');
+          break;
         case 'cleared':
           fx.text(AW / 2, AH * 0.42, 'Salle nettoyée', INK, 22);
           fx.scraps(AW / 2, 14, 14, 1);
           sfx('clear');
           break;
+      }
+    }
+    // Sorcier : chaque ennemi qui prend feu dans la traînée compte pour les quêtes
+    if (w.hero.kind === 'ember') {
+      for (const e of w.enemies) {
+        const on = e.emberT > 0.7;
+        if (on && !this.burning.has(e.id)) {
+          this.burning.add(e.id);
+          this.signatureHits++;
+        }
       }
     }
     // nombres de dégâts et flash d'impact
@@ -481,7 +540,12 @@ export class Combat {
 
     const hp = this.lerp(w.hero, a);
     this.drawCuts(ctx, t);
-    this.drawThread(ctx, hp, t);
+    const kind = w.hero.kind;
+    if (kind === 'thread') this.drawThread(ctx, hp, t);
+    else if (kind === 'ember') this.drawEmbers(ctx, hp, t);
+    for (const wh of w.whirls) this.drawWhirl(ctx, wh, t);
+    this.drawGusts(ctx, t);
+    if (kind === 'gust') this.drawMomentum(ctx, hp, t);
     // halo sous le héros quand le doigt est posé (§2)
     if (this.anchor.touching) {
       ctx.save();
@@ -577,6 +641,156 @@ export class Combat {
   private corpses: { e: Enemy; t0: number }[] = [];
   private releases = new Map<number, number>();
   private lastSnipText = -9;
+  private lastBlockText = -9;
+  private gustsFx: { x: number; y: number; r: number; m: number; t0: number }[] = [];
+
+  /** Élan du Moine : arc d'encre qui se remplit autour de ses pieds ; plein, il passe au jade. */
+  private drawMomentum(ctx: Ctx, hp: { x: number; y: number }, t: number): void {
+    const h = this.world.hero;
+    const m = h.momentum;
+    const ready = m >= GUST.minMomentum && h.gustCd <= 0;
+    ctx.save();
+    ctx.translate(hp.x, hp.y + 10);
+    ctx.scale(1, 0.42);
+    const R = 26;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = alpha(INK, 0.18);
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, R, 0, Math.PI * 2);
+    ctx.stroke();
+    if (m > 0.01) {
+      ctx.strokeStyle = m >= 0.999 ? JADE : ready ? alpha(JADE, 0.85) : INK2;
+      ctx.lineWidth = m >= 0.999 ? 6 : 4.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * m);
+      ctx.stroke();
+    }
+    if (m >= 0.999) {
+      // plein élan : petites rafales découpées qui tournent
+      ctx.strokeStyle = CUT;
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 3; i++) {
+        const a = t * 7 + (i * Math.PI * 2) / 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, R + 6, a, a + 0.7);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+    // aide : tant que le moine n'a pas lâché trois bourrasques
+    if (this.opt.tutorialHints !== false && h.gusts < 3 && !this.world.cleared && this.world.enemies.length) {
+      this.hint(ctx, m < 0.6 ? 'Cours pour prendre de l’élan…' : '…puis arrête-toi près d’eux !', hp.x, hp.y + 52);
+    }
+  }
+
+  /** Bourrasque : spirales de vent d'encre qui s'ouvrent depuis le moine. */
+  private drawGusts(ctx: Ctx, t: number): void {
+    this.gustsFx = this.gustsFx.filter((g) => t - g.t0 < 0.45);
+    for (const g of this.gustsFx) {
+      const k = (t - g.t0) / 0.45;
+      const r = g.r * easeOutCubic(Math.min(1, k * 1.3));
+      ctx.save();
+      ctx.translate(g.x, g.y);
+      ctx.globalAlpha = 1 - k;
+      ctx.lineCap = 'round';
+      const n = 7;
+      for (let i = 0; i < n; i++) {
+        const a = (i * Math.PI * 2) / n + k * 1.4;
+        ctx.strokeStyle = i % 2 ? INK : alpha(INK, 0.6);
+        ctx.lineWidth = 3 - k * 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, r * (0.75 + 0.25 * ((i * 3) % 4) / 3), a, a + 0.6 + 0.4 * g.m);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = alpha(CUT, 0.9);
+      ctx.lineWidth = 6 * (1 - k);
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  private drawWhirl(ctx: Ctx, wh: { pos: { x: number; y: number }; endAt: number; r: number }, t: number): void {
+    const left = wh.endAt - this.world.t;
+    ctx.save();
+    ctx.translate(wh.pos.x, wh.pos.y);
+    ctx.globalAlpha = Math.min(1, left * 2);
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 4; i++) {
+      ctx.strokeStyle = i % 2 ? INK2 : alpha(INK, 0.7);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let s = 0; s <= 24; s++) {
+        const k = s / 24;
+        const a = -t * 6 + i * (Math.PI / 2) + k * 4.5;
+        const rr = wh.r * (1 - k) * 0.95;
+        if (s) ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr * 0.8);
+        else ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr * 0.8);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /** Traînée de braises du Sorcier : flammes découpées, or à la feuille, qui s'éteignent en cendres d'encre. */
+  private drawEmbers(ctx: Ctx, hp: { x: number; y: number }, t: number): void {
+    const w = this.world;
+    const em = w.hero.embers;
+    const life = EMBER.life * w.hero.stats.emberLife;
+    const wid = EMBER.radius * w.hero.stats.emberWidth;
+    ctx.save();
+    // lit de cendre chaude sous la traînée
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (let i = 1; i < em.length; i++) {
+      const a = Math.max(0, 1 - (w.t - em[i].t) / life);
+      ctx.strokeStyle = alpha(INK, 0.16 * a);
+      ctx.lineWidth = wid * 1.6;
+      ctx.beginPath();
+      ctx.moveTo(em[i - 1].x, em[i - 1].y);
+      ctx.lineTo(em[i].x, em[i].y);
+      ctx.stroke();
+    }
+    for (let i = 0; i < em.length; i++) {
+      const p = em[i];
+      const age = w.t - p.t;
+      const a = Math.max(0, 1 - age / life);
+      if (a <= 0) continue;
+      const h = (4 + 6 * a) * (0.85 + 0.15 * Math.sin(t * 13 + i * 1.7)) * (wid / EMBER.radius);
+      const ox = Math.sin(i * 2.3) * wid * 0.35;
+      ctx.globalAlpha = Math.min(1, a * 1.4);
+      flameCut(ctx, p.x + ox, p.y + 3, h);
+      if (a > 0.5) {
+        ctx.fillStyle = GOLD_LEAF;
+        ctx.beginPath();
+        ctx.arc(p.x + ox, p.y + 2, 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    if (this.opt.tutorialHints !== false && this.opt.level.n <= 125 && w.hero.dmgBy.sig < 300 && !w.cleared && w.enemies.length) {
+      this.hint(ctx, 'Fais-les marcher dans tes braises', hp.x, hp.y + 52);
+    }
+  }
+
+  /** Aide écrite sous l'héros : encre détourée de papier, lisible sur les ennemis et les chiffres. */
+  private hint(ctx: Ctx, text: string, x: number, y: number): void {
+    ctx.save();
+    ctx.font = 'italic 700 14px "Alegreya Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const cx = Math.max(90, Math.min(AW - 90, x));
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = this.theme.light;
+    ctx.strokeText(text, cx, y);
+    ctx.fillStyle = INK;
+    ctx.fillText(text, cx, y);
+    ctx.restore();
+  }
 
   /** Le fil de découpe : une entaille dans le papier, plus pâle à mesure que l'encre sèche. */
   private drawThread(ctx: Ctx, hp: { x: number; y: number }, t: number): void {
@@ -752,7 +966,8 @@ export class Combat {
     const flash = this.flashes.get(e.id) ?? 0;
     if (flash > 0) this.flashes.set(e.id, Math.max(0, flash - dt * 6));
     const hd = Math.atan2(this.world.hero.pos.y - e.pos.y, this.world.hero.pos.x - e.pos.x);
-    const facing = e.state === 'charge' ? Math.atan2(e.aim.y, e.aim.x) : hd;
+    // le bouclier du scarabée tourne lentement dans la simulation : on montre son orientation réelle
+    const facing = e.state === 'charge' || e.type === 'beetle' ? Math.atan2(e.aim.y, e.aim.x) : hd;
     const painter = (e.boss ? PAINTERS[e.boss.archetype] : PAINTERS[e.type]) ?? PAINTERS.goblin;
     ctx.save();
     ctx.translate(p.x, p.y);
@@ -788,7 +1003,7 @@ export class Combat {
       ctx.stroke();
     }
     painter(ctx, { t, facing, state, windup, flash, elite: e.elite, seed: e.id, variant: e.type === 'jellySmall' ? 1 : e.boss?.variant, hpFrac: e.hp / e.maxHp, release, hurt: flash });
-    if (e.burnT > 0) for (let i = 0; i < 3; i++) flameCut(ctx, -8 + i * 8, -e.radius - 2 + Math.sin(t * 9 + i) * 1.5, 4 + Math.sin(t * 14 + i * 2) * 1.2);
+    if (e.burnT > 0 || e.emberT > 0) for (let i = 0; i < 3; i++) flameCut(ctx, -8 + i * 8, -e.radius - 2 + Math.sin(t * 9 + i) * 1.5, 4 + Math.sin(t * 14 + i * 2) * 1.2);
     if (e.poisonStacks > 0) for (let i = 0; i < e.poisonStacks; i++) circle(ctx, -8 + i * 4, -e.radius - 6 + Math.sin(t * 5 + i) * 2, 2, '#5f8a63', INK, 1);
     ctx.restore();
     // mini-barre de vie des ennemis blessés
@@ -842,6 +1057,28 @@ export class Combat {
         ctx.closePath();
         ctx.fill();
       }
+      ctx.restore();
+      return;
+    }
+    if (z.slow) return this.drawWeb(ctx, z, t);
+    if (z.src === 'specter') {
+      // marque d'arrivée du spectre : découpe en pointillés qui se resserre
+      const k = Math.min(1, (now - z.born) / Math.max(0.01, z.activeAt - z.born));
+      ctx.save();
+      ctx.translate(z.pos.x, z.pos.y);
+      ctx.rotate(t * 3);
+      ctx.strokeStyle = DANGER;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 5]);
+      ctx.beginPath();
+      ctx.arc(0, 0, z.radius * (1.6 - 0.6 * k), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 0.25 + 0.5 * k;
+      ctx.fillStyle = INK;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, z.radius * 0.7, z.radius * 0.45, 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
       return;
     }
@@ -915,6 +1152,56 @@ export class Combat {
       } else if (kind === 'queen') circle(ctx, x, y - (t * 12 + i * 5) % 10, 2.4, INK);
       else flameCut(ctx, x, y, h * 0.6);
     }
+    ctx.restore();
+  }
+
+  /** Toile de l'araignée : boule qui tombe (télégraphe), puis toile d'encre qui ralentit. */
+  private drawWeb(ctx: Ctx, z: Hazard, t: number): void {
+    const now = this.world.t;
+    ctx.save();
+    ctx.translate(z.pos.x, z.pos.y);
+    if (now < z.activeAt) {
+      const k = Math.min(1, (now - z.born) / Math.max(0.01, z.activeAt - z.born));
+      ctx.strokeStyle = alpha(INK, 0.7);
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath();
+      ctx.arc(0, 0, z.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      circle(ctx, 0, -40 * (1 - k), 6 + 4 * k, CUT, INK, 1.5);
+      ctx.restore();
+      return;
+    }
+    ctx.globalAlpha = Math.min(1, (z.endAt - now) * 1.5, (now - z.activeAt) * 6);
+    ctx.fillStyle = alpha(INK, 0.08);
+    ctx.beginPath();
+    ctx.arc(0, 0, z.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = alpha(INK, 0.75);
+    ctx.lineWidth = 1.1;
+    const spokes = 10;
+    for (let i = 0; i < spokes; i++) {
+      const a = (i * Math.PI * 2) / spokes + z.born;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a) * z.radius, Math.sin(a) * z.radius);
+      ctx.stroke();
+    }
+    for (let ring = 1; ring <= 4; ring++) {
+      const r = (z.radius * ring) / 4.3;
+      ctx.beginPath();
+      for (let i = 0; i <= spokes; i++) {
+        const a = (i * Math.PI * 2) / spokes + z.born;
+        const sag = i % 2 ? 0.92 : 1;
+        const x = Math.cos(a) * r * sag;
+        const y = Math.sin(a) * r * sag;
+        if (i) ctx.lineTo(x, y);
+        else ctx.moveTo(x, y);
+      }
+      ctx.stroke();
+    }
+    void t;
     ctx.restore();
   }
 

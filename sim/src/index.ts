@@ -5,6 +5,7 @@ export * from './controls.js';
 export * from './arena.js';
 export * from './content.js';
 export * from './hero.js';
+export * from './gear.js';
 export * from './world.js';
 export * from './level.js';
 export * from './bot.js';

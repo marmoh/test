@@ -12,7 +12,7 @@ Aperçu visuel : `http://localhost:5173/?atlas=preview&k=0` (k = 0…4, royaume)
 - Décor : coordonnées « (x, y) pt » comptées depuis le coin haut-gauche de l'image ; rochers, haies et cases liquides
   sont centrés sur leur case (`anchorPoint = (0.5, 0.5)`).
 - VFX : effet centré sur l'image (`anchorPoint = (0.5, 0.5)`, sauf la porte) ; images régulièrement espacées sur la durée indiquée.
-- Total : **21.49 Mo** pour 11 atlas (2246 fichiers PNG).
+- Total : **25.04 Mo** pour 11 atlas (2664 fichiers PNG).
 
 ## Atlas
 | Atlas | Images (par échelle) | Poids |
@@ -23,9 +23,9 @@ Aperçu visuel : `http://localhost:5173/?atlas=preview&k=0` (k = 0…4, royaume)
 | `Decor_Forest.atlas` | 68 | 0.58 Mo |
 | `Decor_Frost.atlas` | 68 | 0.59 Mo |
 | `Decor_Swamp.atlas` | 68 | 0.64 Mo |
-| `Enemies.atlas` | 308 | 5.25 Mo |
+| `Enemies.atlas` | 476 | 8.02 Mo |
 | `Hero.atlas` | 78 | 1.65 Mo |
-| `Icons.atlas` | 44 | 0.50 Mo |
+| `Icons.atlas` | 85 | 1.27 Mo |
 | `Stage.atlas` | 13 | 0.17 Mo |
 | `VFX.atlas` | 152 | 2.30 Mo |
 
@@ -93,6 +93,30 @@ Animations : `idle`, `move`, `aim` (héros), `cut` (héros, coup de ciseaux), `w
 | `snipper_windup_00…05` | 6 | 76 × 76 | 0.5 s |
 | `snipper_charge_00…03` | 4 | 76 × 76 | 0.25 s |
 | `snipper_death_00…05` | 6 | 76 × 76 | 0.5 s |
+| `lantern_idle_00…07` | 8 | 76 × 76 | 2.6 s |
+| `lantern_move_00…07` | 8 | 76 × 76 | 0.42 s |
+| `lantern_windup_00…05` | 6 | 76 × 76 | 0.5 s |
+| `lantern_death_00…05` | 6 | 76 × 76 | 0.5 s |
+| `weaver_idle_00…07` | 8 | 76 × 76 | 2.6 s |
+| `weaver_move_00…07` | 8 | 76 × 76 | 0.42 s |
+| `weaver_windup_00…05` | 6 | 76 × 76 | 0.5 s |
+| `weaver_death_00…05` | 6 | 76 × 76 | 0.5 s |
+| `beetle_idle_00…07` | 8 | 76 × 76 | 2.6 s |
+| `beetle_move_00…07` | 8 | 76 × 76 | 0.42 s |
+| `beetle_windup_00…05` | 6 | 76 × 76 | 0.5 s |
+| `beetle_death_00…05` | 6 | 76 × 76 | 0.5 s |
+| `puppeteer_idle_00…07` | 8 | 76 × 76 | 2.6 s |
+| `puppeteer_move_00…07` | 8 | 76 × 76 | 0.42 s |
+| `puppeteer_windup_00…05` | 6 | 76 × 76 | 0.5 s |
+| `puppeteer_death_00…05` | 6 | 76 × 76 | 0.5 s |
+| `shade_idle_00…07` | 8 | 76 × 76 | 2.6 s |
+| `shade_move_00…07` | 8 | 76 × 76 | 0.42 s |
+| `shade_windup_00…05` | 6 | 76 × 76 | 0.5 s |
+| `shade_death_00…05` | 6 | 76 × 76 | 0.5 s |
+| `specter_idle_00…07` | 8 | 76 × 76 | 2.6 s |
+| `specter_move_00…07` | 8 | 76 × 76 | 0.42 s |
+| `specter_windup_00…05` | 6 | 76 × 76 | 0.5 s |
+| `specter_death_00…05` | 6 | 76 × 76 | 0.5 s |
 | **Bosses** | | | |
 | `treant_idle_00…07` | 8 | 128 × 128 | 2.6 s |
 | `treant_move_00…07` | 8 | 128 × 128 | 0.42 s |

@@ -71,6 +71,7 @@ final class ParityTests: XCTestCase {
         opt.scroll = trace.options.scroll.flatMap(PowerID.init(rawValue:))
         opt.autoFire = trace.options.autoFire
         opt.timeLimit = trace.options.timeLimit
+        opt.gear = Gear.stats(trace.options.gear ?? [])
         opt.onStep = { w in
             tick += 1
             guard failure == nil, tick % 15 == 0 || w.dead || w.cleared || w.exited else { return }
@@ -97,6 +98,10 @@ final class ParityTests: XCTestCase {
         XCTAssertEqual(r.dmgBy.cut.bitPattern, TestContent.double(hex: e.dmgBy.cut).bitPattern, "\(trace.name) : dégâts des découpes")
         XCTAssertEqual(r.dmgBy.shot.bitPattern, TestContent.double(hex: e.dmgBy.shot).bitPattern, "\(trace.name) : dégâts des aiguilles")
         XCTAssertEqual(r.dmgBy.other.bitPattern, TestContent.double(hex: e.dmgBy.other).bitPattern, "\(trace.name) : autres dégâts")
+        if let sig = e.dmgBy.sig {
+            XCTAssertEqual(r.dmgBy.sig.bitPattern, TestContent.double(hex: sig).bitPattern, "\(trace.name) : dégâts de la mécanique signature")
+        }
+        if let g = e.gusts { XCTAssertEqual(r.gusts, g, "\(trace.name) : bourrasques") }
     }
 
     // MARK: salles scriptées
@@ -110,7 +115,8 @@ final class ParityTests: XCTestCase {
             guard let tpl = store.templates[tr.room.template] else { return XCTFail("gabarit \(tr.room.template)") }
             var powers: [PowerID: Int] = [:]
             for (k, v) in tr.hero.powers { if let id = PowerID(rawValue: k) { powers[id] = v } }
-            let hero = HeroState(talents: tr.hero.talents, powers: powers, autoFire: true)
+            let hero = HeroState(talents: tr.hero.talents, powers: powers, autoFire: true,
+                                 kind: tr.hero.kind.flatMap(HeroKind.init(rawValue:)) ?? .thread, gear: Gear.stats(tr.hero.gear ?? []))
             if let hp = tr.hero.hp {
                 hero.stats.maxHp = hp
                 hero.hp = hp
@@ -246,9 +252,11 @@ struct RunTrace: Decodable {
         var scroll: String?
         var autoFire: Bool
         var timeLimit: Double
+        /// Équipement porté (version 0.2) : objets, convertis en bonus par `Gear.stats` (catalogue porté).
+        var gear: [GearItem]?
     }
     struct Result: Decodable {
-        struct Dmg: Decodable { var cut: String; var shot: String; var other: String }
+        struct Dmg: Decodable { var cut: String; var shot: String; var other: String; var sig: String? }
         var won: Bool
         var stars: Int
         var kills: Int
@@ -261,6 +269,7 @@ struct RunTrace: Decodable {
         var hpFrac: String
         var seconds: String
         var dmgBy: Dmg
+        var gusts: Int?
     }
     var name: String
     var level: LevelRef
@@ -284,6 +293,8 @@ struct RoomTrace: Decodable {
         var talents: Talents
         var powers: [String: Int]
         var hp: Double?
+        var kind: String?
+        var gear: [GearItem]?
     }
     struct Final: Decodable {
         var kills: Int

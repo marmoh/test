@@ -5,17 +5,19 @@
  * le web les dessine en direct.
  *
  * Vocabulaire commun (pose, épingles, perforations, télégraphes) : `rig.ts`.
- * Héros : `heroes.ts`. Monstres : `monsters.ts`. Boss : `bosses.ts`.
+ * Héros : `heroes.ts`. Monstres : `monsters.ts`, `monsters2.ts`. Boss : `bosses.ts`.
  */
 import type { Painter } from './rig.js';
 import { drawScout, drawWindMonk, drawEmberSorcerer } from './heroes.js';
 import { drawGoblin, drawJelly, drawBat, drawMushroom, drawWolf, drawSkeleton, drawTotem, drawMage, drawMoth, drawSnipper } from './monsters.js';
+import { drawLantern, drawWeaver, drawBeetle, drawPuppeteer, drawShade, drawSpecter } from './monsters2.js';
 import { drawTreant, drawQueen, drawScorpion, drawWyvern, drawAshlord } from './bosses.js';
 
 export type { AnimState, Pose, Painter } from './rig.js';
 export {
   drawScout, drawWindMonk, drawEmberSorcerer,
   drawGoblin, drawJelly, drawBat, drawMushroom, drawWolf, drawSkeleton, drawTotem, drawMage, drawMoth, drawSnipper,
+  drawLantern, drawWeaver, drawBeetle, drawPuppeteer, drawShade, drawSpecter,
   drawTreant, drawQueen, drawScorpion, drawWyvern, drawAshlord,
 };
 
@@ -35,6 +37,12 @@ export const PAINTERS: Record<string, Painter> = {
   mage: drawMage,
   moth: drawMoth,
   snipper: drawSnipper,
+  lantern: drawLantern,
+  weaver: drawWeaver,
+  beetle: drawBeetle,
+  puppeteer: drawPuppeteer,
+  shade: drawShade,
+  specter: drawSpecter,
   treant: drawTreant,
   queen: drawQueen,
   scorpion: drawScorpion,

@@ -65,19 +65,36 @@ public struct HeroStats: Equatable, Sendable {
     public var cutMult: Double
     public var echoCut: Bool
     public var confetti: Bool
+    // Moine du vent (DECISIONS #74)
+    public var gustRadiusMult: Double
+    public var gustDmgMult: Double
+    public var momentumRate: Double
+    public var eyeOfStorm: Bool
+    public var whirlwind: Bool
+    public var featherStep: Bool
+    // Sorcier de braise (DECISIONS #74)
+    public var emberLife: Double
+    public var emberDmgMult: Double
+    public var emberWidth: Double
+    public var combustion: Bool
+    public var ashWard: Bool
+    public var furnace: Bool
 }
 
-public func computeStats(_ talents: Talents, _ powers: [PowerID: Int]) -> HeroStats {
+/// Statistiques effectives. `gear` (équipement, DECISIONS #75) multiplie en dernier : sans équipement chaque facteur
+/// vaut exactement 1 et le résultat est identique au bit près à l'ancien calcul (traces de parité).
+public func computeStats(_ talents: Talents, _ powers: [PowerID: Int], gear: GearStats = .none) -> HeroStats {
     func n(_ id: PowerID) -> Int { powers[id] ?? 0 }
-    let hpMult = (1 + TalentK.hpPerRank * Double(talents.vigor)) * (1 + 0.2 * Double(n(.maxHp)))
-    let dmgMult = (1 + TalentK.damagePerRank * Double(talents.strength)) * (1 + 0.2 * Double(n(.damage)))
-    let rateMult = (1 + TalentK.fireRatePerRank * Double(talents.agility)) * (1 + 0.25 * Double(n(.attackSpeed)))
+    let hpMult = (1 + TalentK.hpPerRank * Double(talents.vigor)) * (1 + 0.2 * Double(n(.maxHp))) * (1 + gear.hp)
+    let dmgMult = (1 + TalentK.damagePerRank * Double(talents.strength)) * (1 + 0.2 * Double(n(.damage))) * (1 + gear.dmg)
+    let rateMult = (1 + TalentK.fireRatePerRank * Double(talents.agility)) * (1 + 0.25 * Double(n(.attackSpeed))) * (1 + gear.rate)
+    let sig = 1 + gear.sig
     return HeroStats(
         maxHp: DMath.round(HeroK.hp * hpMult),
         damage: HeroK.damage * dmgMult,
         needleMult: DMath.pow(PowerTuning.multishotDmg, Double(n(.multishot))),
         fireRate: HeroK.fireRate * rateMult,
-        speed: HeroK.speed * (1 + PowerTuning.speedPerStack * Double(n(.speed))),
+        speed: HeroK.speed * (1 + PowerTuning.speedPerStack * Double(n(.speed))) * (1 + gear.speed),
         multishot: n(.multishot),
         rearShot: n(.rearShot) > 0,
         diagonals: n(.diagonals) > 0,
@@ -85,7 +102,7 @@ public func computeStats(_ talents: Talents, _ powers: [PowerID: Int]) -> HeroSt
         ricochet: n(.ricochet) > 0 ? PowerTuning.ricochetBounces : 0,
         pierce: n(.pierce) > 0,
         wallBounce: n(.wallBounce) > 0 ? 2 : 0,
-        critChance: DMath.min(0.6, 0.15 * Double(n(.crit))),
+        critChance: DMath.min(0.6, 0.15 * Double(n(.crit)) + gear.crit),
         eliteMult: n(.eliteSlayer) > 0 ? 1.5 : 1,
         flame: n(.flame) > 0,
         frost: n(.frost) > 0,
@@ -95,14 +112,26 @@ public func computeStats(_ talents: Talents, _ powers: [PowerID: Int]) -> HeroSt
         orb: n(.orb) > 0,
         shield: n(.shield) > 0,
         lifesteal: n(.lifesteal) > 0 ? 0.02 : 0,
-        dodge: n(.dodge) > 0 ? 0.1 : 0,
+        dodge: DMath.min(0.4, (n(.dodge) > 0 ? 0.1 : 0) + gear.dodge),
         flashStep: n(.flashStep) > 0,
         magnet: n(.magnet) > 0,
         threadLife: (1 + TalentK.inkPerRank * Double(talents.ink)) * (1 + longThreadPerStack * Double(n(.longThread))),
         steelThread: n(.steelThread) > 0,
         barbedThread: n(.barbedThread) > 0,
-        cutMult: 1 + 0.3 * Double(n(.sharpScissors)),
+        cutMult: (1 + 0.3 * Double(n(.sharpScissors))) * sig,
         echoCut: n(.echoCut) > 0,
-        confetti: n(.confetti) > 0
+        confetti: n(.confetti) > 0,
+        gustRadiusMult: 1 + 0.25 * Double(n(.bigGust)),
+        gustDmgMult: (1 + 0.35 * Double(n(.keenGust))) * sig,
+        momentumRate: 1 + 0.35 * Double(n(.quickMomentum)),
+        eyeOfStorm: n(.eyeOfStorm) > 0,
+        whirlwind: n(.whirlwind) > 0,
+        featherStep: n(.featherStep) > 0,
+        emberLife: 1 + 0.35 * Double(n(.liveEmbers)),
+        emberDmgMult: (1 + 0.35 * Double(n(.blaze))) * (n(.furnace) > 0 ? 2 : 1) * sig,
+        emberWidth: 1 + 0.4 * Double(n(.wideTrail)),
+        combustion: n(.combustion) > 0,
+        ashWard: n(.ashWard) > 0,
+        furnace: n(.furnace) > 0
     )
 }

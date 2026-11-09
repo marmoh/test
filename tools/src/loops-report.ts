@@ -3,7 +3,7 @@
  * générés. usage: tsx tools/src/loops-report.ts [n1 n2 …] [--games 16] [--step 10]
  * Sans liste : un niveau sur `step` (1, 11, 21, …). Affiche aussi la durée moyenne et le coût d'une partie.
  */
-import { generateLevel, runLevel, talentsForLevel, Bot, BOTS, seedOf, type BotName } from '../../sim/src/index.js';
+import { generateLevel, runLevel, talentsForLevel, gearForLevel, Bot, BOTS, seedOf, type BotName } from '../../sim/src/index.js';
 import { loadRooms, roomMap, loadLevel } from './content-io.js';
 
 const args = process.argv.slice(2);
@@ -29,7 +29,7 @@ for (const n of ns) {
     const t0 = performance.now();
     for (let g = 0; g < games; g++) {
       const bot = new Bot(BOTS[b], seedOf(g, 41));
-      const r = runLevel(level, map, bot, { talents: talentsForLevel(n), attemptSeed: seedOf(g, 42) });
+      const r = runLevel(level, map, bot, { talents: talentsForLevel(n), gear: gearForLevel(n), attemptSeed: seedOf(g, 42) });
       cut += r.dmgBy.cut;
       dmg += r.dmgBy.cut + r.dmgBy.shot + r.dmgBy.other;
       secs += r.seconds;

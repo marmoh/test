@@ -195,4 +195,162 @@ final class EconomyTests: XCTestCase {
         XCTAssertFalse(wa.credit(.gemsPouch, transactionID: 1))
         XCTAssertFalse(wa.credit(.gemsHandful, transactionID: 2), "achat crédité sur l'autre appareil")
     }
+
+    // MARK: méta-progression de la version 0.2 (`web/src/meta.ts`)
+
+    func testHeroUnlockLevels() {
+        // Moine : terminer le niveau 40 (ou offre de départ) ; Sorcier : terminer le niveau 100 (DECISIONS #77)
+        let owned: Set<String> = ["scout"]
+        XCTAssertFalse(HeroUnlocks.isUnlocked(.windMonk, owned: owned, unlocked: 40))
+        XCTAssertTrue(HeroUnlocks.isUnlocked(.windMonk, owned: owned, unlocked: 41))
+        XCTAssertTrue(HeroUnlocks.isUnlocked(.windMonk, owned: ["scout", "windMonk"], unlocked: 1))
+        XCTAssertEqual(HeroUnlocks.earned(owned: owned, unlocked: 101), [.windMonk, .emberSorcerer])
+        XCTAssertEqual(HeroUnlocks.earned(owned: ["scout", "windMonk"], unlocked: 60), [])
+        XCTAssertEqual(HeroUnlocks.hero(at: 100, owned: owned), .emberSorcerer)
+        XCTAssertNil(HeroUnlocks.hero(at: 40, owned: ["windMonk"]))
+        XCTAssertEqual(HeroUnlocks.trialLevel(.windMonk, unlocked: 3), 5)
+        XCTAssertEqual(HeroUnlocks.trialLevel(.emberSorcerer, unlocked: 80), 47)
+        XCTAssertEqual(HeroUnlocks.trialLevel(.windMonk, unlocked: 12), 11)
+    }
+
+    func testGearInventoryRules() throws {
+        var g = GearState()
+        // première victoire du niveau 3 : un objet annoncé, porté tout de suite (emplacement vide)
+        let loot = g.grantLoot(level: 3, firstWin: true, threeStars: true)
+        let first = try XCTUnwrap(loot.item)
+        XCTAssertEqual(first.id, Gear.levelLoot(3)?.id)
+        XCTAssertEqual(loot.shards, Gear.firstWinShards(3, threeStars: true))
+        XCTAssertTrue(g.isEquipped(first.uid))
+        // niveau rejoué : éclats seuls
+        let replay = g.grantLoot(level: 3, firstWin: false, threeStars: false)
+        XCTAssertNil(replay.item)
+        XCTAssertEqual(replay.shards, Gear.replayShards(3))
+        // un second objet du même emplacement n'est pas porté d'office
+        let slot = Gear.byID[first.id]!.slot
+        let better = try XCTUnwrap(Gear.all.first { $0.slot == slot && $0.rarity == .rare })
+        let it = g.add(better.id, level: 1)
+        XCTAssertFalse(g.isEquipped(it.uid))
+        XCTAssertTrue(g.isUpgradeOver(it))
+        g.equip(it.uid)
+        XCTAssertEqual(g.wornItem(in: slot)?.uid, it.uid)
+        XCTAssertFalse(g.isUpgradeOver(first))
+        XCTAssertEqual(g.sortedItems.first?.uid, it.uid, "rareté décroissante")
+        // recyclage : l'objet porté quitte son emplacement, ses éclats sont rendus
+        let shards = g.shards
+        let v = g.salvage(it.uid)
+        XCTAssertEqual(v, Gear.salvageValue(better, 1))
+        XCTAssertEqual(g.shards, shards + v)
+        XCTAssertNil(g.wornItem(in: slot))
+        XCTAssertEqual(g.items.count, 1)
+        g.unequip(slot)
+        XCTAssertEqual(g.stats, .none)
+    }
+
+    func testGearSectionDecodesOldAndWebSaves() throws {
+        let empty = try JSONDecoder().decode(GearState.self, from: Data("{}".utf8))
+        XCTAssertEqual(empty, GearState())
+        // forme écrite par le web (`state.ts`) : porté par emplacement, sans étal
+        let web = Data(#"{"items":[{"uid":4,"id":"crowPin","level":3}],"equipped":{"needle":4},"nextUid":2,"shards":9}"#.utf8)
+        let g = try JSONDecoder().decode(GearState.self, from: web)
+        XCTAssertEqual(g.wornItem(in: .needle)?.id, "crowPin")
+        XCTAssertEqual(g.nextUid, 5, "uid toujours neuf")
+        XCTAssertNil(g.stall)
+        let q = try JSONDecoder().decode(QuestState.self, from: Data(#"{"day":"2026-11-09"}"#.utf8))
+        XCTAssertEqual(q.day, "2026-11-09")
+        XCTAssertEqual(q.claimed, [])
+    }
+
+    func testDailyQuestsAreTheSameForEveryone() {
+        let all: (HeroID) -> Bool = { _ in true }
+        let a = Quests.today(day: "2026-11-09", unlocked: 50, heroUnlocked: all)
+        XCTAssertEqual(a.count, 3)
+        XCTAssertEqual(a, Quests.today(day: "2026-11-09", unlocked: 50, heroUnlocked: all))
+        XCTAssertEqual(Set(a.map(\.id)).count, 3)
+        // mêmes tirages que `todayQuests` du web
+        XCTAssertEqual(a.map(\.id), ["stars", "kills60", "sig"])
+        XCTAssertEqual(Quests.today(day: "2027-01-01", unlocked: 50, heroUnlocked: all).map(\.id), ["emberWin", "sig", "boss"])
+        XCTAssertEqual(Quests.today(day: "2026-11-10", unlocked: 10) { $0 == .scout }.map(\.id), ["kills60", "win3", "clean"])
+        for day in (1...28).map({ String(format: "2026-02-%02d", $0) }) {
+            let qs = Quests.today(day: day, unlocked: 10) { $0 == .scout }
+            XCTAssertLessThanOrEqual(qs.filter { $0.kind == .hero }.count, 1, "au plus une quête de héros")
+            XCTAssertFalse(qs.contains { $0.kind == .boss }, "pas de boss avant le niveau 20")
+            XCTAssertFalse(qs.contains { $0.hero == .windMonk || $0.hero == .emberSorcerer })
+        }
+    }
+
+    func testQuestProgressClaimAndBonus() {
+        let qs = Quests.pool.filter { ["win3", "kills60", "clean"].contains($0.id) }
+        var s = QuestState(day: "2026-11-09")
+        let won = FightReport(won: true, level: 12, hero: .scout, killsByType: ["goblin": 25, "bat": 10], signatureHits: 4,
+                              stars: 3, hpFrac: 0.95, replay: false, boss: false)
+        s.record(won, quests: qs)
+        var lost = won
+        lost.won = false
+        lost.killsByType = ["goblin": 40]
+        s.record(lost, quests: qs)
+        XCTAssertEqual(s.progress(of: qs[0]), 1, "les défaites ne comptent pas comme victoires")
+        XCTAssertEqual(s.progress(of: qs[1]), 60, "mais leurs ennemis vaincus comptent")
+        XCTAssertEqual(s.toClaim(qs), 2)
+        XCTAssertEqual(s.claim(qs[1]), QuestReward(shards: 12))
+        XCTAssertNil(s.claim(qs[1]))
+        XCTAssertNil(s.claim(qs[0]))
+        XCTAssertFalse(s.claimBonus(qs))
+        s.record(won, quests: qs)
+        s.record(won, quests: qs)
+        XCTAssertNotNil(s.claim(qs[0]))
+        XCTAssertNotNil(s.claim(qs[2]))
+        XCTAssertEqual(s.toClaim(qs), 1, "le bonus des trois quêtes")
+        XCTAssertTrue(s.claimBonus(qs))
+        XCTAssertFalse(s.claimBonus(qs))
+        XCTAssertEqual(s.current(day: "2026-11-10"), QuestState(day: "2026-11-10"))
+    }
+
+    func testBestiaryCountsTwentyOneCreatures() {
+        XCTAssertEqual(BestiaryBook.total, 21)
+        XCTAssertEqual(BestiaryBook.chapter(of: .goblin), 1)
+        XCTAssertEqual(BestiaryBook.chapter(of: .shade), BestiaryBook.chapter(of: .puppeteer))
+        var book: [String: Int] = [:]
+        BestiaryBook.record(["goblin": 3, "treant": 1], into: &book, level: 20)
+        BestiaryBook.record(["boss:queen": 1, "boss": 1, "bat": 0], into: &book, level: 100)
+        XCTAssertEqual(book, ["goblin": 3, "treant": 1, "queen": 2])
+        XCTAssertEqual(BestiaryBook.met(book), 3)
+    }
+
+    @MainActor
+    func testStallAndQuestRewardsGoToWalletAndShards() async throws {
+        let defaults = UserDefaults(suiteName: "tests.\(UUID())")!
+        let wallet = Wallet(defaults: defaults)
+        let progress = Progress(store: defaults)
+        var now = Date(timeIntervalSince1970: SeasonPass.epoch + 3_600)
+        let meta = Meta(store: defaults, progress: progress, wallet: wallet, clock: { now })
+        let offers = meta.stall
+        XCTAssertEqual(offers.count, 3)
+        XCTAssertEqual(offers.map(\.price), [40, 90, 90], "avant le niveau 40 : un commun, deux rares")
+        let gems = wallet.gems
+        XCTAssertEqual(meta.buyStall(0), .ok)
+        XCTAssertEqual(wallet.gems, gems - 40)
+        XCTAssertEqual(meta.gear.items.first?.id, offers[0].gearID)
+        XCTAssertEqual(meta.buyStall(0), .bought, "une fois par jour")
+        XCTAssertEqual(meta.buyStall(1), .gems)
+        XCTAssertEqual(wallet.gems, gems - 40, "rien n'est retiré sans achat")
+        // le lendemain, l'étal change et rien n'est marqué acheté
+        now = now.addingTimeInterval(86_400)
+        XCTAssertFalse(meta.stall.contains { $0.bought })
+        // sac d'éclats
+        wallet.grant([.gems(100)])
+        XCTAssertTrue(meta.buyShards())
+        XCTAssertEqual(meta.shards, Gear.shardPack.shards)
+        // amélioration : or + éclats
+        let uid = try XCTUnwrap(meta.gear.items.first?.uid)
+        XCTAssertEqual(meta.upgrade(uid), .ok)
+        XCTAssertEqual(meta.item(uid)?.level, 2)
+        // relu depuis la sauvegarde
+        let again = Meta(store: defaults, progress: progress, wallet: wallet, clock: { now })
+        XCTAssertEqual(again.gear, meta.gear)
+        // héros gagnés en jouant
+        for n in 1...40 { progress.record(level: n, won: true, stars: 1, wallet: wallet, now: now) }
+        XCTAssertEqual(meta.syncHeroUnlocks(), [.windMonk])
+        XCTAssertTrue(wallet.owns(.windMonk))
+        XCTAssertEqual(meta.syncHeroUnlocks(), [])
+    }
 }

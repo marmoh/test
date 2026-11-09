@@ -166,7 +166,41 @@ final class CoreTests: XCTestCase {
             XCTAssertFalse(offer.contains(.multishot))
             XCTAssertFalse(offer.contains(.speed))
         }
-        XCTAssertEqual(Powers.all.count, 24)
+        XCTAssertEqual(Powers.all.count, 36)
+        // chaque héros ne reçoit que sa famille signature (DECISIONS #74)
+        for fam in [PowerFamily.thread, .wind, .ember] {
+            var r = Rng(11)
+            for _ in 0..<200 {
+                let offer = LevelGen.offerPowers(&r, owned: [:], signature: fam)
+                XCTAssertEqual(Powers.def(offer[0]).family, fam)
+                for id in offer { let f = Powers.def(id).family; XCTAssertTrue(f == fam || !f.isSignature) }
+            }
+        }
+    }
+
+    /// Équipement (DECISIONS #75, #79) : mêmes valeurs que `sim/test/heroes.test.ts`.
+    func testGear() {
+        XCTAssertEqual(Gear.all.count, 24)
+        let g = Gear.stats([GearItem(uid: 1, id: "crowPin", level: 1), GearItem(uid: 2, id: "sewingNeedle", level: 10), GearItem(uid: 3, id: "juteCloak", level: 1)])
+        XCTAssertEqual(g.dmg, 0.025, accuracy: 1e-12)
+        XCTAssertEqual(g.crit, 0.03, accuracy: 1e-12)
+        XCTAssertEqual(g.hp, 0.015, accuracy: 1e-12)
+        var n = 0
+        for k in 1...300 where Gear.levelLoot(k) != nil {
+            n += 1
+            XCTAssertEqual(Gear.byID[Gear.levelLoot(k)!.id]!.rarity, Gear.lootRarity(k))
+        }
+        XCTAssertEqual(n, 90)
+        XCTAssertEqual(Gear.byID[Gear.levelLoot(3)!.id]!.slot, .needle)
+        XCTAssertEqual(Set([20, 40, 60, 80].map { Gear.byID[Gear.levelLoot($0)!.id]!.slot }).count, 4)
+        XCTAssertEqual(Gear.lootRarity(60), .legendary)
+        XCTAssertEqual(computeStats(.atRank(4), [.damage: 2], gear: .none), computeStats(.atRank(4), [.damage: 2]))
+        XCTAssertNil(Gear.upgradeCost(Gear.byID["paperMask"]!, 10))
+        // étal du colporteur : mêmes objets que le web (valeurs relevées sur `stallOffers` TypeScript)
+        XCTAssertEqual(Gear.stallOffers(day: "2026-11-09", progress: 120).map(\.id), ["moonNeedle", "mistMantle", "emberMask"])
+        XCTAssertEqual(Gear.stallOffers(day: "2026-11-09", progress: 120).map(\.level), [3, 3, 3])
+        XCTAssertEqual(Gear.stallOffers(day: "2026-11-10", progress: 30).map(\.id), ["paperMask", "paperCrane", "moonNeedle"])
+        XCTAssertEqual(Gear.stallOffers(day: "2026-11-10", progress: 30).map(\.price), [40, 90, 90])
     }
 
     func testReviveRestoresHalfHp() throws {

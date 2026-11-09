@@ -29,6 +29,10 @@ public enum StateHash {
         .eliteSlayer, .flame, .flashStep, .frost, .lifesteal, .longThread, .magnet, .maxHp, .multishot, .orb,
         .pierce, .poison, .rearShot, .ricochet, .sharpScissors, .shield, .sideShots, .speed, .steelThread, .wallBounce,
     ]
+    /// Pouvoirs du Moine et du Sorcier (DECISIONS #74), hachés à part, en fin d'empreinte.
+    static let signaturePowerOrder: [PowerID] = [
+        .ashWard, .bigGust, .blaze, .combustion, .eyeOfStorm, .featherStep, .furnace, .keenGust, .liveEmbers, .quickMomentum, .whirlwind, .wideTrail,
+    ]
 
     public static func of(_ w: World) -> UInt32 {
         var H = StateHasher()
@@ -119,6 +123,30 @@ public enum StateHash {
         H.int(w.events.count)
         for ev in w.events { hashEvent(&H, ev) }
         H.int(w.pendingCuts.count)
+        // version 0.2 : héros à mécanique propre, équipement, nouveaux ennemis (DECISIONS #73 à #75)
+        H.str(h.kind.rawValue)
+        for v in [h.momentum, h.gustCd, h.gustT, h.dmgBy.sig, h.stats.critChance, h.stats.dodge, h.stats.cutMult, h.stats.gustDmgMult, h.stats.emberDmgMult] { H.num(v) }
+        H.bool(h.stopped)
+        H.int(h.gusts)
+        for id in signaturePowerOrder { H.int(h.powers[id] ?? 0) }
+        H.int(h.embers.count)
+        for p in h.embers {
+            H.num(p.x)
+            H.num(p.y)
+            H.num(p.t)
+        }
+        for e in w.enemies {
+            H.num(e.emberT)
+            H.num(e.emberDps)
+        }
+        for z in w.hazards { H.num(z.slow ?? 0) }
+        H.int(w.whirls.count)
+        for wh in w.whirls {
+            H.num(wh.pos.x)
+            H.num(wh.pos.y)
+            H.num(wh.endAt)
+            H.num(wh.r)
+        }
         return H.h
     }
 
@@ -146,6 +174,14 @@ public enum StateHash {
             H.int(hits); H.bool(echo)
         case let .snip(x, y, by):
             H.str("snip"); H.num(x); H.num(y); H.str(by)
+        case let .gust(x, y, r, m, hits):
+            H.str("gust"); H.num(x); H.num(y); H.num(r); H.num(m); H.int(hits)
+        case let .block(x, y):
+            H.str("block"); H.num(x); H.num(y)
+        case let .blink(x, y, fromX, fromY):
+            H.str("blink"); H.num(x); H.num(y); H.num(fromX); H.num(fromY)
+        case let .boom(x, y, r, by):
+            H.str("boom"); H.num(x); H.num(y); H.num(r); H.str(by)
         }
     }
 }

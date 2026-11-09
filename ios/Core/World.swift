@@ -24,15 +24,17 @@ public struct ThreadPoint: Equatable, Sendable {
     public var v: Vec { Vec(x, y) }
 }
 
-public enum DamageSource: Sendable { case cut, shot, other }
+public enum DamageSource: Sendable { case cut, shot, other, sig }
 
 public struct DamageBySource: Equatable, Sendable {
     public var cut = 0.0
     public var shot = 0.0
     public var other = 0.0
+    /// mécanique signature du Moine et du Sorcier (bourrasque, tourbillon, braises, combustion)
+    public var sig = 0.0
     subscript(_ s: DamageSource) -> Double {
-        get { switch s { case .cut: cut; case .shot: shot; case .other: other } }
-        set { switch s { case .cut: cut = newValue; case .shot: shot = newValue; case .other: other = newValue } }
+        get { switch s { case .cut: cut; case .shot: shot; case .other: other; case .sig: sig } }
+        set { switch s { case .cut: cut = newValue; case .shot: shot = newValue; case .other: other = newValue; case .sig: sig = newValue } }
     }
 }
 
@@ -63,9 +65,23 @@ public final class HeroState {
     public var cutT = 0.0
     public var cuts = 0
     public var dmgBy = DamageBySource()
+    /// Mécanique signature (DECISIONS #74) et équipement porté (#75).
+    public let kind: HeroKind
+    public let gear: GearStats
+    /// vient de s'arrêter à ce pas (moving → immobile)
+    public var stopped = false
+    /// Moine du vent : élan 0 → 1, délai, animation (1 → 0), nombre de bourrasques
+    public var momentum = 0.0
+    public var gustCd = 0.0
+    public var gustT = 0.0
+    public var gusts = 0
+    /// Sorcier de braise : traînée (du plus ancien au plus récent point)
+    public var embers: [ThreadPoint] = []
 
-    public init(talents: Talents, powers: [PowerID: Int] = [:], autoFire: Bool = K.autoFireDefault) {
-        let stats = computeStats(talents, powers)
+    public init(talents: Talents, powers: [PowerID: Int] = [:], autoFire: Bool = K.autoFireDefault, kind: HeroKind = .thread, gear: GearStats = .none) {
+        let stats = computeStats(talents, powers, gear: gear)
+        self.kind = kind
+        self.gear = gear
         self.talents = talents
         self.powers = powers
         self.stats = stats
@@ -78,7 +94,7 @@ public final class HeroState {
     public func grant(_ id: PowerID) {
         let before = stats.maxHp
         powers[id] = (powers[id] ?? 0) + 1
-        stats = computeStats(talents, powers)
+        stats = computeStats(talents, powers, gear: gear)
         if id == .maxHp { hp += stats.maxHp - before }
         if id == .shield { shieldReady = true }
         hp = DMath.min(hp, stats.maxHp)
@@ -127,6 +143,9 @@ public final class Enemy {
     public var poisonStacks = 0
     public var poisonT = 0.0
     public var poisonDps = 0.0
+    /// braises du sorcier : brûlure entretenue (DECISIONS #74)
+    public var emberT = 0.0
+    public var emberDps = 0.0
     public var orbHitCd = 0.0
     public var strafe: Double
     public var volley = 0
@@ -148,8 +167,8 @@ public final class Projectile {
     public var vel: Vec
     public let radius: Double
     public var dmg: Double
-    public let fromHero: Bool
-    public let born: Double
+    public var fromHero: Bool
+    public var born: Double
     public let pierce: Bool
     public var wallBounce: Int
     public var ricochet: Int
@@ -182,11 +201,21 @@ public final class Hazard {
     public var nextTick: Double
     public let ownerId: Int
     public let src: String?
+    /// Toile : ralentit l'héroïne de cette fraction tant qu'elle est dedans (DECISIONS #73).
+    public let slow: Double?
 
-    init(kind: HazardKind, pos: Vec, to: Vec? = nil, radius: Double, born: Double, activeAt: Double, endAt: Double, dmg: Double, tick: Double, nextTick: Double, ownerId: Int, src: String?) {
+    init(kind: HazardKind, pos: Vec, to: Vec? = nil, radius: Double, born: Double, activeAt: Double, endAt: Double, dmg: Double, tick: Double, nextTick: Double, ownerId: Int, src: String?, slow: Double? = nil) {
         self.kind = kind; self.pos = pos; self.to = to; self.radius = radius; self.born = born; self.activeAt = activeAt
         self.endAt = endAt; self.dmg = dmg; self.tick = tick; self.nextTick = nextTick; self.ownerId = ownerId; self.src = src
+        self.slow = slow
     }
+}
+
+/// Tourbillon laissé par une bourrasque (pouvoir du Moine du vent).
+public struct Whirl: Sendable {
+    public var pos: Vec
+    public var endAt: Double
+    public var r: Double
 }
 
 public struct HealOrb: Sendable {
@@ -205,6 +234,11 @@ public enum WorldEvent: Sendable {
     case cleared
     case cut(poly: [Vec], hits: Int, echo: Bool)
     case snip(x: Double, y: Double, by: String)
+    // version 0.2 (DECISIONS #73, #74)
+    case gust(x: Double, y: Double, r: Double, m: Double, hits: Int)
+    case block(x: Double, y: Double)
+    case blink(x: Double, y: Double, fromX: Double, fromY: Double)
+    case boom(x: Double, y: Double, r: Double, by: String)
 }
 
 public struct SpawnSpec: Codable, Equatable, Sendable {
@@ -249,6 +283,7 @@ public final class World {
     public var projectiles: [Projectile] = []
     public var hazards: [Hazard] = []
     public var orbs: [HealOrb] = []
+    public var whirls: [Whirl] = []
     public var events: [WorldEvent] = []
     public var t = 0.0
     public var kills = 0
@@ -278,6 +313,9 @@ public final class World {
         self.hero = hero
         hero.pos = arena.spawn
         hero.thread = []
+        hero.embers = []
+        hero.momentum = 0
+        hero.gustT = 0
         hero.cutT = 0
         hero.vel = Vec(0, 0)
         hero.invuln = 0
@@ -343,7 +381,11 @@ public final class World {
         events.removeAll(keepingCapacity: true)
         t += dt
         updateHero(input, dt)
-        updateThread()
+        switch hero.kind {
+        case .thread: updateThread()
+        case .gust: updateGust(dt)
+        case .ember: updateEmbers(dt)
+        }
         var i = 0
         while i < enemies.count {
             updateEnemy(enemies[i], dt)
@@ -356,6 +398,7 @@ public final class World {
         updatePendingCuts()
         updateHazards()
         updateOrbs(dt)
+        if !whirls.isEmpty { updateWhirls(dt) }
         contactDamage()
         updateStatus(dt)
         reap()
@@ -396,8 +439,16 @@ public final class World {
             mx = 0
             my = 0
         }
-        let vx = mx * s.speed
-        let vy = my * s.speed
+        var sp = s.speed
+        // toile de l'araignée tisseuse (DECISIONS #73) : aucune toile ⇒ calcul inchangé
+        for z in hazards {
+            if let slow = z.slow, slow != 0, t >= z.activeAt, t <= z.endAt, DMath.hypot(h.pos.x - z.pos.x, h.pos.y - z.pos.y) < z.radius {
+                sp *= 1 - slow
+                break
+            }
+        }
+        let vx = mx * sp
+        let vy = my * sp
         let bx = h.pos.x
         let by = h.pos.y
         arena.moveCircle(&h.pos, vx * dt, vy * dt, HeroK.radius)
@@ -406,6 +457,7 @@ public final class World {
         let speed = DMath.hypot(h.vel.x, h.vel.y)
         let wasMoving = h.moving
         h.moving = speed >= Control.stillSpeed
+        h.stopped = wasMoving && !h.moving
         if h.moving {
             h.stillTime = 0
             if !h.autoFire {
@@ -504,7 +556,7 @@ public final class World {
                     pos: Vec(h.pos.x - cy * off + cx * 10, h.pos.y + cx * off + cy * 10),
                     vel: Vec(cx * HeroK.projectileSpeed, cy * HeroK.projectileSpeed),
                     radius: HeroK.projectileRadius,
-                    dmg: s.damage * K.shotDmgMult * s.needleMult * (s.pierce ? PowerTuning.pierceDmg : 1),
+                    dmg: s.damage * K.shotDmgMult * s.needleMult * (s.pierce ? PowerTuning.pierceDmg : 1) * (h.kind == .thread ? 1 : K.signatureNeedleMult),
                     fromHero: true, born: t, pierce: s.pierce, wallBounce: s.wallBounce, ricochet: s.ricochet))
             }
         }
@@ -719,6 +771,154 @@ public final class World {
                     e.state = .move
                     e.cd = Bestiary.def(.bat).period
                 }
+            }
+        // ───── chapitres 11 à 15 (DECISIONS #73) ─────
+        case .lantern:
+            updateLantern(e, dist, slow, dt)
+        case .weaver, .puppeteer:
+            updateCaster(e, dist, slow, dt)
+        case .beetle:
+            updateBeetle(e, dx, dy, slow, dt)
+        case .shade:
+            chase(e, e.speed * slow, dt)
+        case .specter:
+            updateSpecter(e, slow, dt)
+        }
+    }
+
+    /// Lampion : fonce sur l'héroïne, s'arrête à portée et explose après 0,8 s (le tuer avant désamorce).
+    private func updateLantern(_ e: Enemy, _ dist: Double, _ slow: Double, _ dt: Double) {
+        if e.state == .move {
+            chase(e, e.speed * slow, dt)
+            if dist < 58 + e.radius {
+                e.state = .windup
+                e.t = 0.8
+                hazards.append(Hazard(kind: .circle, pos: e.pos, radius: 66, born: t, activeAt: t + 0.8, endAt: t + 0.8 + 0.12,
+                                      dmg: e.shotDmg, tick: 1, nextTick: t + 0.8, ownerId: e.id, src: "lantern"))
+            }
+        } else if e.state == .windup {
+            e.t -= dt
+            if e.t <= 0 {
+                e.volley = 1 // a explosé : la zone reste active même s'il meurt
+                events.append(.boom(x: e.pos.x, y: e.pos.y, r: 66, by: "lantern"))
+                e.hp = 0
+            }
+        }
+    }
+
+    /// Araignée tisseuse (toile qui ralentit) et montreur d'ombres (invoque deux ombres) : tireurs à distance.
+    private func updateCaster(_ e: Enemy, _ dist: Double, _ slow: Double, _ dt: Double) {
+        let def = Bestiary.def(e.type)
+        let range = def.range ?? (150, 280)
+        let h = hero.pos
+        if e.state == .move {
+            keepRange(e, range.near, range.far, dist, e.speed * slow, dt)
+            e.cd -= dt
+            if e.cd <= 0 && arena.lineOfSight(e.pos, h) {
+                e.state = .windup
+                e.t = e.type == .weaver ? 0.6 : 1.0
+                e.aim = Vec(h.x, h.y)
+                if e.type == .weaver {
+                    // la toile tombe là où était l'héroïne au début du geste (télégraphe : cercle visible 0,6 s)
+                    hazards.append(Hazard(kind: .circle, pos: Vec(h.x, h.y), radius: 50, born: t, activeAt: t + 0.6, endAt: t + 0.6 + 4.5,
+                                          dmg: 0, tick: 0, nextTick: .infinity, ownerId: e.id, src: "weaver", slow: K.webSlow))
+                }
+            }
+        } else if e.state == .windup {
+            e.t -= dt
+            if e.t <= 0 {
+                if e.type == .puppeteer {
+                    var shades = 0
+                    for o in enemies where o.type == .shade && o.boss == nil { shades += 1 }
+                    var k = 0
+                    while k < 2 && shades < 6 {
+                        let ang = rng.next() * DMath.pi * 2
+                        let pos = Vec(clampJS(e.pos.x + DMath.cos(ang) * 34, 30, K.arenaW - 30), clampJS(e.pos.y + DMath.sin(ang) * 34, 30, K.arenaH - 30))
+                        if arena.isWalkableAt(pos.x, pos.y) && spawnEnemy(.shade, pos, elite: false, spawnTime: 0.4) != nil { shades += 1 }
+                        k += 1
+                    }
+                }
+                e.state = .move
+                e.cd = def.period
+            }
+        }
+    }
+
+    /// Scarabée-bouclier : se tourne lentement vers l'héroïne (bouclier devant), avance, coup de bouclier au sol.
+    private func updateBeetle(_ e: Enemy, _ dx: Double, _ dy: Double, _ slow: Double, _ dt: Double) {
+        if e.state != .charge {
+            // rotation bornée du bouclier (1,6 rad/s) : on le contourne en courant
+            let want = DMath.atan2(dy, dx)
+            let cur = DMath.atan2(e.aim.y, e.aim.x)
+            var d = want - cur
+            while d > DMath.pi { d -= 2 * DMath.pi }
+            while d < -DMath.pi { d += 2 * DMath.pi }
+            let a = cur + DMath.max(-1.6 * dt, DMath.min(1.6 * dt, d))
+            e.aim = Vec(DMath.cos(a), DMath.sin(a))
+        }
+        if e.state == .move {
+            chase(e, e.speed * slow, dt)
+            e.cd -= dt
+            // coup de bouclier au sol : onde courte télégraphiée 0,7 s autour de lui
+            if e.cd <= 0 && DMath.hypot(dx, dy) < 96 {
+                e.state = .windup
+                e.t = 0.7
+                hazards.append(Hazard(kind: .circle, pos: e.pos, radius: 64, born: t, activeAt: t + 0.7, endAt: t + 0.7 + 0.12,
+                                      dmg: e.contact, tick: 1, nextTick: t + 0.7, ownerId: e.id, src: "beetle"))
+            }
+        } else if e.state == .windup {
+            e.t -= dt
+            if e.t <= 0 {
+                e.state = .recover
+                e.t = 0.6
+            }
+        } else if e.state == .recover {
+            e.t -= dt
+            if e.t <= 0 {
+                e.state = .move
+                e.cd = Bestiary.def(.beetle).period
+            }
+        }
+    }
+
+    /// Les aiguilles qui arrivent de face sur le bouclier du scarabée rebondissent (±70°).
+    func shielded(_ e: Enemy, _ p: Projectile) -> Bool {
+        if e.boss != nil || e.type != .beetle { return false }
+        let v0 = DMath.hypot(p.vel.x, p.vel.y)
+        let v = (v0 == 0 || v0.isNaN) ? 1 : v0
+        return (e.aim.x * p.vel.x + e.aim.y * p.vel.y) / v < -0.34
+    }
+
+    /// Spectre : dérive, puis se téléporte près de l'héroïne (marque 0,7 s) et lâche un anneau 0,35 s après.
+    private func updateSpecter(_ e: Enemy, _ slow: Double, _ dt: Double) {
+        let h = hero.pos
+        if e.state == .move {
+            chase(e, e.speed * slow, dt)
+            e.cd -= dt
+            if e.cd <= 0 {
+                let ang = rng.next() * DMath.pi * 2
+                let to = Vec(clampJS(h.x + DMath.cos(ang) * 120, 36, K.arenaW - 36), clampJS(h.y + DMath.sin(ang) * 120, 36, K.arenaH - 36))
+                e.aim = to
+                e.state = .windup
+                e.t = 0.7
+                hazards.append(Hazard(kind: .circle, pos: to, radius: 26, born: t, activeAt: t + 0.7, endAt: t + 0.7,
+                                      dmg: 0, tick: 0, nextTick: .infinity, ownerId: e.id, src: "specter"))
+            }
+        } else if e.state == .windup {
+            e.t -= dt
+            if e.t <= 0 {
+                events.append(.blink(x: e.aim.x, y: e.aim.y, fromX: e.pos.x, fromY: e.pos.y))
+                e.pos = Vec(e.aim.x, e.aim.y)
+                e.state = .recover
+                e.t = 0.35
+            }
+        } else if e.state == .recover {
+            e.t -= dt
+            if e.t <= 0 {
+                let off = rng.next() * DMath.pi
+                for i in 0..<6 { enemyShot(e.pos, off + (Double(i) * DMath.pi) / 3, 150, e.shotDmg, 8) }
+                e.state = .move
+                e.cd = Bestiary.def(.specter).period
             }
         }
     }
@@ -975,6 +1175,11 @@ public final class World {
 
     private func heroHitInner(_ p: Projectile, _ e: Enemy) {
         let s = hero.stats
+        if e.boss == nil && e.type == .beetle && shielded(e, p) {
+            p.dead = true
+            events.append(.block(x: p.pos.x, y: p.pos.y))
+            return
+        }
         let crit = s.critChance > 0 && rng.chance(s.critChance)
         var dmg = p.dmg * (crit ? 2 : 1)
         if e.elite || e.boss != nil { dmg *= s.eliteMult }
@@ -982,6 +1187,11 @@ public final class World {
         if e.boss == nil && e.type == .moth { dmg *= K.needleMothMult }
         damageEnemy(e, dmg, onHit: true, crit: crit)
         p.lastHit = e.id
+        // Sorcier de braise : ses projectiles sont des braises, la cible touchée couve
+        if hero.kind == .ember {
+            e.emberT = DMath.max(e.emberT, EmberK.needleLinger)
+            e.emberDps = DMath.max(e.emberDps, EmberK.dps * EmberK.needleFrac * (s.damage / HeroK.damage) * s.emberDmgMult)
+        }
         if s.chain {
             var n = 0
             var sorted = enemies.filter { o in
@@ -1048,6 +1258,12 @@ public final class World {
                 e.hp -= e.burnDps * dt
                 if e.burnT <= 0 { e.burnDps = 0 }
             }
+            if e.emberT > 0 {
+                e.emberT -= dt
+                if e.hp > 0 { hero.dmgBy.sig += DMath.min(e.hp, e.emberDps * dt) }
+                e.hp -= e.emberDps * dt
+                if e.emberT <= 0 { e.emberDps = 0 }
+            }
             if e.poisonT > 0 {
                 e.poisonT -= dt
                 if e.hp > 0 { hero.dmgBy.other += DMath.min(e.hp, e.poisonDps * dt) }
@@ -1068,7 +1284,17 @@ public final class World {
         for e in deadOnes {
             kills += 1
             events.append(.kill(x: e.pos.x, y: e.pos.y, type: e.typeName))
-            hazards = hazards.filter { !($0.ownerId == e.id && $0.dmg == 0) }
+            let defused = e.boss == nil && e.type == .lantern && e.volley == 0
+            hazards = hazards.filter { !($0.ownerId == e.id && ($0.dmg == 0 || defused)) }
+            if s.combustion && e.emberT > 0 {
+                let boom = DMath.min(e.maxHp * EmberK.combustFrac, EmberK.combustCap * (s.damage / HeroK.damage))
+                events.append(.boom(x: e.pos.x, y: e.pos.y, r: EmberK.combustRadius, by: "combustion"))
+                dmgSrc = .sig
+                for o in enemies where o.hp > 0 && DMath.hypot(o.pos.x - e.pos.x, o.pos.y - e.pos.y) < EmberK.combustRadius + o.radius {
+                    damageEnemy(o, boom, onHit: false, crit: false)
+                }
+                dmgSrc = .other
+            }
             if e.boss == nil && e.type == .jelly {
                 for k in [-1.0, 1.0] {
                     var pos = Vec(e.pos.x + k * 14, e.pos.y)
@@ -1163,6 +1389,175 @@ public final class World {
     }
 
     /// Continuer (§11) : rend 50 % des PV et efface les projectiles.
+    // MARK: Moine du vent — élan et bourrasque (DECISIONS #74)
+
+    /// Courir charge l'élan ; s'arrêter le libère en bourrasque.
+    private func updateGust(_ dt: Double) {
+        let h = hero
+        let s = h.stats
+        h.gustCd = DMath.max(0, h.gustCd - dt)
+        h.gustT = DMath.max(0, h.gustT - dt * 2.2)
+        if cleared {
+            h.momentum = 0
+            return
+        }
+        if h.moving {
+            h.momentum = DMath.min(1, h.momentum + (dt * s.momentumRate) / GustK.chargeTime)
+        } else if h.stopped && h.momentum >= GustK.minMomentum && h.gustCd <= 0 {
+            gust(h.momentum)
+        } else {
+            h.momentum = DMath.max(0, h.momentum - GustK.decay * dt)
+        }
+    }
+
+    private func gust(_ m: Double) {
+        let h = hero
+        let s = h.stats
+        let r = (GustK.radius + GustK.radiusPerMomentum * m) * s.gustRadiusMult
+        let base = GustK.damage * m * (s.damage / HeroK.damage) * s.gustDmgMult
+        var hits = 0
+        dmgSrc = .sig
+        for e in enemies {
+            if e.hp <= 0 || e.state == .spawn { continue }
+            let dx = e.pos.x - h.pos.x
+            let dy = e.pos.y - h.pos.y
+            let d = DMath.hypot(dx, dy)
+            if d > r + e.radius { continue }
+            hits += 1
+            let crit = s.critChance > 0 && rng.chance(s.critChance)
+            var dmg = base * (crit ? 2 : 1)
+            if e.elite || e.boss != nil { dmg *= s.eliteMult }
+            damageEnemy(e, dmg, onHit: true, crit: crit)
+            if e.boss != nil { continue }
+            // recul, et un tireur en plein geste est interrompu
+            let push = GustK.knockback * m * (1 - (0.5 * d) / (r + e.radius))
+            let dir = d > 1e-6 ? Vec(dx / d, dy / d) : Vec(0, -1)
+            if e.state != .charge { arena.moveCircle(&e.pos, dir.x * push, dir.y * push, e.radius, flying: e.flying) }
+            if e.state == .windup && [.goblin, .skeleton, .weaver, .puppeteer, .specter].contains(e.type) {
+                e.state = .move
+                e.cd = DMath.max(e.cd, 0.8)
+                let now = t
+                hazards = hazards.filter { !($0.ownerId == e.id && $0.dmg == 0 && now < $0.activeAt) }
+            }
+        }
+        dmgSrc = .other
+        // projectiles ennemis pris dans la bourrasque : dissipés (Œil du cyclone : renvoyés)
+        for p in projectiles {
+            if p.fromHero || p.dead { continue }
+            let dx = p.pos.x - h.pos.x
+            let dy = p.pos.y - h.pos.y
+            let d = DMath.hypot(dx, dy)
+            if d > r + p.radius { continue }
+            if s.eyeOfStorm {
+                let dir = d > 1e-6 ? Vec(dx / d, dy / d) : Vec(0, -1)
+                p.fromHero = true
+                p.vel = Vec(dir.x * 520, dir.y * 520)
+                p.dmg = s.damage * 0.6
+                p.born = t
+                p.src = "gust"
+                p.lastHit = -1
+            } else {
+                p.dead = true
+            }
+        }
+        projectiles.removeAll { $0.dead }
+        if s.whirlwind { whirls.append(Whirl(pos: h.pos, endAt: t + GustK.whirlLife, r: GustK.whirlRadius)) }
+        if s.featherStep { h.invuln = DMath.max(h.invuln, GustK.featherInvuln) }
+        events.append(.gust(x: h.pos.x, y: h.pos.y, r: r, m: m, hits: hits))
+        h.momentum = 0
+        h.gustCd = GustK.cooldown
+        h.gustT = 1
+        h.gusts += 1
+    }
+
+    /// Tourbillons : aspirent les ennemis vers leur centre et les blessent.
+    private func updateWhirls(_ dt: Double) {
+        let s = hero.stats
+        let dps = GustK.whirlDps * (s.damage / HeroK.damage) * s.gustDmgMult
+        dmgSrc = .sig
+        for w in whirls {
+            for e in enemies {
+                if e.hp <= 0 || e.state == .spawn || e.boss != nil { continue }
+                let dx = w.pos.x - e.pos.x
+                let dy = w.pos.y - e.pos.y
+                let d = DMath.hypot(dx, dy)
+                if d > w.r + e.radius { continue }
+                damageEnemy(e, dps * dt, onHit: false, crit: false)
+                if d > 8 && e.state != .charge {
+                    arena.moveCircle(&e.pos, (dx / d) * GustK.whirlPull * dt, (dy / d) * GustK.whirlPull * dt, e.radius, flying: e.flying)
+                }
+            }
+        }
+        dmgSrc = .other
+        let now = t
+        whirls.removeAll { !($0.endAt > now) }
+    }
+
+    // MARK: Sorcier de braise — traînée de braises (DECISIONS #74)
+
+    /// Sème des braises en marchant ; les ennemis au sol qui les touchent brûlent.
+    private func updateEmbers(_ dt: Double) {
+        let h = hero
+        let s = h.stats
+        let life = EmberK.life * s.emberLife
+        var drop = 0
+        while drop < h.embers.count && t - h.embers[drop].t > life { drop += 1 }
+        if drop > 0 { h.embers.removeFirst(drop) }
+        if cleared {
+            h.embers.removeAll()
+            return
+        }
+        if h.moving {
+            if let last = h.embers.last {
+                if DMath.hypot(h.pos.x - last.x, h.pos.y - last.y) >= EmberK.spacing { h.embers.append(ThreadPoint(x: h.pos.x, y: h.pos.y, t: t)) }
+            } else {
+                h.embers.append(ThreadPoint(x: h.pos.x, y: h.pos.y, t: t))
+            }
+            if h.embers.count > EmberK.maxPoints { h.embers.removeFirst(h.embers.count - EmberK.maxPoints) }
+        }
+        let em = h.embers
+        if em.isEmpty { return }
+        let rad = EmberK.radius * s.emberWidth
+        let dps = EmberK.dps * (s.damage / HeroK.damage) * s.emberDmgMult
+        for e in enemies {
+            if e.hp <= 0 || e.state == .spawn || e.flying { continue }
+            let rs = rad + e.radius
+            let rr = rs * rs
+            // le point le plus récent est sous les pieds du sorcier : il ne brûle qu'une fois posé (0,15 s)
+            var i = em.count - 1
+            while i >= 0 {
+                let p = em[i]
+                i -= 1
+                if t - p.t < 0.15 { continue }
+                let ex = p.x - e.pos.x
+                let ey = p.y - e.pos.y
+                if ex * ex + ey * ey > rr { continue }
+                e.emberT = EmberK.linger
+                e.emberDps = DMath.max(e.emberDps, dps * (e.elite || e.boss != nil ? s.eliteMult : 1))
+                if s.furnace { e.slowT = DMath.max(e.slowT, 0.3) }
+                break
+            }
+        }
+        if s.ashWard {
+            for p in projectiles {
+                if p.fromHero || p.dead { continue }
+                var i = em.count - 1
+                while i >= 0 {
+                    let q = em[i]
+                    i -= 1
+                    let qx = q.x - p.pos.x
+                    let qy = q.y - p.pos.y
+                    let rp = rad + p.radius
+                    if qx * qx + qy * qy < rp * rp {
+                        p.dead = true
+                        break
+                    }
+                }
+            }
+            projectiles.removeAll { $0.dead }
+        }
+    }
+
     public func revive() {
         hero.hp = DMath.round(hero.stats.maxHp * 0.5)
         hero.invuln = 2

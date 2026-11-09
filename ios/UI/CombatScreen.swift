@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Combat (§12.3) : la scène SpriteKit en plein écran ; au-dessus, seulement « Niveau n · Salle 2/4 » et la pause.
 /// Les écrans de choix du pouvoir, pause, défaite, victoire et fin de tournoi se superposent à la scène.
+/// Essai d'un héros verrouillé : victoire et défaite mènent à l'écran « Essai terminé » (rien n'est gagné ni perdu).
 @MainActor
 struct CombatScreen: View {
     let session: CombatSession
@@ -30,7 +31,9 @@ struct CombatScreen: View {
         VStack {
             HStack {
                 HStack(spacing: 8) {
-                    Text(session.mode.isTournament ? String(localized: "Tournoi") : String(localized: "Niveau \(session.level.n)"))
+                    Text(session.mode.isTournament ? String(localized: "Tournoi")
+                         : session.config.trial ? String(localized: "Essai", comment: "Combat : essai d’un héros verrouillé (sans récompense)")
+                         : String(localized: "Niveau \(session.level.n)"))
                         .font(Theme.display(17))
                     Text("Salle \(session.roomIndex + 1)/\(session.roomCount)")
                         .font(Theme.text(14, weight: .bold))
@@ -69,13 +72,20 @@ struct CombatScreen: View {
             PowerChoiceView(offer: offer, owned: owned, title: title) { session.pick($0) }
         case .pause:
             PauseView(settings: app.settings) { session.resolvePause($0) }
+        case .defeat where session.config.trial:
+            TrialEndView(hero: session.config.heroId, won: false,
+                         onMap: { session.resolveDefeat(.map) }, onAgain: { session.resolveDefeat(.retry) })
+        case .victory where session.config.trial:
+            TrialEndView(hero: session.config.heroId, won: true,
+                         onMap: { app.afterVictory(next: false) },
+                         onAgain: { app.retry(session) })
         case let .defeat(used):
             DefeatView(continuesUsed: used, gems: app.wallet.gems, subscribed: app.subscribed,
                        onContinue: { app.buyContinue(session, used: used) },
                        onRetry: { session.resolveDefeat(.retry) },
                        onMap: { session.resolveDefeat(.map) })
         case let .victory(info):
-            VictoryView(info: info, onNext: { app.afterVictory(next: true) }, onMap: { app.afterVictory(next: false) })
+            VictoryView(info: info, loot: app.lastLoot, onNext: { app.afterVictory(next: true) }, onMap: { app.afterVictory(next: false) })
         case let .tournament(info):
             TournamentResultView(info: info, onMap: { app.closeCombat() }, onAgain: {
                 app.closeCombat()
@@ -288,10 +298,12 @@ struct DefeatView: View {
 
 // MARK: - victoire (§12.5)
 
-/// Étoiles qui tombent une à une, or qui défile, coffre d'étoiles, NIVEAU SUIVANT.
+/// Étoiles qui tombent une à une, or qui défile, coffre d'étoiles, butin (carte qui se retourne), NIVEAU SUIVANT.
 @MainActor
 struct VictoryView: View {
     let info: VictoryInfo
+    /// Objet et éclats de cette victoire (version 0.2).
+    let loot: Loot?
     let onNext: () -> Void
     let onMap: () -> Void
     @Environment(AppModel.self) private var app
@@ -314,7 +326,7 @@ struct VictoryView: View {
                     .offset(y: i == 1 ? -10 : 0)
                 }
             }
-            Puppet(name: app.currentHero.rawValue, size: 120)
+            Puppet(name: app.currentHero.rawValue, size: loot?.item == nil ? 120 : 80)
             HStack(spacing: 18) {
                 stat("Or", "+" + Fmt.int(gold), icon: "ui_coin")
                 stat("Ennemis", Fmt.int(info.kills))
@@ -332,6 +344,7 @@ struct VictoryView: View {
                 }
                 .foregroundStyle(Theme.ink)
             }
+            if let loot { LootBlock(loot: loot) }
             ForEach(info.chests, id: \.self) { c in
                 HStack(spacing: 6) {
                     InkIcon(name: "ui_chest", size: 24, fallback: "shippingbox.fill")
@@ -421,5 +434,42 @@ struct TournamentResultView: View {
             Text(value).font(Theme.text(20, weight: .heavy)).monospacedDigit()
         }
         .foregroundStyle(Theme.ink)
+    }
+}
+
+// MARK: - fin d'un essai de héros (DECISIONS #77)
+
+/// Rien n'est gagné ni perdu ; on rappelle comment garder le héros.
+@MainActor
+struct TrialEndView: View {
+    let hero: HeroID
+    let won: Bool
+    let onMap: () -> Void
+    let onAgain: () -> Void
+    @Environment(AppModel.self) private var app
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("Essai terminé").font(Theme.display(36)).foregroundStyle(Theme.ink)
+            Text(verbatim: "\(hero.title) · \(hero.mechanicText)").font(Theme.note(15)).foregroundStyle(Theme.ink2)
+            Puppet(name: hero.rawValue, size: 120).opacity(won ? 1 : 0.5)
+            Group {
+                if app.meta.heroUnlocked(hero) {
+                    Text("Ce héros est à toi : choisis-le dans l’écran Héros.")
+                } else {
+                    Text("Pour le garder : \(hero.unlockText).", comment: "Fin d’un essai : condition de déblocage du héros")
+                }
+            }
+            .font(Theme.text(15)).foregroundStyle(Theme.ink).multilineTextAlignment(.center)
+            HStack(spacing: 10) {
+                Button("Carte", action: onMap).buttonStyle(InkButtonStyle(kind: .ghost))
+                Button("Recommencer", action: onAgain).buttonStyle(InkButtonStyle(kind: .primary))
+            }
+        }
+        .padding(22)
+        .frame(maxWidth: 380)
+        .paperCard(fill: Theme.paper)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Theme.ink.opacity(0.6).ignoresSafeArea())
     }
 }

@@ -28,8 +28,12 @@ import {
   seedOf,
   talentsAtRank,
   NO_TALENTS,
+  expectedGear,
+  gearStats,
+  type GearItem,
   type BotName,
   type HeroId,
+  type HeroKind,
   type HeroInput,
   type LevelDef,
   type PowerId,
@@ -58,6 +62,10 @@ const ALL_POWER_IDS: PowerId[] = [
   'attackSpeed', 'barbedThread', 'blast', 'chain', 'confetti', 'crit', 'damage', 'diagonals', 'dodge', 'echoCut',
   'eliteSlayer', 'flame', 'flashStep', 'frost', 'lifesteal', 'longThread', 'magnet', 'maxHp', 'multishot', 'orb',
   'pierce', 'poison', 'rearShot', 'ricochet', 'sharpScissors', 'shield', 'sideShots', 'speed', 'steelThread', 'wallBounce',
+];
+/** Pouvoirs du Moine et du Sorcier (DECISIONS #74), hachés à part, en fin d'empreinte. */
+const SIGNATURE_POWER_IDS: PowerId[] = [
+  'ashWard', 'bigGust', 'blaze', 'combustion', 'eyeOfStorm', 'featherStep', 'furnace', 'keenGust', 'liveEmbers', 'quickMomentum', 'whirlwind', 'wideTrail',
 ];
 
 export class Hasher {
@@ -118,6 +126,29 @@ function hashEvent(H: Hasher, ev: WorldEvent): void {
     case 'snip':
       H.num(ev.x);
       H.num(ev.y);
+      H.str(ev.by);
+      break;
+    case 'gust':
+      H.num(ev.x);
+      H.num(ev.y);
+      H.num(ev.r);
+      H.num(ev.m);
+      H.int(ev.hits);
+      break;
+    case 'block':
+      H.num(ev.x);
+      H.num(ev.y);
+      break;
+    case 'blink':
+      H.num(ev.x);
+      H.num(ev.y);
+      H.num(ev.fromX);
+      H.num(ev.fromY);
+      break;
+    case 'boom':
+      H.num(ev.x);
+      H.num(ev.y);
+      H.num(ev.r);
       H.str(ev.by);
       break;
     default:
@@ -211,6 +242,30 @@ export function stateHash(w: World): number {
   H.int(w.events.length);
   for (const ev of w.events) hashEvent(H, ev);
   H.int(priv.pendingCuts.length);
+  // version 0.2 : héros à mécanique propre, équipement, nouveaux ennemis (DECISIONS #73 à #75)
+  H.str(h.kind);
+  for (const v of [h.momentum, h.gustCd, h.gustT, h.dmgBy.sig, h.stats.critChance, h.stats.dodge, h.stats.cutMult, h.stats.gustDmgMult, h.stats.emberDmgMult]) H.num(v);
+  H.bool(h.stopped);
+  H.int(h.gusts);
+  for (const id of SIGNATURE_POWER_IDS) H.int(h.powers[id] ?? 0);
+  H.int(h.embers.length);
+  for (const p of h.embers) {
+    H.num(p.x);
+    H.num(p.y);
+    H.num(p.t);
+  }
+  for (const e of w.enemies) {
+    H.num(e.emberT);
+    H.num(e.emberDps);
+  }
+  for (const z of w.hazards) H.num(z.slow ?? 0);
+  H.int(w.whirls.length);
+  for (const wh of w.whirls) {
+    H.num(wh.pos.x);
+    H.num(wh.pos.y);
+    H.num(wh.endAt);
+    H.num(wh.r);
+  }
   return H.h >>> 0;
 }
 
@@ -366,6 +421,8 @@ interface RunSpec {
   scroll?: PowerId | null;
   autoFire?: boolean;
   timeLimit?: number;
+  /** Équipement porté (DECISIONS #75) : objets, recalculés en bonus des deux côtés (port Swift compris). */
+  gear?: GearItem[];
 }
 
 function recordRun(spec: RunSpec): void {
@@ -397,6 +454,7 @@ function recordRun(spec: RunSpec): void {
     scroll: spec.scroll ?? null,
     autoFire: spec.autoFire ?? true,
     timeLimit: spec.timeLimit ?? 300,
+    gear: spec.gear ? gearStats(spec.gear) : undefined,
     onStep: (w) => {
       tick++;
       if (tick % EVERY === 0 || w.dead || w.cleared || w.exited) snaps.push(snap(w, tick));
@@ -408,7 +466,7 @@ function recordRun(spec: RunSpec): void {
     name: spec.name,
     simVersion: VERSION,
     level: { ...spec.level, seed: spec.level.source === 'tournament' ? spec.level.seed : (index[spec.level.n]?.seed ?? 1), budgetScale: spec.level.source === 'tournament' ? 1 : (index[spec.level.n]?.budgetScale ?? 1) },
-    options: { talents: spec.talents, heroId: spec.heroId, attemptSeed: spec.attemptSeed, potion: !!spec.potion, aegis: !!spec.aegis, scroll: spec.scroll ?? null, autoFire: spec.autoFire ?? true, timeLimit: spec.timeLimit ?? 300 },
+    options: { talents: spec.talents, heroId: spec.heroId, attemptSeed: spec.attemptSeed, potion: !!spec.potion, aegis: !!spec.aegis, scroll: spec.scroll ?? null, autoFire: spec.autoFire ?? true, timeLimit: spec.timeLimit ?? 300, gear: spec.gear ?? [] },
     ticks: tick,
     inputs: log.runs,
     choices,
@@ -425,7 +483,8 @@ function recordRun(spec: RunSpec): void {
       hpLeft: hex(r.hpLeft),
       hpFrac: hex(r.hpFrac),
       seconds: hex(r.seconds),
-      dmgBy: { cut: hex(r.dmgBy.cut), shot: hex(r.dmgBy.shot), other: hex(r.dmgBy.other) },
+      dmgBy: { cut: hex(r.dmgBy.cut), shot: hex(r.dmgBy.shot), other: hex(r.dmgBy.other), sig: hex(r.dmgBy.sig) },
+      gusts: r.gusts,
       readable: { hpLeft: r.hpLeft, seconds: r.seconds, cutShare: r.dmgBy.cut / Math.max(1, r.dmgBy.cut + r.dmgBy.shot + r.dmgBy.other) },
     },
   });
@@ -444,6 +503,9 @@ interface RoomSpec {
   talents?: Talents;
   hp?: number;
   ticks: number;
+  /** Héros à mécanique propre et équipement (version 0.2). */
+  kind?: HeroKind;
+  gear?: GearItem[];
 }
 
 /** Trajectoire scriptée : boucles autour d'un point qui se déplace, pauses, allers-retours. */
@@ -458,7 +520,7 @@ function scripted(tick: number): HeroInput {
 
 function recordRoom(spec: RoomSpec): void {
   const tpl = templates.get(spec.template)!;
-  const hero = newHero(spec.talents ?? NO_TALENTS, spec.powers, true);
+  const hero = newHero(spec.talents ?? NO_TALENTS, spec.powers, true, { kind: spec.kind ?? 'thread', gear: spec.gear ? gearStats(spec.gear) : undefined });
   if (spec.hp) {
     hero.stats.maxHp = spec.hp;
     hero.hp = spec.hp;
@@ -480,7 +542,7 @@ function recordRoom(spec: RoomSpec): void {
     name: spec.name,
     simVersion: VERSION,
     room: { template: spec.template, D: spec.D, waves: spec.waves, boss: spec.boss ?? null, seed: spec.seed },
-    hero: { talents: spec.talents ?? NO_TALENTS, powers: spec.powers, hp: spec.hp ?? null },
+    hero: { talents: spec.talents ?? NO_TALENTS, powers: spec.powers, hp: spec.hp ?? null, kind: spec.kind ?? 'thread', gear: spec.gear ?? [] },
     ticks: tick,
     inputs: log.runs,
     snapshots: snaps,
@@ -498,10 +560,14 @@ function main(): void {
     { name: 'l001_expert', level: { source: 'index', n: 1 }, bot: 'expert', botSeed: seedOf(1, 7), attemptSeed: 1, heroId: 'scout', talents: NO_TALENTS },
     { name: 'l007_moyen', level: { source: 'index', n: 7 }, bot: 'moyen', botSeed: seedOf(2, 7), attemptSeed: 2, heroId: 'scout', talents: NO_TALENTS },
     { name: 'l020_boss_expert', level: { source: 'index', n: 20 }, bot: 'expert', botSeed: seedOf(3, 7), attemptSeed: 3, heroId: 'scout', talents: NO_TALENTS, potion: true, aegis: true },
-    { name: 'l047_ember', level: { source: 'index', n: 47 }, bot: 'expert', botSeed: seedOf(4, 7), attemptSeed: 4, heroId: 'emberSorcerer', talents: talentsAtRank(1) },
-    { name: 'l085_monk', level: { source: 'index', n: 85 }, bot: 'moyen', botSeed: seedOf(5, 7), attemptSeed: 5, heroId: 'windMonk', talents: talentsAtRank(3), scroll: 'steelThread' },
-    { name: 'l147_expert', level: { source: 'index', n: 147 }, bot: 'expert', botSeed: seedOf(6, 7), attemptSeed: 6, heroId: 'scout', talents: talentsAtRank(5) },
+    { name: 'l047_ember', level: { source: 'index', n: 47 }, bot: 'expert', botSeed: seedOf(4, 7), attemptSeed: 4, heroId: 'emberSorcerer', talents: talentsAtRank(1), gear: expectedGear(47) },
+    { name: 'l085_monk', level: { source: 'index', n: 85 }, bot: 'moyen', botSeed: seedOf(5, 7), attemptSeed: 5, heroId: 'windMonk', talents: talentsAtRank(3), scroll: 'steelThread', gear: expectedGear(85) },
+    { name: 'l147_expert', level: { source: 'index', n: 147 }, bot: 'expert', botSeed: seedOf(6, 7), attemptSeed: 6, heroId: 'scout', talents: talentsAtRank(5), gear: expectedGear(147) },
     { name: 'l200_boss', level: { source: 'index', n: 200 }, bot: 'expert', botSeed: seedOf(7, 7), attemptSeed: 7, heroId: 'scout', talents: talentsAtRank(8) },
+    // chapitres 14 et 15 : lampion, araignée, scarabée, montreur d'ombres, spectre (DECISIONS #73)
+    { name: 'l275_monk', level: { source: 'index', n: 275 }, bot: 'expert', botSeed: seedOf(9, 7), attemptSeed: 9, heroId: 'windMonk', talents: talentsAtRank(9), gear: expectedGear(275) },
+    { name: 'l290_ember', level: { source: 'index', n: 290 }, bot: 'expert', botSeed: seedOf(10, 7), attemptSeed: 10, heroId: 'emberSorcerer', talents: talentsAtRank(9), gear: expectedGear(290) },
+    { name: 'l284_scout', level: { source: 'index', n: 284 }, bot: 'moyen', botSeed: seedOf(11, 7), attemptSeed: 11, heroId: 'scout', talents: talentsAtRank(9), gear: expectedGear(284) },
     { name: 'tournament_202645', level: { source: 'tournament', n: 120, seed: 202645 }, bot: 'expert', botSeed: seedOf(8, 7), attemptSeed: 0, heroId: 'scout', talents: NO_TALENTS },
   ];
   for (const r of runs) recordRun(r);
@@ -527,6 +593,31 @@ function main(): void {
       talents: talentsAtRank(10),
       hp: 200000,
       ticks: 1800,
+    },
+    // version 0.2 : toutes les cartes du Moine et du Sorcier, contre les ennemis des chapitres 11 à 15 (DECISIONS #73, #74)
+    {
+      name: 'gust_powers',
+      template: 'room_05',
+      D: 10,
+      waves: [mix(['lantern', 'weaver', 'beetle', 'puppeteer', 'specter', 'goblin', 'skeleton', 'bat'], 3), mix(['beetle', 'lantern', 'specter', 'weaver', 'jelly'])],
+      seed: 9090,
+      powers: { bigGust: 2, keenGust: 2, quickMomentum: 1, eyeOfStorm: 1, whirlwind: 1, featherStep: 1, crit: 1, dodge: 1 },
+      kind: 'gust',
+      gear: expectedGear(250),
+      hp: 200000,
+      ticks: 2400,
+    },
+    {
+      name: 'ember_powers',
+      template: 'room_11',
+      D: 11,
+      waves: [mix(['puppeteer', 'beetle', 'lantern', 'mage', 'wolf', 'weaver', 'specter', 'moth'], 4), mix(['jelly', 'puppeteer', 'lantern', 'snipper'])],
+      seed: 5151,
+      powers: { liveEmbers: 2, blaze: 2, wideTrail: 2, combustion: 1, ashWard: 1, furnace: 1, flame: 1, eliteSlayer: 1 },
+      kind: 'ember',
+      gear: expectedGear(300),
+      hp: 200000,
+      ticks: 2400,
     },
   ];
   const bosses = ['treant', 'queen', 'scorpion', 'wyvern', 'ashlord'] as const;

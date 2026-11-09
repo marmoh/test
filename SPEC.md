@@ -47,10 +47,23 @@ les bots (§9) font foi et l'agent les ajuste en notant chaque changement dans `
 - **Talents permanents** (or) : Vigueur (+2 % PV / rang), Force (+2 % dégâts), Agilité (+1,5 % cadence), Fortune (+5 % or).
   10 rangs chacun → **plafond +20 % / +20 % / +15 %**. Les bots modélisent la progression attendue des talents au niveau `n`
   (`rang ≈ min(10, n / 25)`). Talents **désactivés en tournoi**.
-- Héros jouables : 1 au lancement (l'Éclaireuse), 2 de plus à débloquer (Moine du vent, Sorcier de braise) avec
-  **les mêmes stats** et un tir de forme différente (cosmétique + petit pouvoir de départ propre, équilibré par les bots).
+- Héros jouables : 1 au lancement (l'Éclaireuse), 2 de plus à débloquer en jouant (Moine du vent : niveau 40 ou offre de
+  départ ; Sorcier de braise : niveau 100), essayables avant (salle d'essai sans récompense). **Mêmes statistiques, mécanique
+  signature différente** (DECISIONS #74), chacun avec sa famille de 6 pouvoirs (la première carte de chaque tirage) :
+  - **Éclaireuse — Ciseaux de lune** : refermer une boucle de fil découpe ce qu'elle entoure.
+  - **Moine du vent — Élan et bourrasque** : courir charge l'élan ; s'arrêter le libère en bourrasque (dégâts selon l'élan,
+    recul, tireurs interrompus, projectiles ennemis dissipés).
+  - **Sorcier de braise — Traînée de braises** : ses pas laissent des braises qui brûlent les ennemis au sol ; ses projectiles
+    font couver leur cible.
+- **Équipement** (DECISIONS #75) : 4 emplacements (aiguille : dégâts, cape : PV, masque : cadence, talisman : puissance de la
+  mécanique signature), 24 objets, 4 raretés (commun, rare, épique, légendaire), une statistique secondaire fixe par objet.
+  Butin **sans hasard** : la première victoire des niveaux p ∈ {3, 7, 10, 14, 17, 20} de chaque chapitre donne un objet
+  annoncé d'avance (carte, pré-niveau) ; boss : épique, boss de fin de royaume : légendaire. Chaque victoire donne des
+  **éclats** (amélioration avec l'or ; le recyclage en rend). Les bots modélisent l'équipement attendu comme les talents
+  (meilleur objet gagné par emplacement, amélioré à mi-chemin). Statistique principale au niveau 1 : 1,5 / 2,5 / 3,5 /
+  4,5 % selon la rareté, + 0,1 point par niveau (DECISIONS #79). Désactivé en tournoi.
 
-## 5. Ennemis (8 types + boss)
+## 5. Ennemis (15 types + boss)
 Chaque attaque est **télégraphiée** (zone au sol ou lueur) au moins **0,5 s** avant : lisibilité avant tout.
 
 | Ennemi | PV | Contact | Vitesse | Attaque | Coût budget |
@@ -64,6 +77,10 @@ Chaque attaque est **télégraphiée** (zone au sol ou lueur) au moins **0,5 s**
 | Chauve-souris | 120 | 70 | 140 (vol, ignore obstacles) | piqué vers le héros / 2 s | 2 |
 | Mage de braise | 340 | 50 | 50 | flaque de feu télégraphiée 0,8 s (60 dégâts/0,5 s, dure 3 s) | 5 |
 
+- Chapitres 11 à 15 (DECISIONS #73) : **Lampion** (fonce, s'arrête et explose après 0,8 s ; l'abattre avant le désamorce),
+  **Araignée tisseuse** (toile qui ralentit l'héroïne de 45 %), **Scarabée-bouclier** (bouclier frontal qui arrête les
+  aiguilles, coup au sol télégraphié), **Montreur d'ombres** (invoque des ombres), **Spectre de papier** (marque
+  d'arrivée, téléportation, anneau). Les mécaniques signature passent le bouclier.
 - Mise à l'échelle avec la difficulté `D` : `PV × (1 + 0,09 D)`, `dégâts × (1 + 0,06 D)` (cadences inchangées).
 - **Élites** (dès le chapitre 3) : contour doré, `PV × 2,2`, une attaque bonus. Max 1 par salle, 2 dans les niveaux difficiles.
 - **Boss** (niveau 20 de chaque chapitre) : 5 archétypes × 3 variantes (une par chapitre du royaume), chacun **3 phases**
@@ -102,6 +119,8 @@ Chaque attaque est **télégraphiée** (zone au sol ou lueur) au moins **0,5 s**
 - ⭐ victoire · ⭐⭐ victoire avec ≥ 50 % des PV · ⭐⭐⭐ victoire avec ≥ 80 % des PV.
 - **Vies** : 5 maximum, +1 toutes les **30 min**. Une défaite coûte 1 vie (une victoire n'en coûte pas).
 - Or : `20 + 2 n` par victoire, ×1,5 pour 3 étoiles la première fois. Coffres d'étoiles tous les 20 ★ (or + gemmes + 1 bonus).
+- **Quêtes du jour** (DECISIONS #76) : 3 quêtes par jour tirées de la date (or, gemmes, éclats), bonus pour les trois.
+  **Bestiaire** : chaque créature rencontrée, son comportement et une astuce.
 
 ## 9. Validation par bots (cœur de la qualité)
 Trois bots joués dans la simulation TS, avec un temps de réaction et une précision d'esquive :
@@ -143,6 +162,9 @@ Trois bots joués dans la simulation TS, avec un temps de réaction et une préc
 - **Continuer** à la défaite : 60 gemmes (1re fois), 120 (2e) ; max 2 par tentative. Rend 50 % des PV, efface les projectiles.
 - **Bonus avant niveau** (or ou gemmes) : Potion de vie (+25 % PV max), Parchemin (commence avec 1 pouvoir au choix), Égide (1 bouclier).
 - **Recharge de vies** : 5 vies pour 90 gemmes.
+- **Étal du colporteur** (DECISIONS #79) : chaque jour, trois objets d'équipement précis, visibles avant l'achat et les
+  mêmes pour tous (commun 40, rare 90, épique 220 gemmes ; jamais de légendaire), un achat par objet et par jour ; sac de
+  40 éclats pour 60 gemmes. Les niveaux restent calibrés sur le parcours gratuit (butin des niveaux).
 - **Interdits** : loot box, monnaie à probabilités, compte à rebours mensonger, publicités intrusives (pas de pub en V1).
 - Paywall : à la 1re fois sans vie, sur l'écran de défaite (bouton secondaire), dans la boutique. Jamais en combat.
 - StoreKit 2 complet : `Store` (chargement, achat, restauration, `Transaction.updates`), crédit des consommables
@@ -156,7 +178,7 @@ Trois bots joués dans la simulation TS, avec un temps de réaction et une préc
 3. **Combat** : PV du héros (barre au-dessus de la tête), salle 2/4, pause. Rien d'autre à l'écran.
 4. **Choix du pouvoir** : 3 cartes illustrées qui se retournent, description en une ligne, rareté par couleur de cadre.
 5. **Victoire** : étoiles qui tombent une à une, or, coffre d'étoiles, NIVEAU SUIVANT. **Défaite** : continuer (gemmes), réessayer, carte.
-6. **Héros et talents**, **Boutique**, **Pass de saison**, **Tournoi** (règles, essais restants, classement),
+6. **Héros** (onglets Héros, Équipement, Talents), **Quêtes du jour**, **Bestiaire**, **Boutique**, **Pass de saison**, **Tournoi** (règles, essais restants, classement),
    **Réglages** (son, musique, vibrations, tir auto permanent, réduire les animations, restaurer, confidentialité, crédits des polices).
 
 ## 13. Technique

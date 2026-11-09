@@ -11,7 +11,7 @@ import { fork } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { generateLevel, runLevel, talentsForLevel, Bot, BOTS, seedOf, type LevelDef, type BotName } from '../../sim/src/index.js';
+import { generateLevel, runLevel, talentsForLevel, gearForLevel, Bot, BOTS, seedOf, type LevelDef, type BotName } from '../../sim/src/index.js';
 import { loadRooms, roomMap, saveLevel, LEVELS_DIR, loadLevel } from './content-io.js';
 import { bandFor, inBand } from './bands.js';
 
@@ -38,7 +38,7 @@ function rate(level: LevelDef, bot: BotName, games: number, salt: number): { r: 
   let wins = 0;
   let secs = 0;
   for (let g = 0; g < games; g++) {
-    const res = runLevel(level, map, new Bot(BOTS[bot], seedOf(g, salt, 7)), { talents: talentsForLevel(level.n), attemptSeed: seedOf(g, salt) });
+    const res = runLevel(level, map, new Bot(BOTS[bot], seedOf(g, salt, 7)), { talents: talentsForLevel(level.n), gear: gearForLevel(level.n), attemptSeed: seedOf(g, salt) });
     if (res.won) wins++;
     secs += res.seconds;
   }

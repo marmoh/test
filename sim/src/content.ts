@@ -1,7 +1,11 @@
 /** §5 et §6 : définitions des ennemis, boss et pouvoirs. */
 
-export type EnemyType = 'goblin' | 'mushroom' | 'wolf' | 'skeleton' | 'jelly' | 'totem' | 'bat' | 'mage' | 'moth' | 'snipper';
-export type MinionType = EnemyType | 'jellySmall';
+export type EnemyType =
+  | 'goblin' | 'mushroom' | 'wolf' | 'skeleton' | 'jelly' | 'totem' | 'bat' | 'mage' | 'moth' | 'snipper'
+  // chapitres 11 à 15 (DECISIONS #73)
+  | 'lantern' | 'weaver' | 'beetle' | 'puppeteer' | 'specter';
+/** `shade` : ombre invoquée par le montreur d'ombres (jamais tirée par le générateur). */
+export type MinionType = EnemyType | 'jellySmall' | 'shade';
 
 export interface EnemyDef {
   type: MinionType;
@@ -33,6 +37,18 @@ export const ENEMIES: Record<MinionType, EnemyDef> = {
   // Ciseaux de lune : ennemis qui s'en prennent au fil de découpe
   moth: { type: 'moth', name: 'Mite de papier', hp: 100, contact: 40, speed: 105, radius: 12, flying: true, shotDmg: 0, cost: 2, period: 0.6 },
   snipper: { type: 'snipper', name: 'Crabe-ciseaux', hp: 320, contact: 90, speed: 62, radius: 16, flying: false, shotDmg: 0, cost: 3, period: 3 },
+  // chapitres 11 à 15 : une mécanique nouvelle chacun (DECISIONS #73)
+  /** fonce, s'arrête près de l'héroïne et explose après un télégraphe de 0,8 s */
+  lantern: { type: 'lantern', name: 'Lampion', hp: 150, contact: 0, speed: 112, radius: 13, flying: false, shotDmg: 120, cost: 2, period: 0 },
+  /** crache une toile qui ralentit l'héroïne (sans dégâts) */
+  weaver: { type: 'weaver', name: 'Araignée tisseuse', hp: 240, contact: 50, speed: 70, radius: 14, flying: false, shotDmg: 0, cost: 3, period: 3.6, range: [130, 270] },
+  /** bouclier frontal : les aiguilles venant de face rebondissent ; coup de bouclier au sol télégraphié */
+  beetle: { type: 'beetle', name: 'Scarabée-bouclier', hp: 420, contact: 55, speed: 45, radius: 18, flying: false, shotDmg: 0, cost: 4, period: 3.6 },
+  /** garde ses distances et invoque deux ombres */
+  puppeteer: { type: 'puppeteer', name: "Montreur d'ombres", hp: 300, contact: 40, speed: 55, radius: 15, flying: false, shotDmg: 0, cost: 4, period: 6.5, range: [150, 300] },
+  shade: { type: 'shade', name: 'Ombre', hp: 70, contact: 50, speed: 122, radius: 10, flying: false, shotDmg: 0, cost: 0, period: 0 },
+  /** se téléporte près de l'héroïne (marque télégraphiée) puis lâche un anneau */
+  specter: { type: 'specter', name: 'Spectre de papier', hp: 260, contact: 50, speed: 32, radius: 14, flying: true, shotDmg: 65, cost: 4, period: 3.8 },
 };
 
 /**
@@ -41,7 +57,7 @@ export const ENEMIES: Record<MinionType, EnemyDef> = {
  * gelée (3 : un poursuivant qui se divise), mite (4 : elle mange le fil, on l'abat aux aiguilles), crabe-ciseaux
  * (5 : sa charge tranche le fil) ; DECISIONS #32 et #39 (seuls la mite et le crabe coupent le fil).
  */
-export const UNLOCK_ORDER: EnemyType[] = ['goblin', 'bat', 'jelly', 'moth', 'snipper', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage'];
+export const UNLOCK_ORDER: EnemyType[] = ['goblin', 'bat', 'jelly', 'moth', 'snipper', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage', 'lantern', 'weaver', 'beetle', 'puppeteer', 'specter'];
 
 export function unlockedEnemies(chapter: number): EnemyType[] {
   return UNLOCK_ORDER.slice(0, Math.min(UNLOCK_ORDER.length, chapter));
@@ -65,6 +81,11 @@ export const SPAWN_WEIGHT: Record<EnemyType, number> = {
   totem: 0.6,
   bat: 0.8,
   mage: 0.6,
+  lantern: 0.7,
+  weaver: 0.6,
+  beetle: 0.5,
+  puppeteer: 0.45,
+  specter: 0.55,
 };
 
 // ───────────────────────────── Boss ─────────────────────────────
@@ -174,7 +195,9 @@ export const BOSSES: Record<BossArchetype, BossDef> = {
 // ──────────────────────────── Pouvoirs ────────────────────────────
 
 export type Rarity = 'common' | 'rare' | 'epic';
-export type PowerFamily = 'thread' | 'shot' | 'power' | 'element' | 'defense' | 'mobility';
+export type PowerFamily = 'thread' | 'wind' | 'ember' | 'shot' | 'power' | 'element' | 'defense' | 'mobility';
+/** Familles « signature » : propres à un héros (première carte de chaque tirage, DECISIONS #71 et #74). */
+export const SIGNATURE_FAMILIES: PowerFamily[] = ['thread', 'wind', 'ember'];
 
 export type PowerId =
   | 'multishot'
@@ -207,7 +230,21 @@ export type PowerId =
   | 'barbedThread'
   | 'sharpScissors'
   | 'echoCut'
-  | 'confetti';
+  | 'confetti'
+  // famille Vent (Moine du vent)
+  | 'bigGust'
+  | 'keenGust'
+  | 'quickMomentum'
+  | 'eyeOfStorm'
+  | 'whirlwind'
+  | 'featherStep'
+  // famille Braise (Sorcier de braise)
+  | 'liveEmbers'
+  | 'blaze'
+  | 'wideTrail'
+  | 'combustion'
+  | 'ashWard'
+  | 'furnace';
 
 export interface PowerDef {
   id: PowerId;
@@ -248,6 +285,19 @@ export const POWERS: PowerDef[] = [
   { id: 'maxHp', name: 'PV max +20 %', family: 'defense', rarity: 'common', maxStacks: 3, desc: '+20 % PV max et soigne d’autant' },
   { id: 'speed', name: 'Vitesse +20 %', family: 'mobility', rarity: 'common', maxStacks: 2, desc: 'Déplacement 20 % plus rapide' },
   { id: 'dodge', name: 'Esquive', family: 'mobility', rarity: 'rare', maxStacks: 1, desc: '10 % de chances d’éviter un coup' },
+  // Ajoutés à la fin : le tirage de l'Éclaireuse (famille Fil) reste identique au bit près (DECISIONS #74).
+  { id: 'bigGust', name: 'Grand souffle', family: 'wind', rarity: 'common', maxStacks: 3, desc: 'Bourrasque 25 % plus large' },
+  { id: 'keenGust', name: 'Rafale tranchante', family: 'wind', rarity: 'common', maxStacks: 3, desc: '+35 % de dégâts de bourrasque' },
+  { id: 'quickMomentum', name: 'Élan rapide', family: 'wind', rarity: 'common', maxStacks: 2, desc: 'L’élan se charge 35 % plus vite' },
+  { id: 'eyeOfStorm', name: 'Œil du cyclone', family: 'wind', rarity: 'rare', maxStacks: 1, desc: 'Renvoie les projectiles pris dans la bourrasque' },
+  { id: 'whirlwind', name: 'Tourbillon', family: 'wind', rarity: 'rare', maxStacks: 1, desc: 'La bourrasque laisse un tourbillon qui aspire' },
+  { id: 'featherStep', name: 'Pas de plume', family: 'wind', rarity: 'epic', maxStacks: 1, desc: 'Invulnérable 0,6 s après une bourrasque' },
+  { id: 'liveEmbers', name: 'Braises vives', family: 'ember', rarity: 'common', maxStacks: 3, desc: 'La traînée dure 35 % plus longtemps' },
+  { id: 'blaze', name: 'Brasier', family: 'ember', rarity: 'common', maxStacks: 3, desc: '+35 % de dégâts de brûlure' },
+  { id: 'wideTrail', name: 'Traînée large', family: 'ember', rarity: 'common', maxStacks: 2, desc: 'Traînée 40 % plus large' },
+  { id: 'combustion', name: 'Combustion', family: 'ember', rarity: 'rare', maxStacks: 1, desc: 'Un ennemi qui meurt en brûlant explose' },
+  { id: 'ashWard', name: 'Cendres ardentes', family: 'ember', rarity: 'rare', maxStacks: 1, desc: 'Les projectiles ennemis brûlent dans la traînée' },
+  { id: 'furnace', name: 'Fournaise', family: 'ember', rarity: 'epic', maxStacks: 1, desc: 'La traînée ralentit de 35 % et brûle 2 × plus' },
 ];
 
 export const POWER_BY_ID: Record<PowerId, PowerDef> = Object.fromEntries(POWERS.map((p) => [p.id, p])) as Record<PowerId, PowerDef>;
@@ -255,15 +305,28 @@ export const POWER_BY_ID: Record<PowerId, PowerDef> = Object.fromEntries(POWERS.
 // ──────────────────────────── Héros ────────────────────────────
 
 export type HeroId = 'scout' | 'windMonk' | 'emberSorcerer';
+/**
+ * Mécanique signature (DECISIONS #74) : chaque héros joue autrement.
+ * - thread : Ciseaux de lune — refermer une boucle de fil découpe ce qu'elle entoure.
+ * - gust : Élan et bourrasque — courir charge l'élan, s'arrêter le libère en bourrasque (dégâts, recul, projectiles dissipés).
+ * - ember : Traînée de braises — la route du héros brûle derrière lui ; on attire les poursuivants dans le feu.
+ */
+export type HeroKind = 'thread' | 'gust' | 'ember';
 export interface HeroDef {
   id: HeroId;
   name: string;
+  kind: HeroKind;
+  /** Famille de pouvoirs signature (première carte de chaque tirage). */
+  family: PowerFamily;
   /** Petit pouvoir de départ propre (équilibré par les bots). */
   startPower: PowerId | null;
   shotShape: 'arrow' | 'gust' | 'ember';
+  /** Nom de la mécanique et phrase d'accroche (écrans). */
+  mechanic: string;
+  pitch: string;
 }
 export const HEROES: Record<HeroId, HeroDef> = {
-  scout: { id: 'scout', name: "L'Éclaireuse", startPower: null, shotShape: 'arrow' },
-  windMonk: { id: 'windMonk', name: 'Moine du vent', startPower: 'speed', shotShape: 'gust' },
-  emberSorcerer: { id: 'emberSorcerer', name: 'Sorcier de braise', startPower: 'flame', shotShape: 'ember' },
+  scout: { id: 'scout', name: "L'Éclaireuse", kind: 'thread', family: 'thread', startPower: null, shotShape: 'arrow', mechanic: 'Ciseaux de lune', pitch: 'Entoure tes ennemis de ton fil : la boucle refermée les découpe.' },
+  windMonk: { id: 'windMonk', name: 'Moine du vent', kind: 'gust', family: 'wind', startPower: null, shotShape: 'gust', mechanic: 'Élan et bourrasque', pitch: 'Cours pour prendre de l’élan, arrête-toi : la bourrasque balaie tout autour de toi.' },
+  emberSorcerer: { id: 'emberSorcerer', name: 'Sorcier de braise', kind: 'ember', family: 'ember', startPower: null, shotShape: 'ember', mechanic: 'Traînée de braises', pitch: 'Tes pas laissent des braises : attire tes poursuivants dans le feu.' },
 };
