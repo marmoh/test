@@ -36,13 +36,28 @@ Vérification :
   `drawGusts`, `drawWhirl`, `drawEmbers`, `drawWeb`, branche `specter` de `drawHazard`, évènements dans `react`).
 - Le bouclier du scarabée suit `enemy.aim` (pas la direction de l'héroïne).
 
-## 3. Interface (`ios/UI`) et sauvegarde
+## 3. Interface (`ios/UI`) et sauvegarde — fait (sans compilateur iOS : à vérifier dans Xcode)
 
-- Héros : onglets Héros / Équipement / Talents ; essai d'un héros verrouillé ; déblocage du Moine au niveau 40, du Sorcier au
-  niveau 100 (`web/src/meta.ts`, `HERO_UNLOCK_LEVEL`).
-- Équipement : poupée, inventaire, fiche (équiper, améliorer, recycler) — `web/src/gearui.ts`.
-- Butin : carte (objet annoncé sur les nœuds), pré-niveau (« Butin de la première victoire », héros), victoire (carte qui se
-  retourne, bouton Équiper).
-- Quêtes du jour et bestiaire : `web/src/journal.ts`, `web/src/meta.ts`.
-- Sauvegarde : section `gear` (objets, porté par emplacement, éclats, prochain uid), `quests`, `bestiary`.
-- Chaînes : ajouter les nouveaux textes au catalogue `Localizable.xcstrings` (fr, en, es).
+- [x] **Règles** (`ios/Services/MetaRules.swift`, pur, testé sous Linux dans `EconomyTests`) : port de `web/src/meta.ts` —
+  inventaire (un emplacement vide porte l'objet aussitôt), équiper / retirer, « meilleur que l'objet porté », amélioration,
+  recyclage, butin de victoire, étal du colporteur (DECISIONS #79), quêtes du jour (mêmes tirages que le web, vérifiés),
+  bilan d'un combat, bestiaire (21 créatures), `HeroUnlocks` (Moine au niveau 40, Sorcier au niveau 100, essai).
+- [x] **Service** `Meta` (`ios/Services/Meta.swift`) : sections `gear`, `quests`, `bestiary` de `save.json` (même forme que
+  le web, décodage tolérant : une ancienne sauvegarde s'ouvre sans perte) ; or et gemmes réglés par le `Wallet`.
+  Fusion iCloud : quêtes du même jour réunies, bestiaire au plus grand compte, équipement au plus récent.
+- [x] **Déroulé** (`AppModel`) : équipement porté en combat (`cfg.gear`, `.none` en tournoi, `tutorialHints = false` en
+  tournoi) ; victoire → butin, éclats, quêtes, bestiaire, héros débloqués puis écran « Nouveau héros ! » ; défaite → quêtes et
+  bestiaire (`scene.killsByType`) ; essai d'un héros verrouillé (`cfg.trial`) sans vie ni récompense.
+- [x] Héros : onglets Héros / Équipement / Talents ; mécanique, accroche, trois pouvoirs signature, Choisir / Essayer.
+- [x] Équipement : poupée, résumé des bonus, inventaire, fiche (Équiper / Retirer, Améliorer, Recycler en deux touchers)
+  — `ios/UI/GearView.swift`.
+- [x] Butin : losange de rareté sur les nœuds (légendaire qui se balance), médaillon du héros aux nœuds 40 et 100 ;
+  pré-niveau (nouvel ennemi de la salle tutoriel, héros qui change d'un toucher, « Butin de la première victoire ») ;
+  victoire (carte qui se retourne, bouton Équiper).
+- [x] Quêtes du jour et bestiaire (`ios/UI/JournalView.swift`), étiquettes Quêtes / Bestiaire sur la carte.
+- [x] Boutique : étal du colporteur (trois objets du jour, prix en gemmes, acheté) et sac de 40 éclats.
+- [x] Sons `gust`, `block`, `blink`, `boom`, `loot` (`AudioService`).
+- [x] Chaînes : nouveaux textes au catalogue `Localizable.xcstrings` (fr, en, es), y compris les pouvoirs, ennemis,
+  objets, quêtes, fiches du bestiaire et les aides de combat du Moine et du Sorcier.
+- Note : `HeroUnlock` (`ios/Core/Economy.swift`) garde l'ancien seuil de 120 ; l'app ne l'utilise plus (remplacé par
+  `HeroUnlocks`, niveaux 40 et 100).
