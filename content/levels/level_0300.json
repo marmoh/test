@@ -6,80 +6,89 @@
  "kind": "boss",
  "D": 12.034,
  "mult": 1.55,
- "budgetScale": 0.793,
- "seed": 22,
- "powerSeed": 747388013,
+ "budgetScale": 0.751,
+ "seed": 19,
+ "powerSeed": 2610543134,
  "rooms": [
   {
-   "template": "room_20",
+   "template": "room_21",
    "waves": [
     [
      {
-      "type": "specter",
-      "c": 8,
-      "r": 8
+      "type": "mushroom",
+      "c": 6,
+      "r": 2
      },
      {
-      "type": "jelly",
-      "c": 8,
+      "type": "beetle",
+      "c": 3,
       "r": 1
      }
     ]
    ],
    "boss": null,
-   "seed": 132407267,
-   "budget": 8
+   "seed": 719922183,
+   "budget": 7
   },
   {
-   "template": "room_16",
+   "template": "room_06",
    "waves": [
     [
      {
-      "type": "specter",
-      "c": 0,
-      "r": 5
+      "type": "bat",
+      "c": 3,
+      "r": 7
      },
      {
-      "type": "totem",
-      "c": 4,
+      "type": "bat",
+      "c": 0,
       "r": 2
+     },
+     {
+      "type": "mage",
+      "c": 2,
+      "r": 8
      }
     ]
    ],
    "boss": null,
-   "seed": 1347498736,
+   "seed": 1080586582,
    "budget": 9
   },
   {
-   "template": "room_08",
+   "template": "room_10",
    "waves": [
     [
      {
       "type": "jelly",
-      "c": 2,
-      "r": 8,
-      "elite": true
+      "c": 3,
+      "r": 2
      },
      {
-      "type": "weaver",
-      "c": 4,
-      "r": 3
+      "type": "puppeteer",
+      "c": 1,
+      "r": 5
+     },
+     {
+      "type": "bat",
+      "c": 7,
+      "r": 9
      }
     ]
    ],
    "boss": null,
-   "seed": 1432122952,
-   "budget": 11
+   "seed": 503176022,
+   "budget": 10
   },
   {
-   "template": "room_05",
+   "template": "room_01",
    "waves": [],
    "boss": {
     "archetype": "ashlord",
     "variant": 2,
-    "hpMult": 0.793
+    "hpMult": 0.751
    },
-   "seed": 3110422289,
+   "seed": 2755802896,
    "budget": 0
   }
  ],
@@ -89,10 +98,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.4,
-  "expert": 0.77,
+  "moyen": 0.34,
+  "expert": 0.755,
   "band": "Boss",
   "ok": true,
-  "avgSeconds": 71
+  "avgSeconds": 68
  }
 }

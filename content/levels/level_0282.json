@@ -182,7 +182,7 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.69,
+  "moyen": 0.575,
   "expert": 0.99,
   "band": "Normal",
   "ok": true,
