@@ -161,6 +161,28 @@ platform :ios do
     end
   end
 
+  desc "Lecture seule : groupes TestFlight, testeurs et état de chaque build pour les testeurs"
+  lane :testflight_status do
+    builds = asc(:get, "/v1/builds?filter[app]=#{app_id}&sort=-uploadedDate&limit=5&include=buildBetaDetail")
+    details = (builds["included"] || []).select { |i| i["type"] == "buildBetaDetails" }.to_h { |d| [d["id"], d["attributes"]] }
+    builds["data"].each do |b|
+      d = details[b.dig("relationships", "buildBetaDetail", "data", "id")] || {}
+      UI.message("Build #{b.dig('attributes', 'version')} : traitement #{b.dig('attributes', 'processingState')}, " \
+                 "internes #{d['internalBuildState']}, externes #{d['externalBuildState']}, " \
+                 "expiré #{b.dig('attributes', 'expired')}, chiffrement déclaré #{b.dig('attributes', 'usesNonExemptEncryption').inspect}")
+    end
+    groups = asc(:get, "/v1/apps/#{app_id}/betaGroups")["data"]
+    UI.important("Aucun groupe de testeurs TestFlight") if groups.empty?
+    groups.each do |g|
+      a = g["attributes"]
+      testers = asc(:get, "/v1/betaGroups/#{g['id']}/betaTesters?limit=50")["data"]
+      gbuilds = asc(:get, "/v1/betaGroups/#{g['id']}/builds?limit=10")["data"].map { |b| b.dig("attributes", "version") }
+      UI.message("Groupe « #{a['name']} » : #{a['isInternalGroup'] ? 'interne' : 'externe'}, " \
+                 "tous les builds #{a['hasAccessToAllBuilds'].inspect}, #{testers.size} testeur(s), builds #{gbuilds.join(', ')}")
+      testers.each { |t| UI.message("  testeur #{t.dig('attributes', 'email')} — #{t.dig('attributes', 'state')}") }
+    end
+  end
+
   desc "Crée les achats intégrés du .storekit (prix France, tous les pays, texte français)"
   lane :products do
     existing = asc_all("/v1/apps/#{app_id}/inAppPurchasesV2?limit=200").map { |p| p.dig("attributes", "productId") }
