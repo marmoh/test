@@ -332,24 +332,10 @@ public struct ProgressData: Codable, Equatable, Sendable {
     }
 }
 
-/// Héros : conditions de déblocage (web `HERO_UNLOCK`).
+/// Héros : conditions de déblocage (DECISIONS #77, web `HERO_UNLOCK_LEVEL`) ; textes affichés : `ios/Services/MetaRules.swift`.
 public enum HeroUnlock {
-    public static func label(_ id: HeroID) -> String {
-        switch id {
-        case .scout: "Disponible"
-        case .windMonk: "Offre de départ"
-        case .emberSorcerer: "Terminer le Marais (niv. 120)"
-        }
-    }
-
-    public static func blurb(_ id: HeroID) -> String {
-        switch id {
-        case .scout: "Aiguilles de lune. Aucune faiblesse, aucune fioriture."
-        case .windMonk: "Rafales d’air. Commence avec Vitesse +20 %."
-        case .emberSorcerer: "Braises. Commence avec Flamme."
-        }
-    }
-
-    /// Le Sorcier de braise se débloque en terminant le niveau 120 (fin du Marais).
-    public static let emberUnlockLevel = 120
+    /// Le Moine du vent se débloque en terminant le niveau 40 (ou avec l'offre de départ).
+    public static let monkUnlockLevel = 40
+    /// Le Sorcier de braise se débloque en terminant le niveau 100.
+    public static let emberUnlockLevel = 100
 }
