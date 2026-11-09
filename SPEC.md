@@ -59,8 +59,9 @@ les bots (§9) font foi et l'agent les ajuste en notant chaque changement dans `
   mécanique signature), 24 objets, 4 raretés (commun, rare, épique, légendaire), une statistique secondaire fixe par objet.
   Butin **sans hasard** : la première victoire des niveaux p ∈ {3, 7, 10, 14, 17, 20} de chaque chapitre donne un objet
   annoncé d'avance (carte, pré-niveau) ; boss : épique, boss de fin de royaume : légendaire. Chaque victoire donne des
-  **éclats** (amélioration avec l'or ; le recyclage en rend). Les bots modélisent l'équipement attendu comme les talents.
-  Désactivé en tournoi.
+  **éclats** (amélioration avec l'or ; le recyclage en rend). Les bots modélisent l'équipement attendu comme les talents
+  (meilleur objet gagné par emplacement, amélioré à mi-chemin). Statistique principale au niveau 1 : 1,5 / 2,5 / 3,5 /
+  4,5 % selon la rareté, + 0,1 point par niveau (DECISIONS #79). Désactivé en tournoi.
 
 ## 5. Ennemis (15 types + boss)
 Chaque attaque est **télégraphiée** (zone au sol ou lueur) au moins **0,5 s** avant : lisibilité avant tout.
@@ -161,6 +162,9 @@ Trois bots joués dans la simulation TS, avec un temps de réaction et une préc
 - **Continuer** à la défaite : 60 gemmes (1re fois), 120 (2e) ; max 2 par tentative. Rend 50 % des PV, efface les projectiles.
 - **Bonus avant niveau** (or ou gemmes) : Potion de vie (+25 % PV max), Parchemin (commence avec 1 pouvoir au choix), Égide (1 bouclier).
 - **Recharge de vies** : 5 vies pour 90 gemmes.
+- **Étal du colporteur** (DECISIONS #79) : chaque jour, trois objets d'équipement précis, visibles avant l'achat et les
+  mêmes pour tous (commun 40, rare 90, épique 220 gemmes ; jamais de légendaire), un achat par objet et par jour ; sac de
+  40 éclats pour 60 gemmes. Les niveaux restent calibrés sur le parcours gratuit (butin des niveaux).
 - **Interdits** : loot box, monnaie à probabilités, compte à rebours mensonger, publicités intrusives (pas de pub en V1).
 - Paywall : à la 1re fois sans vie, sur l'écran de défaite (bouton secondaire), dans la boutique. Jamais en combat.
 - StoreKit 2 complet : `Store` (chargement, achat, restauration, `Transaction.updates`), crédit des consommables

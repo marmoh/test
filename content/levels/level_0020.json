@@ -53,10 +53,10 @@
  },
  "validation": {
   "games": 200,
-  "moyen": 0.355,
-  "expert": 0.955,
+  "moyen": 0.32,
+  "expert": 0.93,
   "band": "Boss",
   "ok": true,
-  "avgSeconds": 62
+  "avgSeconds": 65
  }
 }
