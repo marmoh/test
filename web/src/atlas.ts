@@ -1,6 +1,6 @@
 /** Rendu des images d'atlas (utilisé par tools/art-atlas.mjs via ?atlas). */
 import { PAINTERS, type AnimState } from '../../art/src/characters.js';
-import { INK_POWERS as POWER_ICONS, INK_UI as UI_ICONS, iconURL } from '../../art/src/icons.js';
+import { INK_POWERS as POWER_ICONS, INK_UI as UI_ICONS, INK_GEAR as GEAR_ICONS, iconURL } from '../../art/src/icons.js';
 import { KINGDOMS, INK, CUT, type KingdomTheme } from '../../art/src/palette.js';
 import { alpha } from '../../art/src/draw.js';
 import {
@@ -261,6 +261,8 @@ export function mountAtlas(): void {
     const out: Record<string, string> = {};
     for (const [k, v] of Object.entries(POWER_ICONS)) out[`power_${k}`] = await renderSvg(v, 64 * scale);
     for (const [k, v] of Object.entries(UI_ICONS)) out[`ui_${k}`] = await renderSvg(v, 64 * scale);
+    // équipement (DECISIONS #75) : `gear_<id>` et `gear_shard`
+    for (const [k, v] of Object.entries(GEAR_ICONS)) out[`gear_${k}`] = await renderSvg(v, 64 * scale);
     return out;
   };
   window.atlasDecor = decorFrames;

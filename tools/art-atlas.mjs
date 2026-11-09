@@ -12,7 +12,7 @@ const OUT = 'ios/Resources/Atlases';
 
 const chars = {
   hero: ['scout', 'windMonk', 'emberSorcerer'],
-  enemies: ['goblin', 'jelly', 'jellySmall', 'bat', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage', 'moth', 'snipper'],
+  enemies: ['goblin', 'jelly', 'jellySmall', 'bat', 'mushroom', 'wolf', 'skeleton', 'totem', 'mage', 'moth', 'snipper', 'lantern', 'weaver', 'beetle', 'puppeteer', 'shade', 'specter'],
   bosses: ['treant', 'queen', 'scorpion', 'wyvern', 'ashlord'],
 };
 /** Dossiers d'atlas des 5 royaumes (même ordre que KINGDOMS dans art/src/palette.ts). */
