@@ -264,4 +264,41 @@ public enum Gear {
 
     /// Équipement attendu au niveau n, en bonus (comme `gearForLevel`).
     public static func forLevel(_ n: Int) -> GearStats { stats(expected(n)) }
+
+    // MARK: étal du colporteur (DECISIONS #79)
+
+    /// Prix en gemmes par rareté (les légendaires ne sont jamais vendus).
+    public static func stallPrice(_ r: GearRarity) -> Int {
+        switch r {
+        case .common: 40
+        case .rare: 90
+        case .epic: 220
+        case .legendary: 0
+        }
+    }
+    /// Sac d'éclats (amélioration) contre des gemmes.
+    public static let shardPack = (shards: 40, gems: 60)
+
+    /// Graine du jour (FNV-1a de « AAAA-MM-JJ », comme les quêtes du jour).
+    public static func dayHash(_ day: String) -> UInt32 {
+        var h: UInt32 = 2_166_136_261
+        for c in day.utf16 { h = (h ^ UInt32(c)) &* 16_777_619 }
+        return h
+    }
+
+    /// Les trois objets du jour, selon la progression (niveau le plus loin débloqué) : mêmes résultats que le web.
+    public static func stallOffers(day: String, progress: Int) -> [(id: String, level: Int, price: Int)] {
+        let seed = dayHash(day)
+        let rarities: [GearRarity] = progress >= 40 ? [.rare, .rare, .epic] : [.common, .rare, .rare]
+        let lvl = 1 + max(0, progress - 40) / 30
+        var out: [(id: String, level: Int, price: Int)] = []
+        for i in 0..<3 {
+            let slot = GearSlot.allCases[(Int(seed % 4) + i) % 4]
+            let rarity = rarities[i]
+            let pool = all.filter { $0.slot == slot && $0.rarity == rarity }
+            let def = pool[Int(hash32(Int(seed) + i * 7919) % UInt32(pool.count))]
+            out.append((def.id, max(1, min(maxLevel(rarity), lvl)), stallPrice(rarity)))
+        }
+        return out
+    }
 }

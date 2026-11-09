@@ -18,6 +18,7 @@ import {
   salvageValue,
   MAX_LEVEL,
   expectedGear,
+  stallOffers,
   talentsAtRank,
   GUST,
   type RoomTemplate,
@@ -213,6 +214,17 @@ describe('Équipement (DECISIONS #75)', () => {
       expect(upgradeCost(def, MAX_LEVEL[def.rarity])).toBeNull();
       expect(salvageValue(def, 5)).toBeGreaterThan(salvageValue(def, 1));
     }
+  });
+
+  it('étal du colporteur : trois objets du jour, sans hasard, jamais légendaires', () => {
+    const a = stallOffers('2026-11-09', 120);
+    expect(a).toEqual(stallOffers('2026-11-09', 120));
+    expect(a.length).toBe(3);
+    expect(new Set(a.map((o) => GEAR_BY_ID[o.id].slot)).size).toBe(3);
+    for (const o of a) expect(GEAR_BY_ID[o.id].rarity).not.toBe('legendary');
+    expect(GEAR_BY_ID[a[2].id].rarity).toBe('epic');
+    expect(stallOffers('2026-11-10', 120)).not.toEqual(a);
+    expect(stallOffers('2026-11-09', 10).every((o) => GEAR_BY_ID[o.id].rarity !== 'epic')).toBe(true);
   });
 
   it('équipement attendu (modèle des bots) qui progresse avec la saga', () => {

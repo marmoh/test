@@ -1,7 +1,8 @@
 /** §12.6 Écrans secondaires : Héros et talents, Boutique, Tournoi, Réglages (feuilles depuis la carte). */
 import { HEROES, POWER_BY_ID, type HeroId, type PowerId } from '../../sim/src/content.js';
-import { heroUnlocked, heroUnlockText } from './meta.js';
-import { gearPanel } from './gearui.js';
+import { heroUnlocked, heroUnlockText, todayStall, buyStall, buyShards } from './meta.js';
+import { gearPanel, itemCard, gearIcon } from './gearui.js';
+import { GEAR_BY_ID, SHARD_PACK } from '../../sim/src/gear.js';
 import { TALENTS } from '../../sim/src/constants.js';
 import { tournamentScore } from '../../sim/src/formulas.js';
 import { INK_UI, INK_POWERS, iconURL } from '../../art/src/icons.js';
@@ -190,6 +191,12 @@ export function shopSheet(onChange: () => void): void {
     `<div class="offer starter${s.starterPack ? ' owned' : ''}"><div class="ribbon">Une seule fois</div><div class="of-sprite" data-sprite="windMonk"></div><div><b>Offre de départ</b><small>300 gemmes · Moine du vent · 5 bonus</small></div><button class="btn primary small" data-buy="starter" ${s.starterPack ? 'disabled' : ''}>${s.starterPack ? 'Acquise' : '2,99 €'}</button></div>
     <div class="offer dragon"><img src="${iconURL(INK_UI.crown)}"/><div><b>Ordre du Dragon</b><small>Vies illimitées · ${DRAGON.weeklyGems} gemmes/semaine · +25 % or · apparence exclusive</small><small class="trial">${subscribed() ? 'Tu es membre de l’Ordre.' : s.subscription.trialUsed ? '4,99 €/mois ou 39,99 €/an' : 'Essai gratuit de 3 jours, puis 4,99 €/mois ou 39,99 €/an'}</small></div><button class="btn primary small dragon-open">${subscribed() ? 'Gérer' : 'Découvrir'}</button></div>
     <div class="offer pass-offer"><img src="${iconURL(INK_UI.chest)}" alt=""/><div><b>Pass de saison ${s.pass.season}</b><small>${s.pass.premium ? 'Piste premium débloquée · réclame tes récompenses' : `30 paliers · 3 apparences · piste premium ${PASS.price}`}</small></div><button class="btn primary small pass-open">${s.pass.premium ? 'Ouvrir' : 'Voir'}</button></div>
+    <h3 class="sec">Étal du colporteur <small>change chaque jour</small></h3>
+    <div class="stall">${todayStall()
+      .map((o, i) => `<div class="stall-item${o.bought ? ' sold' : ''}">${itemCard(GEAR_BY_ID[o.id], o.level, 'mini')}<small class="st-lvl">Niveau ${o.level}</small><button class="btn ${o.bought ? 'ghost' : 'primary'} small" data-stall="${i}" ${o.bought ? 'disabled' : ''}>${o.bought ? 'Acheté' : `<img src="${iconURL(INK_UI.gem)}" alt=""/>${o.price}`}</button></div>`)
+      .join('')}</div>
+    <button class="btn ghost shard-pack" data-shards="1"><img src="${gearIcon('shard')}" alt=""/> Sac de ${SHARD_PACK.shards} éclats <em><img src="${iconURL(INK_UI.gem)}"/>${SHARD_PACK.gems}</em></button>
+    <p class="fine left">Trois objets précis chaque jour, visibles avant l’achat. Les objets légendaires ne se gagnent qu’en battant les boss de fin de royaume.</p>
     <h3 class="sec">Gemmes</h3>
     <div class="gem-grid">${PRODUCTS.map((p, i) => `<button class="gem-pack" data-buy="${p.id}"><div class="gp-gems" style="--n:${i + 1}">${`<img src="${iconURL(INK_UI.gem)}"/>`.repeat(i + 1)}</div><b>${p.note}</b><span class="price">${p.price}</span></button>`).join('')}</div>
     <h3 class="sec">Avec tes gemmes</h3>
@@ -197,7 +204,7 @@ export function shopSheet(onChange: () => void): void {
     <button class="btn ghost" data-spend="potion"><img src="${iconURL(INK_UI.potion)}"/> Potion <em><img src="${iconURL(INK_UI.coin)}"/>150</em></button>
     <button class="btn ghost" data-spend="scroll"><img src="${iconURL(INK_UI.scroll)}"/> Parchemin <em><img src="${iconURL(INK_UI.gem)}"/>${BONUS_PRICE.scroll.amount}</em></button>
     <button class="btn ghost" data-spend="aegis"><img src="${iconURL(INK_UI.aegis)}"/> Égide <em><img src="${iconURL(INK_UI.coin)}"/>200</em></button></div>
-    <p class="fine">Prototype web : les achats réels passent par StoreKit 2 dans l’app iOS. Ici, ils sont simulés. Aucun objet aléatoire. Publicité seulement si tu la demandes, contre une vie.</p>`,
+    <p class="fine">Prototype web : les achats réels passent par StoreKit 2 dans l’app iOS. Ici, ils sont simulés. Aucun objet aléatoire : tout ce qui s’achète est montré avant. Publicité seulement si tu la demandes, contre une vie.</p>`,
   );
   // §11 : la boutique est l'un des trois endroits où l'offre d'abonnement est présentée
   o.querySelector('.dragon-open')!.addEventListener('click', () => openDragon('shop', onChange));
@@ -225,6 +232,26 @@ export function shopSheet(onChange: () => void): void {
       onChange();
     }),
   );
+  o.querySelectorAll<HTMLButtonElement>('[data-stall]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const r = buyStall(Number(b.dataset.stall));
+      if (r === 'gems') return toast('Pas assez de gemmes');
+      if (r !== 'ok') return;
+      sfx('loot');
+      toast('Objet ajouté à ton équipement ✓');
+      b.disabled = true;
+      b.className = 'btn ghost small';
+      b.textContent = 'Acheté';
+      b.closest('.stall-item')?.classList.add('sold');
+      onChange();
+    }),
+  );
+  o.querySelector<HTMLButtonElement>('[data-shards]')!.addEventListener('click', () => {
+    if (!buyShards()) return toast('Pas assez de gemmes');
+    sfx('tap');
+    toast(`+${SHARD_PACK.shards} éclats ✓`);
+    onChange();
+  });
   o.querySelectorAll<HTMLButtonElement>('[data-spend]').forEach((b) =>
     b.addEventListener('click', () => {
       const k = b.dataset.spend!;

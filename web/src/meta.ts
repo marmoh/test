@@ -13,6 +13,8 @@ import {
   upgradeCost,
   salvageValue,
   mainValue,
+  stallOffers,
+  SHARD_PACK,
   type GearItem,
   type GearSlot,
   type GearStats,
@@ -60,6 +62,47 @@ export function addItem(id: string, level = 1): GearItem {
   if (g.equipped[slot] === undefined) g.equipped[slot] = it.uid;
   persist();
   return it;
+}
+
+// ───────────────────────────── étal du colporteur (DECISIONS #79) ─────────────────────────────
+
+export interface StallOffer {
+  id: string;
+  level: number;
+  price: number;
+  bought: boolean;
+}
+
+/** Les trois objets du jour (les mêmes pour tous ce jour-là), et ceux déjà achetés. */
+export function todayStall(): StallOffer[] {
+  const s = save();
+  const day = localDay(new Date());
+  if (s.gear.stall?.day !== day) s.gear.stall = { day, bought: [] };
+  const bought = s.gear.stall.bought;
+  return stallOffers(day, s.unlocked).map((o, i) => ({ ...o, bought: bought.includes(i) }));
+}
+
+/** Achète l'objet i de l'étal contre des gemmes (une fois par jour). */
+export function buyStall(i: number): 'ok' | 'gems' | 'bought' {
+  const s = save();
+  const o = todayStall()[i];
+  if (!o || o.bought) return 'bought';
+  if (s.gems < o.price) return 'gems';
+  s.gems -= o.price;
+  s.gear.stall!.bought.push(i);
+  addItem(o.id, o.level);
+  persist();
+  return 'ok';
+}
+
+/** Sac d'éclats contre des gemmes. */
+export function buyShards(): boolean {
+  const s = save();
+  if (s.gems < SHARD_PACK.gems) return false;
+  s.gems -= SHARD_PACK.gems;
+  s.gear.shards += SHARD_PACK.shards;
+  persist();
+  return true;
 }
 
 export function equip(uid: number): void {

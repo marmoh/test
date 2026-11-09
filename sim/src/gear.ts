@@ -209,3 +209,37 @@ export function expectedGear(n: number): GearItem[] {
   for (const [, v] of best) out.push({ uid: uid++, id: v.def.id, level: v.level });
   return out;
 }
+
+// ─────────────────────────── étal du colporteur ───────────────────────────
+
+/**
+ * Boutique (décision du porteur, DECISIONS #79) : l'équipement s'achète aussi, sans hasard. Chaque jour, trois objets
+ * précis, affichés avant l'achat (les mêmes pour tous ce jour-là), contre des gemmes ; les légendaires restent des
+ * trophées de boss. Les niveaux sont calibrés sur le parcours gratuit (butin des niveaux), pas sur ces achats.
+ */
+export const STALL_PRICE: Record<GearRarity, number> = { common: 40, rare: 90, epic: 220, legendary: 0 };
+/** Sac d'éclats (amélioration) contre des gemmes. */
+export const SHARD_PACK = { shards: 40, gems: 60 } as const;
+
+/** Graine du jour (FNV-1a de « AAAA-MM-JJ », comme les quêtes du jour). */
+export function dayHash(day: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < day.length; i++) h = Math.imul(h ^ day.charCodeAt(i), 16777619) >>> 0;
+  return h;
+}
+
+/** Les trois objets du jour, selon la progression (niveau le plus loin débloqué). */
+export function stallOffers(day: string, progress: number): { id: string; level: number; price: number }[] {
+  const seed = dayHash(day);
+  const rarities: GearRarity[] = progress >= 40 ? ['rare', 'rare', 'epic'] : ['common', 'rare', 'rare'];
+  const lvl = 1 + Math.floor(Math.max(0, progress - 40) / 30);
+  const out: { id: string; level: number; price: number }[] = [];
+  for (let i = 0; i < 3; i++) {
+    const slot = SLOTS[(seed % 4 + i) % 4];
+    const rarity = rarities[i];
+    const pool = GEAR.filter((g) => g.slot === slot && g.rarity === rarity);
+    const def = pool[hash32(seed + i * 7919) % pool.length];
+    out.push({ id: def.id, level: Math.max(1, Math.min(MAX_LEVEL[rarity], lvl)), price: STALL_PRICE[rarity] });
+  }
+  return out;
+}

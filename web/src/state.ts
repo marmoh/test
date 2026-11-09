@@ -74,6 +74,8 @@ export interface GearState {
   equipped: Partial<Record<GearSlot, number>>;
   nextUid: number;
   shards: number;
+  /** Étal du colporteur (DECISIONS #79) : objets du jour déjà achetés (index 0 à 2). */
+  stall?: { day: string; bought: number[] };
 }
 
 export interface QuestState {

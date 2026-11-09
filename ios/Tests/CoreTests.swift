@@ -196,6 +196,11 @@ final class CoreTests: XCTestCase {
         XCTAssertEqual(Gear.lootRarity(60), .legendary)
         XCTAssertEqual(computeStats(.atRank(4), [.damage: 2], gear: .none), computeStats(.atRank(4), [.damage: 2]))
         XCTAssertNil(Gear.upgradeCost(Gear.byID["paperMask"]!, 10))
+        // étal du colporteur : mêmes objets que le web (valeurs relevées sur `stallOffers` TypeScript)
+        XCTAssertEqual(Gear.stallOffers(day: "2026-11-09", progress: 120).map(\.id), ["moonNeedle", "mistMantle", "emberMask"])
+        XCTAssertEqual(Gear.stallOffers(day: "2026-11-09", progress: 120).map(\.level), [3, 3, 3])
+        XCTAssertEqual(Gear.stallOffers(day: "2026-11-10", progress: 30).map(\.id), ["paperMask", "paperCrane", "moonNeedle"])
+        XCTAssertEqual(Gear.stallOffers(day: "2026-11-10", progress: 30).map(\.price), [40, 90, 90])
     }
 
     func testReviveRestoresHalfHp() throws {
