@@ -5,6 +5,10 @@ import Foundation
 /// Effets sonores du combat et de l'interface (mêmes noms que `sfx()` de `web/src/audio.ts`).
 enum Sfx: CaseIterable {
     case shoot, hit, kill, hurt, clear, win, lose, boss, bossDown, star, flip, cut, snip, tap
+    /// Bourrasque du Moine, aiguille arrêtée par un bouclier, téléportation du spectre, explosion du lampion (0.2).
+    case gust, block, blink, boom
+    /// Objet obtenu (carte de butin, étal du colporteur).
+    case loot
 }
 
 /// Sons et musique synthétisés en direct avec AVAudioEngine (§13 : aucun fichier audio sous licence).
@@ -113,6 +117,19 @@ final class AudioService {
             tone(660, 0.18, .sine, 0.05, slide: 1.5, delay: 0.06)
         case .snip:
             noise(0.04, 0.06, 5200)
+        case .gust:
+            noise(0.28, 0.1, 700)
+            tone(220, 0.22, .sine, 0.035, slide: 2.2)
+        case .block:
+            tone(1400, 0.06, .square, 0.025, slide: 0.7)
+        case .blink:
+            tone(900, 0.18, .sine, 0.03, slide: 0.4)
+            noise(0.1, 0.04, 2600)
+        case .boom:
+            noise(0.35, 0.14, 380)
+            tone(90, 0.3, .saw, 0.05, slide: 0.5)
+        case .loot:
+            for (i, f) in [784.0, 988, 1175, 1568].enumerated() { tone(f, 0.28, .triangle, 0.05, delay: Double(i) * 0.07) }
         case .tap:
             tone(660, 0.05, .triangle, 0.04, slide: 1.2)
         }
