@@ -1,8 +1,10 @@
 import StoreKit
 import SwiftUI
 
-/// Boutique (§11, `shopSheet` du web) : offre de départ (une seule fois), Ordre du Dragon, gemmes (StoreKit 2),
-/// dépenses en gemmes et en or (vies, Potion, Égide). Aucun objet aléatoire ; aucune publicité ici.
+/// Boutique (§11, `shopSheet` du web) : offre de départ (une seule fois), Ordre du Dragon, pass de saison, étal du
+/// colporteur (trois objets précis par jour contre des gemmes, sac d'éclats : DECISIONS #79), gemmes (StoreKit 2),
+/// dépenses en gemmes et en or (vies, Potion, Égide). Aucun objet aléatoire : tout est montré avant l'achat ; aucune
+/// publicité ici.
 @MainActor
 struct ShopView: View {
     @Environment(AppModel.self) private var app
@@ -17,6 +19,7 @@ struct ShopView: View {
                     starter
                     dragon
                     passOffer
+                    stall
                     SectionTitle(text: "Gemmes")
                     HStack(spacing: 8) {
                         ForEach(Array(ProductID.gemPacks.enumerated()), id: \.offset) { i, id in gemPack(id, rank: i + 1) }
@@ -181,6 +184,84 @@ struct ShopView: View {
         .foregroundStyle(Theme.ink)
         .padding(12)
         .paperCard(fill: Theme.cut)
+    }
+
+    /// Étal du colporteur : les trois objets du jour (les mêmes pour tous), puis le sac d'éclats.
+    private var stall: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("Étal du colporteur").font(Theme.display(19))
+                Text("change chaque jour").font(Theme.note(12)).foregroundStyle(Theme.ink2)
+            }
+            .foregroundStyle(Theme.ink)
+            .padding(.top, 18)
+            Rectangle().fill(Theme.ink).frame(height: 1.5).padding(.top, -8)
+            HStack(alignment: .top, spacing: 8) {
+                ForEach(app.meta.stall) { o in stallItem(o) }
+            }
+            Button {
+                if app.meta.buyShards() {
+                    app.audio.play(.tap)
+                    app.show(String(localized: "+\(Gear.shardPack.shards) éclats ✓", comment: "Boutique : sac d’éclats acheté"))
+                } else {
+                    app.show(String(localized: "Pas assez de gemmes"))
+                }
+            } label: {
+                HStack {
+                    GearIcon(id: "shard", size: 26)
+                    Text("Sac de \(Gear.shardPack.shards) éclats", comment: "Boutique : sac d’éclats d’amélioration (nombre d’éclats)")
+                    Spacer()
+                    HStack(spacing: 3) {
+                        InkIcon(name: "ui_gem", size: 18)
+                        Text(Fmt.int(Gear.shardPack.gems)).font(Theme.text(17, weight: .heavy))
+                    }
+                    .padding(.horizontal, 8)
+                    .background(Theme.cut)
+                    .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5))
+                }
+            }
+            .buttonStyle(InkButtonStyle(kind: .ghost))
+            .padding(.top, 4)
+            Text("Trois objets précis chaque jour, visibles avant l’achat. Les objets légendaires ne se gagnent qu’en battant les boss de fin de royaume.")
+                .font(Theme.note(12)).foregroundStyle(Theme.ink2)
+        }
+    }
+
+    private func stallItem(_ o: StallOffer) -> some View {
+        VStack(spacing: 6) {
+            if let def = Gear.byID[o.gearID] {
+                ItemCard(def: def, level: o.level, compact: true)
+            }
+            Text("Niveau \(o.level)", comment: "Étal : niveau de l’objet vendu").font(Theme.note(11.5)).foregroundStyle(Theme.ink2)
+            Button {
+                switch app.meta.buyStall(o.index) {
+                case .ok:
+                    app.audio.play(.loot)
+                    app.show(String(localized: "Objet ajouté à ton équipement ✓"))
+                case .gems:
+                    app.show(String(localized: "Pas assez de gemmes"))
+                case .bought:
+                    break
+                }
+            } label: {
+                if o.bought {
+                    Text("Acheté", comment: "Étal : objet déjà acheté aujourd’hui")
+                } else {
+                    HStack(spacing: 3) {
+                        InkIcon(name: "ui_gem", size: 16, fallback: "diamond.fill")
+                        Text(Fmt.int(o.price))
+                    }
+                }
+            }
+            .buttonStyle(InkButtonStyle(kind: o.bought ? .ghost : .primary, compact: true))
+            .fixedSize()
+            .disabled(o.bought)
+            .opacity(o.bought ? 0.5 : 1)
+            .accessibilityLabel(o.bought ? String(localized: "Acheté", comment: "Étal : objet déjà acheté aujourd’hui")
+                                         : String(localized: "Acheter pour \(o.price) gemmes", comment: "VoiceOver : prix d’un objet de l’étal"))
+        }
+        .frame(maxWidth: .infinity)
+        .opacity(o.bought ? 0.7 : 1)
     }
 
     private func gemPack(_ id: ProductID, rank: Int) -> some View {

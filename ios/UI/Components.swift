@@ -75,19 +75,25 @@ struct InkIcon: View {
     }
 }
 
-/// Portrait de marionnette (atlas des personnages).
+/// Portrait de marionnette (atlas des personnages). `silhouette` : ombre unie (bestiaire, héros verrouillé).
 @MainActor
 struct Puppet: View {
     let name: String
     var size: CGFloat = 64
     var flip = false
+    var silhouette: Color?
 
     var body: some View {
         Group {
             if let img = AtlasImages.portrait(name) {
-                Image(uiImage: img).resizable().interpolation(.high).scaledToFit()
+                if let silhouette {
+                    Image(uiImage: img).renderingMode(.template).resizable().interpolation(.high).scaledToFit()
+                        .foregroundStyle(silhouette)
+                } else {
+                    Image(uiImage: img).resizable().interpolation(.high).scaledToFit()
+                }
             } else {
-                Circle().fill(Theme.ink)
+                Circle().fill(silhouette ?? Theme.ink)
             }
         }
         .frame(width: size, height: size)
@@ -241,5 +247,176 @@ extension Rarity {
         case .rare: Theme.jade
         case .epic: Theme.goldLeaf
         }
+    }
+}
+
+extension GearRarity {
+    /// Couleur du cadre (`--rc` du web) : encre pâle, jade, or à la feuille.
+    var color: Color {
+        switch self {
+        case .common: Theme.ink3
+        case .rare: Theme.jade
+        case .epic, .legendary: Theme.goldLeaf
+        }
+    }
+
+    /// Fond des objets épiques et légendaires (papier doré).
+    var fill: Color {
+        switch self {
+        case .common, .rare: Theme.cut
+        case .epic, .legendary: Color(hex: 0xF6E7BD)
+        }
+    }
+
+    /// Bandeau de rareté : encre claire pour les communs.
+    var tagColor: Color { self == .common ? Theme.ink2 : color }
+}
+
+/// Icône d'un objet d'équipement (`gear_<id>` de `Icons.atlas`) ; `shard` pour les éclats.
+@MainActor
+struct GearIcon: View {
+    let id: String
+    var size: CGFloat = 40
+
+    var body: some View {
+        InkIcon(name: "gear_\(id)", size: size, fallback: id == "shard" ? "sparkle" : "shield.fill")
+    }
+}
+
+/// Éclats d'amélioration : icône et nombre.
+@MainActor
+struct ShardCount: View {
+    let n: Int
+    var size: CGFloat = 16
+    var plus = false
+
+    var body: some View {
+        HStack(spacing: 3) {
+            GearIcon(id: "shard", size: size)
+            Text(verbatim: (plus ? "+" : "") + Fmt.int(n)).font(Theme.text(size * 0.9, weight: .heavy))
+        }
+        .foregroundStyle(Theme.ink)
+    }
+}
+
+/// Vignette d'objet (cadre selon la rareté, niveau, porté, meilleur que l'objet porté) : `itemTile` du web.
+@MainActor
+struct ItemTile: View {
+    let item: GearItem
+    var worn = false
+    var better = false
+    var size: CGFloat = 58
+
+    var body: some View {
+        let def = Gear.byID[item.id]
+        let rarity = def?.rarity ?? .common
+        ZStack {
+            Rectangle().fill(rarity.fill)
+            GearIcon(id: item.id, size: size * 0.76)
+        }
+        .frame(width: size, height: size)
+        .overlay(Rectangle().strokeBorder(rarity.color, lineWidth: 2.5))
+        .overlay {
+            if rarity == .legendary { Rectangle().strokeBorder(Theme.goldLeaf, lineWidth: 2).padding(-4) }
+        }
+        .background(Theme.ink.offset(x: 3, y: 3))
+        .overlay(alignment: .topLeading) {
+            if worn {
+                Rectangle().fill(Theme.vermilion).frame(width: 9, height: 9)
+                    .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5)).offset(x: 4, y: 4)
+            } else if better {
+                Text(verbatim: "▲").font(Theme.text(11, weight: .heavy)).foregroundStyle(Theme.cut)
+                    .padding(.horizontal, 3).background(Theme.jade)
+                    .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 1.5)).offset(x: -6, y: -7)
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            Text(verbatim: "\(item.level)").font(Theme.text(12, weight: .heavy)).foregroundStyle(Theme.paper)
+                .frame(minWidth: 20).padding(.horizontal, 3)
+                .background(Theme.ink)
+                .overlay(Rectangle().strokeBorder(rarity.color, lineWidth: 1.5))
+                .offset(x: 6, y: 6)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(ItemTile.label(item, worn: worn, better: better))
+    }
+
+    /// « Épingle de corbeau, Rare, niveau 3, porté » (VoiceOver).
+    static func label(_ item: GearItem, worn: Bool = false, better: Bool = false) -> String {
+        guard let def = Gear.byID[item.id] else { return item.id }
+        var parts = [def.title, def.rarity.title, String(localized: "niveau \(item.level)", comment: "VoiceOver : niveau d’un objet")]
+        if worn { parts.append(String(localized: "porté", comment: "VoiceOver : objet équipé")) }
+        if better { parts.append(String(localized: "meilleur que l’objet porté", comment: "VoiceOver : objet plus fort que celui équipé")) }
+        return parts.joined(separator: ", ")
+    }
+}
+
+/// Fiche d'un objet de catalogue (butin annoncé, étal, carte de victoire) : `itemCard` du web.
+@MainActor
+struct ItemCard: View {
+    let def: GearDef
+    let level: Int
+    var compact = false
+
+    var body: some View {
+        VStack(spacing: compact ? 3 : 6) {
+            Text(verbatim: "\(def.rarity.title) · \(def.slot.title)".uppercased())
+                .font(Theme.text(compact ? 9.5 : 12, weight: .heavy))
+                .foregroundStyle(Theme.cut)
+                .lineLimit(2).multilineTextAlignment(.center).minimumScaleFactor(0.8)
+                .padding(.horizontal, compact ? 5 : 10).padding(.vertical, 1)
+                .background(def.rarity.tagColor)
+            GearIcon(id: def.id, size: compact ? 48 : 64)
+            Text(def.title).font(Theme.display(compact ? 15 : 19)).multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            VStack(spacing: 1) {
+                Text(Gear.slotMain(def.slot).line(Gear.mainValue(def, level)))
+                if let sub = def.sub { Text(sub.stat.line(sub.value)) }
+            }
+            .font(Theme.text(compact ? 11.5 : 13.5, weight: .bold))
+            if !compact {
+                Text(def.loreText).font(Theme.note(12)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .foregroundStyle(Theme.ink)
+        .padding(compact ? 8 : 14)
+        .frame(maxWidth: .infinity)
+        .background(def.rarity == .legendary ? def.rarity.fill : Theme.paper)
+        .overlay(Rectangle().strokeBorder(def.rarity.color, lineWidth: def.rarity == .legendary ? 4 : 2).padding(5))
+        .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 3))
+        .background(Theme.ink.opacity(0.5).offset(x: 5, y: 5))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Onglets de papier (Héros / Équipement / Talents) : `.tabs` du web.
+@MainActor
+struct PaperTabs<Tab: Hashable>: View {
+    let tabs: [(Tab, LocalizedStringKey)]
+    @Binding var selection: Tab
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(tabs.enumerated()), id: \.offset) { i, t in
+                let on = t.0 == selection
+                Button {
+                    selection = t.0
+                } label: {
+                    Text(t.1).font(Theme.display(17)).lineLimit(1).minimumScaleFactor(0.7)
+                        .foregroundStyle(on ? Theme.paper : Theme.ink2)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(on ? Theme.ink : Theme.paper2)
+                }
+                .buttonStyle(.plain)
+                .overlay(alignment: .leading) {
+                    if i > 0 { Rectangle().fill(Theme.ink).frame(width: 2) }
+                }
+                .accessibilityAddTraits(on ? [.isSelected, .isButton] : .isButton)
+            }
+        }
+        .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2.5))
+        .background(Theme.ink.offset(x: 3, y: 3))
     }
 }

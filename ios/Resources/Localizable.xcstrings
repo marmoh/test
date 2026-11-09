@@ -1,6 +1,69 @@
 {
   "sourceLanguage" : "fr",
   "strings" : {
+    "%@ %@ pts par rapport à l’objet porté" : {
+      "comment" : "Fiche d’objet : écart de statistique principale avec l’objet porté (statistique, écart signé)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ pts compared with the equipped item"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ pts respecto al objeto equipado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ pts par rapport à l’objet porté"
+          }
+        }
+      }
+    },
+    "%@ : emplacement vide" : {
+      "comment" : "VoiceOver : emplacement d’équipement sans objet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: empty slot"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: hueco vacío"
+          }
+        }
+      }
+    },
+    "%@ : niveau %lld" : {
+      "comment" : "Objet amélioré : nom, nouveau niveau",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: level %2$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: nivel %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ : niveau %2$lld"
+          }
+        }
+      }
+    },
     "%@ gemmes" : {
       "comment" : "Récompense : quantité de gemmes (toujours plusieurs)",
       "localizations" : {
@@ -117,6 +180,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$d h %2$02d"
+          }
+        }
+      }
+    },
+    "%lld / %lld créatures rencontrées" : {
+      "comment" : "Bestiaire : créatures vaincues sur le total",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld creatures met"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld criaturas encontradas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld / %2$lld créatures rencontrées"
           }
         }
       }
@@ -276,6 +362,40 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld objet" : {
+      "comment" : "Inventaire : nombre d’objets (0 ou 1)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld item"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld objeto"
+          }
+        }
+      }
+    },
+    "%lld objets" : {
+      "comment" : "Inventaire : nombre d’objets (plusieurs)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld items"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld objetos"
           }
         }
       }
@@ -564,6 +684,23 @@
         }
       }
     },
+    "%lld éclats" : {
+      "comment" : "Récompense : quantité d’éclats d’amélioration",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld shards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld fragmentos"
+          }
+        }
+      }
+    },
     "%lld égides" : {
       "localizations" : {
         "en" : {
@@ -761,6 +898,29 @@
         }
       }
     },
+    "+%lld gemmes · +%lld éclats" : {
+      "comment" : "Bonus des trois quêtes reçu",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%1$lld gems · +%2$lld shards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%1$lld gemas · +%2$lld fragmentos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%1$lld gemmes · +%2$lld éclats"
+          }
+        }
+      }
+    },
     "+%lld gemmes · tribut de l’Ordre" : {
       "localizations" : {
         "en" : {
@@ -773,6 +933,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "+%lld gemas · tributo de la Orden"
+          }
+        }
+      }
+    },
+    "+%lld éclats" : {
+      "comment" : "Éclats reçus",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld shards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld fragmentos"
+          }
+        }
+      }
+    },
+    "+%lld éclats ✓" : {
+      "comment" : "Boutique : sac d’éclats acheté",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld shards ✓"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld fragmentos ✓"
           }
         }
       }
@@ -945,6 +1139,40 @@
         }
       }
     },
+    "+35 % de dégâts de bourrasque" : {
+      "comment" : "Description du pouvoir Rafale tranchante",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+35% gust damage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+35 % de daño de ráfaga"
+          }
+        }
+      }
+    },
+    "+35 % de dégâts de brûlure" : {
+      "comment" : "Description du pouvoir Brasier",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+35% burn damage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+35 % de daño por quemadura"
+          }
+        }
+      }
+    },
     "+5 % or" : {
       "comment" : "Talent Fortune, par rang",
       "localizations" : {
@@ -979,19 +1207,19 @@
         }
       }
     },
-    "+6 % durée du fil" : {
+    "+6 % durée du fil (Éclaireuse)" : {
       "comment" : "Talent Encre lente, par rang",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+6% thread duration"
+            "value" : "+6% thread duration (Scout)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+6 % duración del hilo"
+            "value" : "+6 % de duración del hilo (Exploradora)"
           }
         }
       }
@@ -1131,6 +1359,40 @@
         }
       }
     },
+    "Abats ses mages avant qu’ils ne remplissent la salle." : {
+      "comment" : "Bestiaire : astuce contre le Seigneur des cendres",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take out its mages before they fill the room."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Derriba a sus magos antes de que llenen la sala."
+          }
+        }
+      }
+    },
+    "Abats-le pendant qu’il gonfle : il s’éteint sans exploser." : {
+      "comment" : "Bestiaire : astuce contre le lampion",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Down it while it swells: it fizzles out without exploding."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Derríbalo mientras se hincha: se apaga sin explotar."
+          }
+        }
+      }
+    },
     "Absorbe 1 coup toutes les 25 s" : {
       "comment" : "Description du pouvoir Bouclier",
       "localizations" : {
@@ -1212,6 +1474,40 @@
         }
       }
     },
+    "Acheter pour %lld gemmes" : {
+      "comment" : "VoiceOver : prix d’un objet de l’étal",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy for %lld gems"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar por %lld gemas"
+          }
+        }
+      }
+    },
+    "Acheté" : {
+      "comment" : "Étal : objet déjà acheté aujourd’hui",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bought"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprado"
+          }
+        }
+      }
+    },
     "Acquise" : {
       "comment" : "Offre de départ déjà achetée",
       "localizations" : {
@@ -1246,18 +1542,87 @@
         }
       }
     },
-    "Aiguilles de lune. Aucune faiblesse, aucune fioriture." : {
+    "Aiguille" : {
+      "comment" : "Emplacement d’équipement (arme)",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Moon needles. No weakness, no frills."
+            "value" : "Needle"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Agujas de luna. Sin debilidades ni florituras."
+            "value" : "Aguja"
+          }
+        }
+      }
+    },
+    "Aiguille de couturière" : {
+      "comment" : "Objet (aiguille)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seamstress’s Needle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguja de costurera"
+          }
+        }
+      }
+    },
+    "Aiguille du Trône de lune" : {
+      "comment" : "Objet légendaire (aiguille)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needle of the Moon Throne"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguja del Trono de la Luna"
+          }
+        }
+      }
+    },
+    "Aiguille d’os" : {
+      "comment" : "Objet (aiguille)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bone Needle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguja de hueso"
+          }
+        }
+      }
+    },
+    "Aiguille lunaire" : {
+      "comment" : "Objet (aiguille)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lunar Needle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguja lunar"
           }
         }
       }
@@ -1275,6 +1640,45 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Alas de papel"
+          }
+        }
+      }
+    },
+    "Améliorer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejorar"
+          }
+        }
+      }
+    },
+    "Améliorer : %lld or et %lld éclats" : {
+      "comment" : "VoiceOver : coût d’amélioration d’un objet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade: %1$lld gold and %2$lld shards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejorar: %1$lld de oro y %2$lld fragmentos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Améliorer : %1$lld or et %2$lld éclats"
           }
         }
       }
@@ -1327,6 +1731,40 @@
         }
       }
     },
+    "Après une charge, il est à découvert." : {
+      "comment" : "Bestiaire : astuce contre le Scorpion d’ambre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After a charge, it’s wide open."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tras una embestida, queda al descubierto."
+          }
+        }
+      }
+    },
+    "Araignée tisseuse" : {
+      "comment" : "Ennemi (chapitre 12)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weaver Spider"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Araña tejedora"
+          }
+        }
+      }
+    },
     "Arc sur 2 cibles (20 %)" : {
       "comment" : "Description du pouvoir Foudre en chaîne",
       "localizations" : {
@@ -1357,6 +1795,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Arquero esqueleto"
+          }
+        }
+      }
+    },
+    "Arraché au Scorpion d’ambre, encore tiède." : {
+      "comment" : "Ambiance du Dard d’ambre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torn from the Amber Scorpion, still warm."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrancado al Escorpión de ámbar, aún tibio."
+          }
+        }
+      }
+    },
+    "Aucun objet porté" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No item equipped"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ningún objeto equipado"
           }
         }
       }
@@ -1410,6 +1881,22 @@
         }
       }
     },
+    "Bestiaire" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bestiary"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bestiario"
+          }
+        }
+      }
+    },
     "Bientôt" : {
       "comment" : "Pass pas encore en vente",
       "localizations" : {
@@ -1444,6 +1931,40 @@
         }
       }
     },
+    "Bobine de fil" : {
+      "comment" : "Objet (talisman)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spool of Thread"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carrete de hilo"
+          }
+        }
+      }
+    },
+    "Bonus :" : {
+      "comment" : "Quêtes : récompense des trois quêtes (suivie des montants)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonificación:"
+          }
+        }
+      }
+    },
     "Boss" : {
       "comment" : "Bandeau d’entrée dans la salle du boss",
       "localizations" : {
@@ -1461,6 +1982,91 @@
         }
       }
     },
+    "Boss de la Forêt : onde de choc, anneaux, pluie de graines." : {
+      "comment" : "Bestiaire : attaques du Treant colossal",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forest boss: shockwave, rings, seed rain."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jefe del Bosque: onda expansiva, anillos, lluvia de semillas."
+          }
+        }
+      }
+    },
+    "Boss des Cendres : flaques, mages, onde de choc." : {
+      "comment" : "Bestiaire : attaques du Seigneur des cendres",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ashes boss: puddles, mages, shockwave."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jefe de las Cenizas: charcos, magos, onda expansiva."
+          }
+        }
+      }
+    },
+    "Boss du Désert : charges et éventails." : {
+      "comment" : "Bestiaire : attaques du Scorpion d’ambre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desert boss: charges and fans."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jefe del Desierto: embestidas y abanicos."
+          }
+        }
+      }
+    },
+    "Boss du Givre : vole, pluie de glace, charges." : {
+      "comment" : "Bestiaire : attaques de la Wyverne de givre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frost boss: flies, ice rain, charges."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jefa de la Escarcha: vuela, lluvia de hielo, embestidas."
+          }
+        }
+      }
+    },
+    "Boss du Marais : flaques, anneaux, petites gelées." : {
+      "comment" : "Bestiaire : attaques de la Reine des marais",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swamp boss: puddles, rings, little jellies."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jefa del Pantano: charcos, anillos, gelatinas pequeñas."
+          }
+        }
+      }
+    },
     "Bouclier" : {
       "comment" : "Pouvoir",
       "localizations" : {
@@ -1474,6 +2080,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escudo"
+          }
+        }
+      }
+    },
+    "Bourrasque 25 % plus large" : {
+      "comment" : "Description du pouvoir Grand souffle",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gust 25% wider"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ráfaga un 25 % más amplia"
+          }
+        }
+      }
+    },
+    "Bourrasque ×%lld" : {
+      "comment" : "Combat : une bourrasque du Moine touche plusieurs ennemis",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gust ×%lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ráfaga ×%lld"
           }
         }
       }
@@ -1526,18 +2166,53 @@
         }
       }
     },
-    "Braises. Commence avec Flamme." : {
+    "Braise captive" : {
+      "comment" : "Objet (talisman)",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Embers. Starts with Flame."
+            "value" : "Captive Ember"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Brasas. Empieza con Llama."
+            "value" : "Brasa cautiva"
+          }
+        }
+      }
+    },
+    "Braises vives" : {
+      "comment" : "Pouvoir du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live Embers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brasas vivas"
+          }
+        }
+      }
+    },
+    "Brasier" : {
+      "comment" : "Pouvoir du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blaze"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoguera"
           }
         }
       }
@@ -1559,6 +2234,39 @@
         }
       }
     },
+    "Butin de la première victoire" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First-win loot"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Botín de la primera victoria"
+          }
+        }
+      }
+    },
+    "Cadence" : {
+      "comment" : "Statistique d’équipement (cadence de tir)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fire rate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cadencia"
+          }
+        }
+      }
+    },
     "Cadence +25 %" : {
       "comment" : "Pouvoir",
       "localizations" : {
@@ -1576,6 +2284,91 @@
         }
       }
     },
+    "Cape" : {
+      "comment" : "Emplacement d’équipement",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloak"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capa"
+          }
+        }
+      }
+    },
+    "Cape de corbeau" : {
+      "comment" : "Objet (cape)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crow Cloak"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capa de cuervo"
+          }
+        }
+      }
+    },
+    "Cape de feutre" : {
+      "comment" : "Objet (cape)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Felt Cloak"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capa de fieltro"
+          }
+        }
+      }
+    },
+    "Cape de jute" : {
+      "comment" : "Objet (cape)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jute Cloak"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capa de yute"
+          }
+        }
+      }
+    },
+    "Cape des marais" : {
+      "comment" : "Objet (cape)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marsh Cloak"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capa del pantano"
+          }
+        }
+      }
+    },
     "Carte" : {
       "localizations" : {
         "en" : {
@@ -1588,6 +2381,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mapa"
+          }
+        }
+      }
+    },
+    "Ce héros est à toi : choisis-le dans l’écran Héros." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This hero is yours: choose him on the Heroes screen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este héroe es tuyo: elígelo en la pantalla Héroes."
+          }
+        }
+      }
+    },
+    "Celle qui a découpé la lune dans l’écran." : {
+      "comment" : "Ambiance de l’Aiguille du Trône de lune",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The one that cut the moon out of the screen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La que recortó la luna en la pantalla."
+          }
+        }
+      }
+    },
+    "Cendres ardentes" : {
+      "comment" : "Pouvoir du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Burning Ash"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cenizas ardientes"
           }
         }
       }
@@ -1625,6 +2468,23 @@
         }
       }
     },
+    "Changer de héros" : {
+      "comment" : "VoiceOver : un toucher passe au héros suivant",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch hero"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar de héroe"
+          }
+        }
+      }
+    },
     "Chapitre %lld" : {
       "localizations" : {
         "en" : {
@@ -1658,6 +2518,40 @@
         }
       }
     },
+    "Chaque étoile est un trou de lumière." : {
+      "comment" : "Ambiance du Manteau de nuit étoilée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every star is a hole of light."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada estrella es un agujero de luz."
+          }
+        }
+      }
+    },
+    "Charge en ligne droite après 0,6 s." : {
+      "comment" : "Bestiaire : comportement du loup",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Charges in a straight line after 0.6 s."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Embiste en línea recta tras 0,6 s."
+          }
+        }
+      }
+    },
     "Chauve-souris" : {
       "comment" : "Ennemi",
       "localizations" : {
@@ -1671,6 +2565,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Murciélago"
+          }
+        }
+      }
+    },
+    "Choisi" : {
+      "comment" : "Héros sélectionné",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chosen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegido"
+          }
+        }
+      }
+    },
+    "Choisir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir"
           }
         }
       }
@@ -1704,6 +2631,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tijeras afiladas"
+          }
+        }
+      }
+    },
+    "Ciseaux de lune" : {
+      "comment" : "Mécanique de l’Éclaireuse",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moon Scissors"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tijeras de luna"
           }
         }
       }
@@ -1743,6 +2687,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Coffre d’étoiles (%1$lld ★) : %2$@"
+          }
+        }
+      }
+    },
+    "Combustion" : {
+      "comment" : "Pouvoir du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Combustion"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Combustión"
           }
         }
       }
@@ -1885,6 +2846,23 @@
         }
       }
     },
+    "Contourne-le, ou frappe avec ta mécanique : le bouclier n’y peut rien." : {
+      "comment" : "Bestiaire : astuce contre le scarabée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go around it, or hit it with your signature move: the shield can’t stop that."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rodéalo o golpéalo con tu mecánica: el escudo no puede pararla."
+          }
+        }
+      }
+    },
     "Cornes et col d’or sur ton héros." : {
       "localizations" : {
         "en" : {
@@ -1950,6 +2928,40 @@
         }
       }
     },
+    "Cours pour prendre de l’élan, arrête-toi : la bourrasque balaie tout autour de toi." : {
+      "comment" : "Présentation du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run to build momentum, then stop: the gust sweeps everything around you."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corre para tomar impulso y detente: la ráfaga barre todo a tu alrededor."
+          }
+        }
+      }
+    },
+    "Cours pour prendre de l’élan…" : {
+      "comment" : "Combat, aide du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run to build momentum…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corre para tomar impulso…"
+          }
+        }
+      }
+    },
     "Crabe-ciseaux" : {
       "comment" : "Ennemi",
       "localizations" : {
@@ -1963,6 +2975,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cangrejo tijera"
+          }
+        }
+      }
+    },
+    "Crache une toile qui te ralentit." : {
+      "comment" : "Bestiaire : comportement de l’araignée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spits a web that slows you down."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escupe una telaraña que te ralentiza."
           }
         }
       }
@@ -1984,6 +3013,23 @@
         }
       }
     },
+    "Créature inconnue, %@" : {
+      "comment" : "VoiceOver : créature pas encore vaincue",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown creature, %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Criatura desconocida, %@"
+          }
+        }
+      }
+    },
     "Crédits" : {
       "localizations" : {
         "en" : {
@@ -2000,6 +3046,23 @@
         }
       }
     },
+    "Cœur de cire" : {
+      "comment" : "Objet (talisman)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wax Heart"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corazón de cera"
+          }
+        }
+      }
+    },
     "C’est fait ✓" : {
       "localizations" : {
         "en" : {
@@ -2012,6 +3075,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Hecho! ✓"
+          }
+        }
+      }
+    },
+    "Dard d’ambre" : {
+      "comment" : "Objet (aiguille)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amber Sting"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aguijón de ámbar"
+          }
+        }
+      }
+    },
+    "De loin, l’éventail s’ouvre : reste à distance." : {
+      "comment" : "Bestiaire : astuce contre l’archer squelette",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From afar the fan spreads out: keep your distance."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De lejos, el abanico se abre: mantén la distancia."
           }
         }
       }
@@ -2046,6 +3143,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dos agujas en diagonal"
+          }
+        }
+      }
+    },
+    "Deux trous, un sourire, beaucoup de courage." : {
+      "comment" : "Ambiance du Masque de papier",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Two holes, a smile, plenty of courage."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dos agujeros, una sonrisa y mucho valor."
           }
         }
       }
@@ -2096,6 +3210,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disponible"
+          }
+        }
+      }
+    },
+    "Débloque d’autres héros en avançant sur la carte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock more heroes by moving forward on the map"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloquea otros héroes avanzando en el mapa"
           }
         }
       }
@@ -2163,6 +3293,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Derrota"
+          }
+        }
+      }
+    },
+    "Dégâts" : {
+      "comment" : "Statistique d’équipement",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Damage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daño"
           }
         }
       }
@@ -2314,6 +3461,40 @@
         }
       }
     },
+    "Elle a cousu plus de rideaux que de batailles." : {
+      "comment" : "Ambiance de l’Aiguille de couturière",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It has sewn more curtains than battles."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha cosido más telones que batallas."
+          }
+        }
+      }
+    },
+    "Elle survole les obstacles : ne t’y cache pas." : {
+      "comment" : "Bestiaire : astuce contre la Wyverne de givre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It flies over obstacles: don’t hide behind them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sobrevuela los obstáculos: no te escondas tras ellos."
+          }
+        }
+      }
+    },
     "Encercle-le pour le découper" : {
       "comment" : "Aide du tutoriel : entourer l’ennemi avec le fil",
       "localizations" : {
@@ -2364,6 +3545,23 @@
         }
       }
     },
+    "Entoure tes ennemis de ton fil : la boucle refermée les découpe." : {
+      "comment" : "Présentation de l’Éclaireuse",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loop your thread around enemies: closing the loop cuts them out."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rodea a tus enemigos con tu hilo: al cerrar el lazo, los recortas."
+          }
+        }
+      }
+    },
     "Entracte" : {
       "localizations" : {
         "en" : {
@@ -2393,6 +3591,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esquiva"
+          }
+        }
+      }
+    },
+    "Essai" : {
+      "comment" : "Combat : essai d’un héros verrouillé (sans récompense)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trial"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prueba"
           }
         }
       }
@@ -2481,6 +3696,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Intentos restantes"
+          }
+        }
+      }
+    },
+    "Essayer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Probar"
+          }
+        }
+      }
+    },
+    "Fais-les marcher dans tes braises" : {
+      "comment" : "Combat, aide du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lead them through your embers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz que pisen tus brasas"
+          }
+        }
+      }
+    },
+    "Ferme ta boucle avant sa charge, ou esquive-la." : {
+      "comment" : "Bestiaire : astuce contre le crabe-ciseaux",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close your loop before it charges, or dodge."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cierra tu lazo antes de su embestida, o esquívala."
           }
         }
       }
@@ -2602,6 +3867,40 @@
         }
       }
     },
+    "File vers le fil de l’Éclaireuse et le grignote." : {
+      "comment" : "Bestiaire : comportement de la mite",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Darts at the Scout’s thread and nibbles it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Va directa al hilo de la Exploradora y lo mordisquea."
+          }
+        }
+      }
+    },
+    "Fin du royaume %@" : {
+      "comment" : "Bestiaire : boss pas encore vaincu (nom du royaume)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End of %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Final de %@"
+          }
+        }
+      }
+    },
     "Flamme" : {
       "comment" : "Pouvoir",
       "localizations" : {
@@ -2615,6 +3914,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Llama"
+          }
+        }
+      }
+    },
+    "Fonce sur toi, s’arrête et explose." : {
+      "comment" : "Bestiaire : comportement du lampion",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rushes at you, stops and explodes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se lanza hacia ti, se detiene y explota."
           }
         }
       }
@@ -2721,6 +4037,192 @@
         }
       }
     },
+    "Fournaise" : {
+      "comment" : "Pouvoir du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Furnace"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horno"
+          }
+        }
+      }
+    },
+    "Frappe 25 fois avec ta mécanique (découpes, bourrasques, ennemis brûlés)" : {
+      "comment" : "Quête du jour",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Land 25 signature hits (cuts, gusts, burned enemies)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Golpea 25 veces con tu mecánica (recortes, ráfagas, enemigos quemados)"
+          }
+        }
+      }
+    },
+    "Gagne 2 niveaux avec le Moine du vent" : {
+      "comment" : "Quête du jour",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Win 2 levels with the Wind Monk"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gana 2 niveles con el Monje del viento"
+          }
+        }
+      }
+    },
+    "Gagne 2 niveaux avec le Sorcier de braise" : {
+      "comment" : "Quête du jour",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Win 2 levels with the Ember Sorcerer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gana 2 niveles con el Hechicero de brasas"
+          }
+        }
+      }
+    },
+    "Gagne 2 niveaux avec l’Éclaireuse" : {
+      "comment" : "Quête du jour",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Win 2 levels with the Scout"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gana 2 niveles con la Exploradora"
+          }
+        }
+      }
+    },
+    "Gagne 3 niveaux" : {
+      "comment" : "Quête du jour",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Win 3 levels"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gana 3 niveles"
+          }
+        }
+      }
+    },
+    "Gagne des niveaux marqués d’un objet sur la carte pour remplir ton inventaire. Le premier arrive au niveau 3." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Win levels marked with an item on the map to fill your inventory. The first one comes at level 3."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gana los niveles marcados con un objeto en el mapa para llenar tu inventario. El primero llega en el nivel 3."
+          }
+        }
+      }
+    },
+    "Gagne un niveau en gardant plus de 90 % de tes PV" : {
+      "comment" : "Quête du jour",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Win a level while keeping over 90% of your HP"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gana un nivel conservando más del 90 % de tus PV"
+          }
+        }
+      }
+    },
+    "Garde de la place pour les petites gelées." : {
+      "comment" : "Bestiaire : astuce contre la gelée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leave room for the little jellies."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deja sitio para las gelatinas pequeñas."
+          }
+        }
+      }
+    },
+    "Garde ses distances et invoque des ombres." : {
+      "comment" : "Bestiaire : comportement du montreur d’ombres",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keeps its distance and summons shades."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda las distancias e invoca sombras."
+          }
+        }
+      }
+    },
+    "Garde un chemin sec pour bouger." : {
+      "comment" : "Bestiaire : astuce contre la Reine des marais",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep a dry path to move along."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda un camino seco para moverte."
+          }
+        }
+      }
+    },
     "Gelée" : {
       "comment" : "Ennemi",
       "localizations" : {
@@ -2820,6 +4322,23 @@
         }
       }
     },
+    "Grand souffle" : {
+      "comment" : "Pouvoir du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Big Breath"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gran soplo"
+          }
+        }
+      }
+    },
     "Gratuit" : {
       "localizations" : {
         "en" : {
@@ -2832,6 +4351,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gratis"
+          }
+        }
+      }
+    },
+    "Grelot de vent" : {
+      "comment" : "Objet (talisman)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wind Bell"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cascabel de viento"
+          }
+        }
+      }
+    },
+    "Grue de papier" : {
+      "comment" : "Objet (talisman)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paper Crane"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grulla de papel"
           }
         }
       }
@@ -2885,6 +4438,29 @@
         }
       }
     },
+    "Héros : %@, %@" : {
+      "comment" : "VoiceOver : héros joué au pré-niveau",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hero: %1$@, %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Héroe: %1$@, %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Héros : %1$@, %2$@"
+          }
+        }
+      }
+    },
     "Ici passera une courte vidéo d’un annonceur." : {
       "localizations" : {
         "en" : {
@@ -2897,6 +4473,158 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aquí se mostrará un vídeo corto de un anunciante."
+          }
+        }
+      }
+    },
+    "Il bat au rythme de la rampe." : {
+      "comment" : "Ambiance du Cœur de cire",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It beats in time with the footlights."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Late al ritmo de las candilejas."
+          }
+        }
+      }
+    },
+    "Il ne recule pas : entoure-le." : {
+      "comment" : "Bestiaire : astuce contre le gobelin",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It never backs off: loop around it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No retrocede: rodéalo."
+          }
+        }
+      }
+    },
+    "Il ne se divise plus." : {
+      "comment" : "Bestiaire : astuce contre la petite gelée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It doesn’t split any further."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya no se divide."
+          }
+        }
+      }
+    },
+    "Il reprend son souffle après chaque attaque." : {
+      "comment" : "Bestiaire : astuce contre le Treant colossal",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It catches its breath after every attack."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recupera el aliento tras cada ataque."
+          }
+        }
+      }
+    },
+    "Il tinte avant la bourrasque." : {
+      "comment" : "Ambiance du Grelot de vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It jingles before the gust."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tintinea antes de la ráfaga."
+          }
+        }
+      }
+    },
+    "Il voit dans le noir des coulisses." : {
+      "comment" : "Ambiance du Masque de chouette",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It sees in the dark of the wings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ve en la oscuridad entre bastidores."
+          }
+        }
+      }
+    },
+    "Immobile, lâche un anneau de huit spores." : {
+      "comment" : "Bestiaire : comportement du champignon",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stays put and releases a ring of eight spores."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inmóvil, suelta un anillo de ocho esporas."
+          }
+        }
+      }
+    },
+    "Inventaire" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inventory"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inventario"
+          }
+        }
+      }
+    },
+    "Invulnérable 0,6 s après une bourrasque" : {
+      "comment" : "Description du pouvoir Pas de plume",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invulnerable for 0.6 s after a gust"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invulnerable 0,6 s tras una ráfaga"
           }
         }
       }
@@ -3020,6 +4748,108 @@
         }
       }
     },
+    "La bourrasque laisse un tourbillon qui aspire" : {
+      "comment" : "Description du pouvoir Tourbillon",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The gust leaves a whirlwind that pulls enemies in"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La ráfaga deja un torbellino que atrae"
+          }
+        }
+      }
+    },
+    "La ligne du piqué s’annonce : pas de côté." : {
+      "comment" : "Bestiaire : astuce contre la chauve-souris",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The dive line shows first: step aside."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La línea del picado se anuncia: hazte a un lado."
+          }
+        }
+      }
+    },
+    "La traînée dure 35 % plus longtemps" : {
+      "comment" : "Description du pouvoir Braises vives",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The trail lasts 35% longer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La estela dura un 35 % más"
+          }
+        }
+      }
+    },
+    "La traînée ralentit de 35 % et brûle 2 × plus" : {
+      "comment" : "Description du pouvoir Fournaise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The trail slows by 35% and burns twice as hard"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La estela ralentiza un 35 % y quema el doble"
+          }
+        }
+      }
+    },
+    "Lampion" : {
+      "comment" : "Ennemi (chapitre 11)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lantern"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farolillo"
+          }
+        }
+      }
+    },
+    "Lance une pierre visée toutes les 3 s." : {
+      "comment" : "Bestiaire : comportement du gobelin",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Throws an aimed stone every 3 s."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lanza una piedra apuntada cada 3 s."
+          }
+        }
+      }
+    },
     "Le Trône de la Lune" : {
       "localizations" : {
         "en" : {
@@ -3032,6 +4862,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "El Trono de la Luna"
+          }
+        }
+      }
+    },
+    "Le choisir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose him"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegirlo"
+          }
+        }
+      }
+    },
+    "Le corbeau ne rate jamais un œil." : {
+      "comment" : "Ambiance de l’Épingle de corbeau",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A crow never misses an eye."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El cuervo nunca falla un ojo."
+          }
+        }
+      }
+    },
+    "Le feutre étouffe les pas." : {
+      "comment" : "Ambiance de la Cape de feutre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Felt muffles every step."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El fieltro amortigua los pasos."
           }
         }
       }
@@ -3066,6 +4946,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "El hilo dura un 40 % más"
+          }
+        }
+      }
+    },
+    "Le premier outil de tout marionnettiste." : {
+      "comment" : "Ambiance de la Bobine de fil",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every puppeteer’s first tool."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La primera herramienta de todo titiritero."
+          }
+        }
+      }
+    },
+    "Le renard file entre les ombres." : {
+      "comment" : "Ambiance du Masque de renard",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The fox slips between the shadows."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El zorro se escurre entre las sombras."
+          }
+        }
+      }
+    },
+    "Les aiguilles lui font trois fois plus mal." : {
+      "comment" : "Bestiaire : astuce contre la mite",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needles hurt it three times as much."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las agujas le hacen el triple de daño."
           }
         }
       }
@@ -3135,6 +5066,104 @@
         }
       }
     },
+    "Les objets se trouvent à la première victoire de certains niveaux (annoncés d’avance) ; chaque victoire rapporte des éclats pour les améliorer." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Items drop the first time you win certain levels (shown in advance); every win gives shards to upgrade them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los objetos se consiguen la primera vez que ganas ciertos niveles (anunciados de antemano); cada victoria da fragmentos para mejorarlos."
+          }
+        }
+      }
+    },
+    "Les projectiles ennemis brûlent dans la traînée" : {
+      "comment" : "Description du pouvoir Cendres ardentes",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enemy projectiles burn up in the trail"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los proyectiles enemigos arden en la estela"
+          }
+        }
+      }
+    },
+    "Les quêtes changent chaque jour à minuit. Elles comptent tes combats, gagnés ou non." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quests change every day at midnight. They count all your fights, won or lost."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las misiones cambian cada día a medianoche. Cuentan tus combates, ganados o no."
+          }
+        }
+      }
+    },
+    "Les spores passent entre leurs intervalles." : {
+      "comment" : "Bestiaire : astuce contre le champignon",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slip through the gaps between the spores."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasa por los huecos entre las esporas."
+          }
+        }
+      }
+    },
+    "Les talents valent pour tous les héros et toute la partie. Désactivés en tournoi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talents apply to every hero for the whole game. Disabled in tournaments."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los talentos valen para todos los héroes y toda la partida. Desactivados en los torneos."
+          }
+        }
+      }
+    },
+    "Les trois quêtes du jour" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All three daily quests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las tres misiones del día"
+          }
+        }
+      }
+    },
     "Lever le rideau" : {
       "localizations" : {
         "en" : {
@@ -3191,6 +5220,23 @@
         }
       }
     },
+    "Légendaire" : {
+      "comment" : "Rareté d’un pouvoir",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendary"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendario"
+          }
+        }
+      }
+    },
     "L’Ordre du Dragon t’offre des vies illimitées. Aucune publicité." : {
       "localizations" : {
         "en" : {
@@ -3240,6 +5286,23 @@
         }
       }
     },
+    "L’élan se charge 35 % plus vite" : {
+      "comment" : "Description du pouvoir Élan rapide",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Momentum builds 35% faster"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El impulso se carga un 35 % más rápido"
+          }
+        }
+      }
+    },
     "Mage de braise" : {
       "comment" : "Ennemi",
       "localizations" : {
@@ -3257,6 +5320,40 @@
         }
       }
     },
+    "Manteau de brume" : {
+      "comment" : "Objet (cape)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mist Mantle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manto de bruma"
+          }
+        }
+      }
+    },
+    "Manteau de nuit étoilée" : {
+      "comment" : "Objet légendaire (cape)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starry Night Mantle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manto de noche estrellada"
+          }
+        }
+      }
+    },
     "Marais des Lucioles" : {
       "comment" : "Royaume 2",
       "localizations" : {
@@ -3270,6 +5367,125 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pantano de las Luciérnagas"
+          }
+        }
+      }
+    },
+    "Masque" : {
+      "comment" : "Emplacement d’équipement",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mask"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máscara"
+          }
+        }
+      }
+    },
+    "Masque de braise" : {
+      "comment" : "Objet (masque)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ember Mask"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máscara de brasa"
+          }
+        }
+      }
+    },
+    "Masque de chouette" : {
+      "comment" : "Objet (masque)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Owl Mask"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máscara de búho"
+          }
+        }
+      }
+    },
+    "Masque de la lune noire" : {
+      "comment" : "Objet légendaire (masque)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Black Moon Mask"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máscara de la luna negra"
+          }
+        }
+      }
+    },
+    "Masque de loup" : {
+      "comment" : "Objet (masque)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wolf Mask"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máscara de lobo"
+          }
+        }
+      }
+    },
+    "Masque de papier" : {
+      "comment" : "Objet (masque)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paper Mask"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máscara de papel"
+          }
+        }
+      }
+    },
+    "Masque de renard" : {
+      "comment" : "Objet (masque)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fox Mask"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máscara de zorro"
           }
         }
       }
@@ -3370,6 +5586,23 @@
         }
       }
     },
+    "Mille plumes de papier noir." : {
+      "comment" : "Ambiance de la Cape de corbeau",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A thousand feathers of black paper."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mil plumas de papel negro."
+          }
+        }
+      }
+    },
     "Mite de papier" : {
       "comment" : "Ennemi",
       "localizations" : {
@@ -3400,6 +5633,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Monje del viento"
+          }
+        }
+      }
+    },
+    "Montreur d’ombres" : {
+      "comment" : "Ennemi (chapitre 14)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shadow Puppeteer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titiritero de sombras"
+          }
+        }
+      }
+    },
+    "Morceau de gelée, rapide." : {
+      "comment" : "Bestiaire : comportement de la petite gelée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A fast chunk of jelly."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trozo de gelatina, rápido."
           }
         }
       }
@@ -3524,6 +5791,23 @@
         }
       }
     },
+    "Ne t’arrête pas sur un cercle qui se referme." : {
+      "comment" : "Bestiaire : astuce contre le mage",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don’t stop on a closing circle."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No te detengas en un círculo que se cierra."
+          }
+        }
+      }
+    },
     "Ni les mites ni les crabes ne coupent le fil" : {
       "comment" : "Description du pouvoir Fil d’acier",
       "localizations" : {
@@ -3553,6 +5837,77 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nivel %lld"
+          }
+        }
+      }
+    },
+    "Niveau %lld / %lld" : {
+      "comment" : "Fiche d’objet : niveau actuel et niveau maximal",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %1$lld / %2$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nivel %1$lld / %2$lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niveau %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "Niveau déjà gagné : rejoue-le pour des éclats" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level already won: replay it for shards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nivel ya ganado: vuelve a jugarlo para conseguir fragmentos"
+          }
+        }
+      }
+    },
+    "Niveau maximal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max level"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nivel máximo"
+          }
+        }
+      }
+    },
+    "Niveau rejoué" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level replayed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nivel repetido"
           }
         }
       }
@@ -3590,6 +5945,39 @@
         }
       }
     },
+    "Nouveau" : {
+      "comment" : "Pré-niveau : ennemi présenté pour la première fois",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuevo"
+          }
+        }
+      }
+    },
+    "Nouveau héros !" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New hero!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Nuevo héroe!"
+          }
+        }
+      }
+    },
     "Nouveau meilleur score !" : {
       "localizations" : {
         "en" : {
@@ -3602,6 +5990,55 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Nueva mejor puntuación!"
+          }
+        }
+      }
+    },
+    "Nouvel objet !" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New item!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Objeto nuevo!"
+          }
+        }
+      }
+    },
+    "Nouvelles quêtes dans %@" : {
+      "comment" : "Quêtes : temps avant minuit",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New quests in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuevas misiones en %@"
+          }
+        }
+      }
+    },
+    "Objet ajouté à ton équipement ✓" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Item added to your gear ✓"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objeto añadido a tu equipo ✓"
           }
         }
       }
@@ -3635,6 +6072,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pack de inicio, pase de temporada y Orden del Dragón"
+          }
+        }
+      }
+    },
+    "Ombre" : {
+      "comment" : "Ennemi invoqué par le montreur d’ombres",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shade"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sombra"
+          }
+        }
+      }
+    },
+    "Ombre rapide et fragile, invoquée par le montreur." : {
+      "comment" : "Bestiaire : comportement de l’ombre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A fast, fragile shade summoned by the puppeteer."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sombra rápida y frágil, invocada por el titiritero."
+          }
+        }
+      }
+    },
+    "On le voit, puis on ne le voit plus." : {
+      "comment" : "Ambiance du Manteau de brume",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now you see it, now you don’t."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora se ve, ahora no."
           }
         }
       }
@@ -3816,6 +6304,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ANUNCIO SIMULADO"
+          }
+        }
+      }
+    },
+    "PV" : {
+      "comment" : "Statistique d’équipement (points de vie)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HP"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PV"
           }
         }
       }
@@ -4024,6 +6529,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No tienes suficiente oro"
+          }
+        }
+      }
+    },
+    "Pas assez d’éclats" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough shards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No tienes suficientes fragmentos"
+          }
+        }
+      }
+    },
+    "Pas de plume" : {
+      "comment" : "Pouvoir du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feather Step"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso de pluma"
           }
         }
       }
@@ -4317,6 +6855,23 @@
         }
       }
     },
+    "Pliée mille fois, elle porte chance." : {
+      "comment" : "Ambiance de la Grue de papier",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folded a thousand times, it brings luck."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doblada mil veces, trae suerte."
+          }
+        }
+      }
+    },
     "Plus de vies" : {
       "localizations" : {
         "en" : {
@@ -4361,6 +6916,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No te quedan intentos esta semana"
+          }
+        }
+      }
+    },
+    "Plus tard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más tarde"
           }
         }
       }
@@ -4432,6 +7003,23 @@
         }
       }
     },
+    "Pose une flaque de feu là où tu te tiens." : {
+      "comment" : "Bestiaire : comportement du mage",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drops a pool of fire where you stand."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pone un charco de fuego donde estás."
+          }
+        }
+      }
+    },
     "Potion" : {
       "comment" : "Bonus d’avant niveau",
       "localizations" : {
@@ -4465,6 +7053,23 @@
         }
       }
     },
+    "Pour le garder : %@." : {
+      "comment" : "Fin d’un essai : condition de déblocage du héros",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To keep him: %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para quedártelo: %@."
+          }
+        }
+      }
+    },
     "Premium" : {
       "localizations" : {
         "en" : {
@@ -4477,6 +7082,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Premium"
+          }
+        }
+      }
+    },
+    "Première victoire : des éclats d’amélioration" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First win: upgrade shards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Primera victoria: fragmentos de mejora"
+          }
+        }
+      }
+    },
+    "Pris au Loup d’ombre, crocs compris." : {
+      "comment" : "Ambiance du Masque de loup",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taken from the Shadow Wolf, fangs included."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrebatada al Lobo de sombra, colmillos incluidos."
           }
         }
       }
@@ -4643,6 +7281,23 @@
         }
       }
     },
+    "Quand il le porte, la scène retient son souffle." : {
+      "comment" : "Ambiance du Masque de la lune noire",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When it’s worn, the whole stage holds its breath."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando se lleva, el escenario contiene el aliento."
+          }
+        }
+      }
+    },
     "Quitter le niveau" : {
       "localizations" : {
         "en" : {
@@ -4659,18 +7314,68 @@
         }
       }
     },
-    "Rafales d’air. Commence avec Vitesse +20 %." : {
+    "Quêtes" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gusts of wind. Starts with Speed +20%."
+            "value" : "Quests"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ráfagas de viento. Empieza con Velocidad +20 %."
+            "value" : "Misiones"
+          }
+        }
+      }
+    },
+    "Quêtes du jour" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily quests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Misiones del día"
+          }
+        }
+      }
+    },
+    "Quêtes du jour, %lld à réclamer" : {
+      "comment" : "VoiceOver : étiquette des quêtes, récompenses à réclamer",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily quests, %lld to claim"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Misiones del día, %lld por reclamar"
+          }
+        }
+      }
+    },
+    "Rafale tranchante" : {
+      "comment" : "Pouvoir du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keen Gust"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ráfaga cortante"
           }
         }
       }
@@ -4726,6 +7431,39 @@
         }
       }
     },
+    "Recommencer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a empezar"
+          }
+        }
+      }
+    },
+    "Recycler (+%lld éclats)" : {
+      "comment" : "Recycler un objet : éclats rendus",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salvage (+%lld shards)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reciclar (+%lld fragmentos)"
+          }
+        }
+      }
+    },
     "Regarder une courte pub" : {
       "localizations" : {
         "en" : {
@@ -4755,6 +7493,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reina del pantano"
+          }
+        }
+      }
+    },
+    "Rejoue un niveau déjà gagné" : {
+      "comment" : "Quête du jour",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replay a level you’ve already won"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuelve a jugar un nivel ya ganado"
           }
         }
       }
@@ -4820,6 +7575,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se renueva el %@"
+          }
+        }
+      }
+    },
+    "Renvoie les projectiles pris dans la bourrasque" : {
+      "comment" : "Description du pouvoir Œil du cyclone",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sends back projectiles caught in the gust"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devuelve los proyectiles atrapados en la ráfaga"
           }
         }
       }
@@ -4900,6 +7672,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Restaurar compras"
+          }
+        }
+      }
+    },
+    "Retirer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unequip"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar"
+          }
+        }
+      }
+    },
+    "Reçu" : {
+      "comment" : "Quête : récompense déjà réclamée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claimed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recibido"
           }
         }
       }
@@ -5005,6 +7810,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reclamar %lld gemas"
+          }
+        }
+      }
+    },
+    "Récompense reçue ✓" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reward received ✓"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recompensa recibida ✓"
           }
         }
       }
@@ -5123,6 +7944,74 @@
         }
       }
     },
+    "Rêche, chaude, increvable." : {
+      "comment" : "Ambiance de la Cape de jute",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rough, warm, indestructible."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Áspera, cálida, indestructible."
+          }
+        }
+      }
+    },
+    "Sa charge tranche le fil de découpe." : {
+      "comment" : "Bestiaire : comportement du crabe-ciseaux",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Its charge cuts through your thread."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Su embestida corta el hilo."
+          }
+        }
+      }
+    },
+    "Sa marque s’annonce au sol : éloigne-toi d’elle." : {
+      "comment" : "Bestiaire : astuce contre le spectre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Its mark shows on the ground: move away from it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Su marca aparece en el suelo: aléjate de ella."
+          }
+        }
+      }
+    },
+    "Sac de %lld éclats" : {
+      "comment" : "Boutique : sac d’éclats d’amélioration (nombre d’éclats)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bag of %lld shards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bolsa de %lld fragmentos"
+          }
+        }
+      }
+    },
     "Saison %lld" : {
       "comment" : "Pass : numéro de saison",
       "localizations" : {
@@ -5192,6 +8081,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sala despejada"
+          }
+        }
+      }
+    },
+    "Scarabée-bouclier" : {
+      "comment" : "Ennemi (chapitre 13)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shield Beetle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escarabajo escudo"
           }
         }
       }
@@ -5285,6 +8191,40 @@
         }
       }
     },
+    "Ses yeux fument encore." : {
+      "comment" : "Ambiance du Masque de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Its eyes are still smoking."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sus ojos aún humean."
+          }
+        }
+      }
+    },
+    "Signature" : {
+      "comment" : "Statistique d’équipement : puissance de la mécanique du héros",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signature"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firma"
+          }
+        }
+      }
+    },
     "Soigne de 2 % des dégâts infligés" : {
       "comment" : "Description du pouvoir Vol de vie",
       "localizations" : {
@@ -5318,6 +8258,23 @@
         }
       }
     },
+    "Son bouclier arrête les aiguilles de face." : {
+      "comment" : "Bestiaire : comportement du scarabée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Its shield blocks needles from the front."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Su escudo detiene las agujas de frente."
+          }
+        }
+      }
+    },
     "Sorcier de braise" : {
       "comment" : "Héros",
       "localizations" : {
@@ -5331,6 +8288,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hechicero de brasas"
+          }
+        }
+      }
+    },
+    "Sors de la bande hachurée, il passe tout droit." : {
+      "comment" : "Bestiaire : astuce contre le loup",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leave the hatched strip: it runs straight past."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sal de la franja rayada: pasará de largo."
+          }
+        }
+      }
+    },
+    "Spectre de papier" : {
+      "comment" : "Ennemi (chapitre 15)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paper Specter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Espectro de papel"
           }
         }
       }
@@ -5364,6 +8355,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En cada victoria."
+          }
+        }
+      }
+    },
+    "S’efface, réapparaît près de toi et tire en anneau." : {
+      "comment" : "Bestiaire : comportement du spectre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fades out, reappears near you and fires a ring."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se desvanece, reaparece cerca de ti y dispara en anillo."
           }
         }
       }
@@ -5417,6 +8425,39 @@
         }
       }
     },
+    "Taillée dans un os de marionnette brisée." : {
+      "comment" : "Ambiance de l’Aiguille d’os",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carved from the bone of a broken puppet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tallada en el hueso de una marioneta rota."
+          }
+        }
+      }
+    },
+    "Talents" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talents"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talentos"
+          }
+        }
+      }
+    },
     "Talents permanents" : {
       "localizations" : {
         "en" : {
@@ -5449,6 +8490,40 @@
         }
       }
     },
+    "Talisman" : {
+      "comment" : "Emplacement d’équipement",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Charm"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talismán"
+          }
+        }
+      }
+    },
+    "Te poursuit et se divise en deux à sa mort." : {
+      "comment" : "Bestiaire : comportement de la gelée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chases you and splits in two when it dies."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te persigue y se divide en dos al morir."
+          }
+        }
+      }
+    },
     "Temps" : {
       "localizations" : {
         "en" : {
@@ -5465,19 +8540,70 @@
         }
       }
     },
-    "Terminer le Marais (niv. 120)" : {
-      "comment" : "Condition de déblocage du Sorcier de braise",
+    "Termine 2 niveaux avec 3 étoiles" : {
+      "comment" : "Quête du jour",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Clear the Swamp (lvl 120)"
+            "value" : "Clear 2 levels with 3 stars"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Supera el Pantano (niv. 120)"
+            "value" : "Supera 2 niveles con 3 estrellas"
+          }
+        }
+      }
+    },
+    "Terminer le niveau %lld" : {
+      "comment" : "Condition de déblocage d’un héros : numéro du niveau",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear level %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supera el nivel %lld"
+          }
+        }
+      }
+    },
+    "Terminer le niveau %lld · ou offre de départ" : {
+      "comment" : "Condition de déblocage du Moine du vent : numéro du niveau",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear level %lld · or starter pack"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supera el nivel %lld · o la oferta inicial"
+          }
+        }
+      }
+    },
+    "Terrasse un boss" : {
+      "comment" : "Quête du jour",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defeat a boss"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Derrota a un jefe"
           }
         }
       }
@@ -5511,6 +8637,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tus distinciones"
+          }
+        }
+      }
+    },
+    "Tes pas laissent des braises : attire tes poursuivants dans le feu." : {
+      "comment" : "Présentation du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your steps leave embers: lure your pursuers into the fire."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus pasos dejan brasas: atrae a tus perseguidores al fuego."
           }
         }
       }
@@ -5560,6 +8703,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dispara un 25 % más rápido"
+          }
+        }
+      }
+    },
+    "Tire trois flèches en éventail." : {
+      "comment" : "Bestiaire : comportement de l’archer squelette",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fires three arrows in a fan."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dispara tres flechas en abanico."
+          }
+        }
+      }
+    },
+    "Tissée par la Reine des marais pour son champion." : {
+      "comment" : "Ambiance de la Cape des marais",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Woven by the Swamp Queen for her champion."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tejida por la Reina del pantano para su campeón."
           }
         }
       }
@@ -5625,6 +8802,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tótem rúnico"
+          }
+        }
+      }
+    },
+    "Toucher encore pour recycler %@" : {
+      "comment" : "Confirmation du recyclage d’un objet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap again to salvage %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca otra vez para reciclar %@"
+          }
+        }
+      }
+    },
+    "Tourbillon" : {
+      "comment" : "Pouvoir du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whirlwind"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torbellino"
+          }
+        }
+      }
+    },
+    "Tourne avec l’étoile pour rester entre deux branches." : {
+      "comment" : "Bestiaire : astuce contre le totem",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Circle with the star to stay between two arms."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gira con la estrella para quedarte entre dos brazos."
           }
         }
       }
@@ -5782,6 +9010,57 @@
         }
       }
     },
+    "Traînée 40 % plus large" : {
+      "comment" : "Description du pouvoir Traînée large",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trail 40% wider"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estela un 40 % más ancha"
+          }
+        }
+      }
+    },
+    "Traînée de braises" : {
+      "comment" : "Mécanique du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ember Trail"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estela de brasas"
+          }
+        }
+      }
+    },
+    "Traînée large" : {
+      "comment" : "Pouvoir du Sorcier de braise",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wide Trail"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estela ancha"
+          }
+        }
+      }
+    },
     "Treant colossal" : {
       "comment" : "Boss du royaume 1",
       "localizations" : {
@@ -5799,6 +9078,23 @@
         }
       }
     },
+    "Trempée dans le premier quartier." : {
+      "comment" : "Ambiance de l’Aiguille lunaire",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempered in the first quarter moon."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Templada en el cuarto creciente."
+          }
+        }
+      }
+    },
     "Tribut de l’Ordre · réclamer" : {
       "localizations" : {
         "en" : {
@@ -5811,6 +9107,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tributo de la Orden · reclamar"
+          }
+        }
+      }
+    },
+    "Trois objets précis chaque jour, visibles avant l’achat. Les objets légendaires ne se gagnent qu’en battant les boss de fin de royaume." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Three specific items every day, shown before you buy. Legendary items can only be won by defeating the bosses at the end of each kingdom."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tres objetos concretos cada día, visibles antes de comprar. Los objetos legendarios solo se ganan derrotando a los jefes de final de reino."
           }
         }
       }
@@ -5847,6 +9159,23 @@
         }
       }
     },
+    "Tuer l’araignée fait disparaître ses toiles." : {
+      "comment" : "Bestiaire : astuce contre l’araignée",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Killing the spider removes its webs."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matar a la araña hace desaparecer sus telarañas."
+          }
+        }
+      }
+    },
     "Tueur d’élites" : {
       "comment" : "Pouvoir",
       "localizations" : {
@@ -5860,6 +9189,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cazaélites"
+          }
+        }
+      }
+    },
+    "Un disque d’encre devant la lune." : {
+      "comment" : "Ambiance de l’Éclipse",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A disc of ink in front of the moon."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un disco de tinta ante la luna."
+          }
+        }
+      }
+    },
+    "Un ennemi qui meurt en brûlant explose" : {
+      "comment" : "Description du pouvoir Combustion",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enemies that die while burning explode"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un enemigo que muere ardiendo explota"
           }
         }
       }
@@ -5880,6 +9243,23 @@
         }
       }
     },
+    "Un niveau déjà connu, sans vie ni récompense" : {
+      "comment" : "VoiceOver : ce que fait l’essai d’un héros",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A level you already know, no life lost and no reward"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un nivel que ya conoces, sin vidas ni recompensas"
+          }
+        }
+      }
+    },
     "Un orbe tourne et inflige 80 dégâts" : {
       "comment" : "Description du pouvoir Orbe gardien",
       "localizations" : {
@@ -5893,6 +9273,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Un orbe gira e inflige 80 de daño"
+          }
+        }
+      }
+    },
+    "Une bourrasque ou une boucle en emporte plusieurs." : {
+      "comment" : "Bestiaire : astuce contre l’ombre",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One gust or one loop takes out several."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una ráfaga o un lazo se llevan varias."
+          }
+        }
+      }
+    },
+    "Une braise qui ne veut pas mourir." : {
+      "comment" : "Ambiance de la Braise captive",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An ember that refuses to die."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una brasa que no quiere morir."
           }
         }
       }
@@ -5958,6 +9372,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oleada %lld"
+          }
+        }
+      }
+    },
+    "Vaincs 60 ennemis" : {
+      "comment" : "Quête du jour",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Defeat 60 enemies"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Derrota a 60 enemigos"
           }
         }
       }
@@ -6108,6 +9539,40 @@
         }
       }
     },
+    "Vise-le en premier : sans lui, plus d’ombres." : {
+      "comment" : "Bestiaire : astuce contre le montreur d’ombres",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target it first: no puppeteer, no shades."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apúntale primero: sin él, no hay sombras."
+          }
+        }
+      }
+    },
+    "Vitesse" : {
+      "comment" : "Statistique d’équipement",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Velocidad"
+          }
+        }
+      }
+    },
     "Vitesse +20 %" : {
       "comment" : "Pouvoir",
       "localizations" : {
@@ -6155,6 +9620,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Robo de vida"
+          }
+        }
+      }
+    },
+    "Vole en zigzag, puis pique en ligne droite." : {
+      "comment" : "Bestiaire : comportement de la chauve-souris",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flies in zigzags, then dives in a straight line."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuela en zigzag y luego se lanza en línea recta."
           }
         }
       }
@@ -6225,6 +9707,39 @@
         }
       }
     },
+    "butin : %@" : {
+      "comment" : "VoiceOver : objet de la première victoire d’un niveau",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "loot: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "botín: %@"
+          }
+        }
+      }
+    },
+    "change chaque jour" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "changes every day"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cambia cada día"
+          }
+        }
+      }
+    },
     "choisi" : {
       "comment" : "VoiceOver : héros sélectionné",
       "localizations" : {
@@ -6271,6 +9786,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "incluye +25 % de la Orden del Dragón"
+          }
+        }
+      }
+    },
+    "débloque %@" : {
+      "comment" : "VoiceOver : héros débloqué par ce niveau",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "unlocks %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "desbloquea %@"
           }
         }
       }
@@ -6375,6 +9907,40 @@
         }
       }
     },
+    "meilleur que l’objet porté" : {
+      "comment" : "VoiceOver : objet plus fort que celui équipé",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "better than the equipped item"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mejor que el objeto equipado"
+          }
+        }
+      }
+    },
+    "niveau %lld" : {
+      "comment" : "VoiceOver : niveau d’un objet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "level %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nivel %lld"
+          }
+        }
+      }
+    },
     "participation" : {
       "comment" : "Distinction du tournoi",
       "localizations" : {
@@ -6388,6 +9954,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "participación"
+          }
+        }
+      }
+    },
+    "porté" : {
+      "comment" : "VoiceOver : objet équipé",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "equipped"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "equipado"
           }
         }
       }
@@ -6560,6 +10143,23 @@
         }
       }
     },
+    "Éclipse" : {
+      "comment" : "Objet légendaire (talisman)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eclipse"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eclipse"
+          }
+        }
+      }
+    },
     "Égide" : {
       "comment" : "Bonus d’avant niveau (bouclier)",
       "localizations" : {
@@ -6577,6 +10177,57 @@
         }
       }
     },
+    "Élan et bourrasque" : {
+      "comment" : "Mécanique du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Momentum & Gust"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impulso y ráfaga"
+          }
+        }
+      }
+    },
+    "Élan rapide" : {
+      "comment" : "Pouvoir du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Momentum"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impulso rápido"
+          }
+        }
+      }
+    },
+    "Épingle de corbeau" : {
+      "comment" : "Objet (aiguille)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crow Pin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alfiler de cuervo"
+          }
+        }
+      }
+    },
     "Épique" : {
       "comment" : "Rareté d’un pouvoir",
       "localizations" : {
@@ -6590,6 +10241,87 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Épico"
+          }
+        }
+      }
+    },
+    "Équipement" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gear"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equipo"
+          }
+        }
+      }
+    },
+    "Équiper" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equip"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equipar"
+          }
+        }
+      }
+    },
+    "Équipé" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equipped"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equipado"
+          }
+        }
+      }
+    },
+    "Étal du colporteur" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peddler’s Stall"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puesto del buhonero"
+          }
+        }
+      }
+    },
+    "Étoile de six projectiles qui tourne." : {
+      "comment" : "Bestiaire : comportement du totem",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A rotating star of six projectiles."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estrella giratoria de seis proyectiles."
           }
         }
       }
@@ -6674,6 +10406,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "por reclamar"
+          }
+        }
+      }
+    },
+    "éclats" : {
+      "comment" : "Éclats d’amélioration (après le nombre)",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "shards"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "fragmentos"
+          }
+        }
+      }
+    },
+    "Œil du cyclone" : {
+      "comment" : "Pouvoir du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eye of the Storm"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ojo del ciclón"
+          }
+        }
+      }
+    },
+    "…puis arrête-toi près d’eux !" : {
+      "comment" : "Combat, aide du Moine du vent",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "…then stop near them!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "…¡y detente cerca de ellos!"
           }
         }
       }

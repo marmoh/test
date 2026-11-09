@@ -53,6 +53,14 @@ struct RootView: View {
             PreLevelView(n: n)
         case .heroes:
             HeroesView()
+        case .gear:
+            HeroesView(tab: .gear)
+        case .quests:
+            QuestsView()
+        case .bestiary:
+            BestiaryView()
+        case .heroUnlocked(let id):
+            HeroUnlockedView(hero: id)
         case .shop:
             ShopView()
         case .pass:
