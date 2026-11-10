@@ -35,8 +35,8 @@ struct DragonView: View {
         .storeButton(.visible, for: .restorePurchases)
         .storeButton(.visible, for: .policies)
         .storeButton(.visible, for: .cancellation)
-        .subscriptionStorePolicyDestination(for: .termsOfService) { PolicyText(kind: .terms) }
-        .subscriptionStorePolicyDestination(for: .privacyPolicy) { PolicyText(kind: .privacy) }
+        .subscriptionStorePolicyDestination(url: AppLinks.terms, for: .termsOfService)
+        .subscriptionStorePolicyDestination(url: AppLinks.privacy, for: .privacyPolicy)
         .tint(Theme.vermilion)
         .containerBackground(Theme.paper, for: .subscriptionStoreFullHeight)
         .onInAppPurchaseCompletion { _, result in
@@ -234,32 +234,6 @@ struct ActiveBadge: View {
             .padding(.horizontal, 6)
             .overlay(Rectangle().strokeBorder(Theme.jade, lineWidth: 1.5))
             .rotationEffect(.degrees(-3))
-    }
-}
-
-/// Conditions et confidentialité (textes définitifs à rédiger avant la soumission, voir TASKS M8).
-struct PolicyText: View {
-    enum Kind { case terms, privacy }
-    let kind: Kind
-
-    var body: some View {
-        ScrollView {
-            Text(kind == .terms ? Self.terms : Self.privacy)
-                .font(Theme.text(15))
-                .foregroundStyle(Theme.ink)
-                .padding(20)
-        }
-        .background(PaperBackground())
-    }
-
-    private static var terms: String {
-        String(localized: "Conditions d’utilisation\n\nL’Ordre du Dragon est un abonnement auto-renouvelable (\(Fmt.euros(4.99)) par mois ou \(Fmt.euros(39.99)) par an), avec un essai gratuit de \(DragonPerks.trialDays) jours la première fois. Le paiement est débité sur ton identifiant Apple à la confirmation de l’achat ou à la fin de l’essai. L’abonnement se renouvelle automatiquement sauf résiliation au moins 24 h avant la fin de la période en cours, depuis les réglages de l’App Store.",
-               comment: "Texte provisoire des conditions d’utilisation (prix mensuel, prix annuel, jours d’essai)")
-    }
-
-    private static var privacy: String {
-        String(localized: "Politique de confidentialité\n\nTa progression est enregistrée sur ton appareil et dans ton iCloud. Aucun compte, aucun traçage. Si tu choisis de regarder une publicité pour gagner une vie, le réseau publicitaire peut traiter des données techniques ; elles ne servent à personnaliser les publicités que si tu l’autorises dans les Réglages du jeu et dans iOS.",
-               comment: "Texte provisoire de la politique de confidentialité")
     }
 }
 

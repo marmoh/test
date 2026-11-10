@@ -1,0 +1,16 @@
+Ombrelune is a single-player action game for iPhone, in French, English and Spanish (it follows the device language). No account or login is needed.
+
+How to play: on the title screen, tap the button under the title to raise the curtain, then tap level 1 on the map and Play. Drag one finger anywhere on the screen to move the heroine; as she moves she unwinds a thread behind her. Close a loop around enemies and they are cut out of the paper; stand still and her needles fire on their own. Between rooms, choose 1 power out of 3.
+
+In-app purchases (Shop tab at the bottom of the map, prices from the App Store):
+- Gems, consumables: Handful (100 gems), Pouch (550), Chest (1,200). Credited once per transaction. Gems refill lives, continue a level once, and buy bonuses in the Shop.
+- Starter Offer, non-consumable, once: 300 gems, the Wind Monk hero and 5 bonuses.
+- Season Pass 1 and Season Pass 2, non-consumables (Pass tab): unlock the premium track of that season's pass. Season 1 runs from November 2 to December 14, 2026; Season 2 starts on December 14, 2026, and its product is included now so that it is approved in time.
+- Order of the Dragon, auto-renewable subscription (one group, monthly or yearly, 3-day free trial for new subscribers): unlimited lives, 60 gems per week to claim on the map, +25% gold and the Dragon Regalia cosmetic. It is offered in the Shop, in Settings (Manage subscription) and when the player runs out of lives; never during a level. The subscription screen shows each plan's price, period and free trial, Apple's renewal terms, and links to the Terms of Use (Apple's standard EULA) and the Privacy Policy.
+- Restore purchases: in Settings, at the bottom of the Shop, and on the subscription screen.
+
+There are no random items, loot boxes or paid chances: every reward is shown in advance.
+
+Game Center: one recurring weekly leaderboard, "Tournoi de la semaine" (Tournament tab): the same level for everyone, 5 attempts per week that cannot be bought; boosts and talents are disabled. Without Game Center sign-in, the tournament can still be played and the score is sent after signing in.
+
+Data: progress is stored on the device and synced across the player's devices with iCloud key-value storage. No ads, no analytics, no tracking; we collect no data.

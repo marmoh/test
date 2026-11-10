@@ -40,14 +40,26 @@ struct SettingsView: View {
                     }
 
                     SectionTitle(text: "Confidentialité")
-                    row("Publicités personnalisées", hint: "Désactivé par défaut. L’activer ouvre la demande de suivi d’Apple.", isOn: $settings.personalizedAds)
-                    if let attNote {
-                        Text(attNote).font(Theme.note()).foregroundStyle(Theme.vermilion).padding(.top, 6)
+                    if AdConfig.enabled {
+                        row("Publicités personnalisées", hint: "Désactivé par défaut. L’activer ouvre la demande de suivi d’Apple.", isOn: $settings.personalizedAds)
+                        if let attNote {
+                            Text(attNote).font(Theme.note()).foregroundStyle(Theme.vermilion).padding(.top, 6)
+                        }
                     }
-                    Text("Ta progression reste sur ton appareil et dans ton iCloud. Aucun compte, aucun traçage. La seule publicité est celle que tu choisis de regarder pour gagner une vie : \(RewardedAdPolicy.perDay) par jour au plus, jamais pendant un niveau ni en tournoi, jamais pour les membres de l’Ordre. Sans ton accord, elle n’est pas personnalisée.")
+                    Text(AdConfig.enabled
+                         ? String(localized: "Ta progression reste sur ton appareil et dans ton iCloud. Aucun compte, aucun traçage. La seule publicité est celle que tu choisis de regarder pour gagner une vie : \(RewardedAdPolicy.perDay) par jour au plus, jamais pendant un niveau ni en tournoi, jamais pour les membres de l’Ordre. Sans ton accord, elle n’est pas personnalisée.")
+                         : String(localized: "Ta progression reste sur ton appareil et dans ton iCloud. Aucun compte, aucune publicité, aucun traçage."))
                         .font(Theme.note())
                         .foregroundStyle(Theme.ink2)
                         .padding(.top, 10)
+                    Link(destination: AppLinks.privacy) {
+                        Text("Politique de confidentialité").underline()
+                    }
+                    .font(Theme.note()).foregroundStyle(Theme.ink).padding(.top, 6)
+                    Link(destination: AppLinks.support) {
+                        Text("Assistance").underline()
+                    }
+                    .font(Theme.note()).foregroundStyle(Theme.ink).padding(.top, 4)
 
                     SectionTitle(text: "Crédits")
                     credits

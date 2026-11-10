@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Feuille « Vies » / « Plus de vies » : ouverte depuis le compteur de vies de la carte, ou quand on veut
-/// jouer sans vie. Propose la publicité récompensée (+1 vie, à la demande) et la recharge en gemmes.
+/// jouer sans vie. Propose la publicité récompensée (+1 vie, à la demande, si `AdConfig.enabled`) et la recharge en gemmes.
 /// Jamais présentée en combat ni en tournoi. Même contenu que `livesSheet` (web).
 struct LivesView: View {
     let lives: LivesCenter
@@ -54,31 +54,33 @@ struct LivesView: View {
             .accessibilityLabel(dragon ? String(localized: "Vies illimitées") : String(localized: "\(state.lives) vies restantes", comment: "VoiceOver : vies restantes"))
 
             if dragon {
-                Text("L’Ordre du Dragon t’offre des vies illimitées. Aucune publicité.")
+                Text(AdConfig.enabled ? "L’Ordre du Dragon t’offre des vies illimitées. Aucune publicité." as LocalizedStringKey : "L’Ordre du Dragon t’offre des vies illimitées.")
                     .font(Theme.text(16)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
             } else {
                 Text(nextLifeText)
                     .font(Theme.text(16)).foregroundStyle(Theme.ink2).monospacedDigit()
 
-                Button {
-                    Task { await watchAd() }
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack {
-                            Text("Regarder une courte pub")
-                            Spacer()
-                            Text(verbatim: "+1 ♥").font(Theme.text(17, weight: .heavy))
-                                .foregroundStyle(Theme.ink)
-                                .padding(.horizontal, 10)
-                                .background(Theme.cut)
-                                .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2))
+                if AdConfig.enabled {
+                    Button {
+                        Task { await watchAd() }
+                    } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text("Regarder une courte pub")
+                                Spacer()
+                                Text(verbatim: "+1 ♥").font(Theme.text(17, weight: .heavy))
+                                    .foregroundStyle(Theme.ink)
+                                    .padding(.horizontal, 10)
+                                    .background(Theme.cut)
+                                    .overlay(Rectangle().strokeBorder(Theme.ink, lineWidth: 2))
+                            }
+                            Text(adLabel(ad)).font(Theme.note(13))
                         }
-                        Text(adLabel(ad)).font(Theme.note(13))
                     }
+                    .buttonStyle(InkButtonStyle(kind: .jade))
+                    .disabled(!ad.ok || busy || !ads.isReady)
+                    .opacity(ad.ok ? 1 : 0.55)
                 }
-                .buttonStyle(InkButtonStyle(kind: .jade))
-                .disabled(!ad.ok || busy || !ads.isReady)
-                .opacity(ad.ok ? 1 : 0.55)
 
                 Button {
                     toast = lives.refill(using: wallet) ? String(localized: "Vies remplies") : String(localized: "Pas assez de gemmes")
@@ -96,10 +98,12 @@ struct LivesView: View {
                 .buttonStyle(InkButtonStyle(kind: .ghost))
                 .disabled(state.lives >= LivesState.max)
 
-                Text(settings.personalizedAds
-                     ? String(localized: "Publicités uniquement si tu le demandes, jamais pendant un niveau ni en tournoi. \(RewardedAdPolicy.perDay) par jour au plus.")
-                     : String(localized: "Publicités uniquement si tu le demandes, jamais pendant un niveau ni en tournoi. \(RewardedAdPolicy.perDay) par jour au plus, non personnalisées."))
-                    .font(Theme.note(13)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
+                if AdConfig.enabled {
+                    Text(settings.personalizedAds
+                         ? String(localized: "Publicités uniquement si tu le demandes, jamais pendant un niveau ni en tournoi. \(RewardedAdPolicy.perDay) par jour au plus.")
+                         : String(localized: "Publicités uniquement si tu le demandes, jamais pendant un niveau ni en tournoi. \(RewardedAdPolicy.perDay) par jour au plus, non personnalisées."))
+                        .font(Theme.note(13)).foregroundStyle(Theme.ink2).multilineTextAlignment(.center)
+                }
             }
         }
     }

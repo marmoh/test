@@ -32,7 +32,8 @@ struct ShopView: View {
                             if app.buyBonus(k) { app.show(String(localized: "C’est fait ✓")) }
                         }
                     }
-                    Text("Paiements sécurisés par l’App Store. Aucun objet aléatoire. Publicité seulement si tu la demandes, contre une vie.")
+                    Text(AdConfig.enabled ? "Paiements sécurisés par l’App Store. Aucun objet aléatoire. Publicité seulement si tu la demandes, contre une vie." as LocalizedStringKey
+                                          : "Paiements sécurisés par l’App Store. Aucun objet aléatoire. Aucune publicité.")
                         .font(Theme.note(12)).foregroundStyle(Theme.ink2).padding(.top, 8)
                     Button("Restaurer les achats") {
                         Task {

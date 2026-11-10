@@ -1,0 +1,13 @@
+:root{--ink:#1b1418;--paper:#efe3c6;--vermilion:#c2412d;--gold:#c9a24a}
+html{background:var(--paper)}
+body{margin:0 auto;max-width:680px;padding:48px 20px 64px;background:var(--paper);color:var(--ink);
+  font:18px/1.6 "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+h1{font-weight:600;letter-spacing:.18em;text-align:center;margin:0 0 4px}
+.sub{text-align:center;color:var(--vermilion);font-style:italic;margin:0 0 28px}
+h2{font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--vermilion);margin:36px 0 8px;font-weight:700;
+  border-top:3px solid var(--gold);padding-top:12px}
+.orn{text-align:center;color:var(--gold);margin:24px 0}
+a{color:var(--vermilion)}
+small{opacity:.7}
+.langs{text-align:center;font-size:15px;margin:-16px 0 28px}
+section{margin-bottom:8px}

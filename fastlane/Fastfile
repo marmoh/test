@@ -111,6 +111,51 @@ def fr(item)
   item["localizations"].find { |l| l["locale"].start_with?("fr") }
 end
 
+# Réserve, envoie et valide un fichier (captures de la fiche, etc.).
+def upload_asset(type, relationships, file)
+  bytes = File.binread(file)
+  reserved = asc(:post, "/v1/#{type}", data: {
+    type: type, attributes: { fileName: File.basename(file), fileSize: bytes.bytesize }, relationships: relationships
+  })["data"]
+  reserved.dig("attributes", "uploadOperations").each do |op|
+    uri = URI(op["url"])
+    req = Net::HTTP.const_get(op["method"].capitalize).new(uri)
+    op["requestHeaders"].each { |h| req[h["name"]] = h["value"] }
+    req.body = bytes.byteslice(op["offset"], op["length"])
+    res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |http| http.request(req) }
+    UI.user_error!("Envoi de #{File.basename(file)} → #{res.code}") unless res.code.to_i.between?(200, 299)
+  end
+  asc(:patch, "/v1/#{type}/#{reserved['id']}", data: { type: type, id: reserved["id"],
+    attributes: { uploaded: true, sourceFileChecksum: Digest::MD5.hexdigest(bytes) } })
+  reserved["id"]
+end
+
+# Fiche App Store de la version 1.0 (lane `listing`).
+LISTING_VERSION = "1.0"
+LISTING_LOCALES = %w[fr-FR en-US es-ES].freeze
+COPYRIGHT = "2026 MH Conseil & Stratégie"
+CATEGORIES = { primaryCategory: "GAMES", primarySubcategoryOne: "GAMES_ACTION", primarySubcategoryTwo: "GAMES_ADVENTURE" }.freeze
+# Classification par âge : violence de fantaisie légère (marionnettes d'ombre découpées), rien d'autre ;
+# pas de publicité (version 1.0, DECISIONS #73), pas d'objet aléatoire payant, ni messagerie ni contenu des joueurs.
+AGE_RATING = {
+  alcoholTobaccoOrDrugUseOrReferences: "NONE", contests: "NONE", gamblingSimulated: "NONE", gunsOrOtherWeapons: "NONE",
+  horrorOrFearThemes: "NONE", matureOrSuggestiveThemes: "NONE", medicalOrTreatmentInformation: "NONE",
+  profanityOrCrudeHumor: "NONE", sexualContentGraphicAndNudity: "NONE", sexualContentOrNudity: "NONE",
+  violenceCartoonOrFantasy: "INFREQUENT_OR_MILD", violenceRealistic: "NONE", violenceRealisticProlongedGraphicOrSadistic: "NONE",
+  advertising: false, gambling: false, healthOrWellnessTopics: false, lootBox: false, messagingAndChat: false,
+  parentalControls: false, ageAssurance: false, unrestrictedWebAccess: false, userGeneratedContent: false, socialMedia: false
+}.freeze
+SCREEN_LOCALE = { "fr-FR" => "fr", "en-US" => "en", "es-ES" => "es" }.freeze
+SCREEN_TYPE = "APP_IPHONE_67" # emplacement 6,9 po (1320 × 2868)
+# Le contact pour la vérification est repris d'une app déjà publiée du compte (« À qui le tour ? ») :
+# rien de personnel n'est écrit dans ce dépôt public.
+CONTACT_FROM_BUNDLE = "com.marmoh.aquiletour"
+
+def meta(locale, field)
+  f = File.join(FASTLANE_DIR, "metadata", locale, "#{field}.txt")
+  File.exist?(f) ? File.read(f).strip : nil
+end
+
 # ───────────────────────────── lanes ─────────────────────────────
 
 default_platform(:ios)
@@ -407,6 +452,156 @@ platform :ios do
         attributes: { uploaded: true, sourceFileChecksum: Digest::MD5.hexdigest(bytes) }
       })
       UI.success("+ #{pid} : #{File.basename(file)}")
+    end
+  end
+
+  desc "Fiche App Store 1.0 : textes fr/en/es, catégories, âge, captures, prix, pays, contact, Game Center (apply:true pour envoyer, build:N pour attacher un build)"
+  lane :listing do |options|
+    apply = options[:apply].to_s == "true"
+    say = ->(msg) { apply ? UI.success("✓ #{msg}") : UI.important("→ #{msg}") }
+    UI.message(apply ? "Envoi sur App Store Connect" : "Simulation : rien n'est envoyé (apply:true pour envoyer)")
+
+    # 1. Version : numéro, copyright, sortie après validation
+    version = asc_all("/v1/apps/#{app_id}/appStoreVersions?filter[platform]=IOS&limit=10")
+              .find { |v| %w[PREPARE_FOR_SUBMISSION DEVELOPER_REJECTED REJECTED METADATA_REJECTED].include?(v.dig("attributes", "appStoreState")) }
+    UI.user_error!("Aucune version modifiable") unless version
+    vattrs = { versionString: LISTING_VERSION, copyright: COPYRIGHT, releaseType: "AFTER_APPROVAL" }
+              .reject { |k, v| version.dig("attributes", k.to_s) == v }
+    unless vattrs.empty?
+      say.("version : #{vattrs.map { |k, v| "#{k} « #{v} »" }.join(', ')}")
+      asc(:patch, "/v1/appStoreVersions/#{version['id']}", data: { type: "appStoreVersions", id: version["id"], attributes: vattrs }) if apply
+    end
+
+    # 2. App : droits sur le contenu (aucun contenu de tiers)
+    app = asc(:get, "/v1/apps/#{app_id}")["data"]
+    unless app.dig("attributes", "contentRightsDeclaration") == "DOES_NOT_USE_THIRD_PARTY_CONTENT"
+      say.("droits sur le contenu : aucun contenu de tiers")
+      asc(:patch, "/v1/apps/#{app_id}", data: { type: "apps", id: app_id,
+        attributes: { contentRightsDeclaration: "DOES_NOT_USE_THIRD_PARTY_CONTENT" } }) if apply
+    end
+
+    # 3. Catégories
+    info = asc_all("/v1/apps/#{app_id}/appInfos?limit=5").find { |i| i.dig("attributes", "state") != "READY_FOR_DISTRIBUTION" }
+    say.("catégories : #{CATEGORIES.values.join(' · ')}")
+    asc(:patch, "/v1/appInfos/#{info['id']}", data: { type: "appInfos", id: info["id"],
+      relationships: CATEGORIES.transform_values { |c| rel("appCategories", c) } }) if apply
+
+    # 4. Nom, sous-titre, confidentialité (par langue)
+    infolocs = asc_all("/v1/appInfos/#{info['id']}/appInfoLocalizations?limit=50").to_h { |l| [l.dig("attributes", "locale"), l] }
+    LISTING_LOCALES.each do |loc|
+      attrs = { name: meta(loc, "name"), subtitle: meta(loc, "subtitle"), privacyPolicyUrl: meta(loc, "privacy_url") }
+      if (l = infolocs[loc])
+        diff = attrs.reject { |k, v| l.dig("attributes", k.to_s) == v }
+        next if diff.empty?
+        say.("#{loc} infos : #{diff.map { |k, v| "#{k} « #{v} »" }.join(', ')}")
+        asc(:patch, "/v1/appInfoLocalizations/#{l['id']}", data: { type: "appInfoLocalizations", id: l["id"], attributes: diff }) if apply
+      else
+        say.("#{loc} infos (nouvelle langue) : #{attrs.map { |k, v| "#{k} « #{v} »" }.join(', ')}")
+        asc(:post, "/v1/appInfoLocalizations", data: { type: "appInfoLocalizations", attributes: attrs.merge(locale: loc),
+          relationships: { appInfo: rel("appInfos", info["id"]) } }) if apply
+      end
+    end
+
+    # 5. Description, mots-clés, texte promotionnel, assistance (par langue) et captures 6,9 po
+    vlocs = asc_all("/v1/appStoreVersions/#{version['id']}/appStoreVersionLocalizations?limit=50").to_h { |l| [l.dig("attributes", "locale"), l] }
+    LISTING_LOCALES.each do |loc|
+      attrs = { description: meta(loc, "description"), keywords: meta(loc, "keywords"),
+                promotionalText: meta(loc, "promotional_text"), supportUrl: meta(loc, "support_url") }
+      UI.user_error!("#{loc} : description > 4000 caractères") if attrs[:description].size > 4000
+      UI.user_error!("#{loc} : mots-clés > 100 caractères") if attrs[:keywords].size > 100
+      l = vlocs[loc]
+      if l
+        diff = attrs.reject { |k, v| l.dig("attributes", k.to_s) == v }
+        unless diff.empty?
+          say.("#{loc} fiche : #{diff.keys.join(', ')}")
+          asc(:patch, "/v1/appStoreVersionLocalizations/#{l['id']}", data: { type: "appStoreVersionLocalizations", id: l["id"], attributes: diff }) if apply
+        end
+      else
+        say.("#{loc} fiche (nouvelle langue) : #{attrs.keys.join(', ')}")
+        l = asc(:post, "/v1/appStoreVersionLocalizations", data: { type: "appStoreVersionLocalizations", attributes: attrs.merge(locale: loc),
+          relationships: { appStoreVersion: rel("appStoreVersions", version["id"]) } })["data"] if apply
+      end
+      files = Dir[File.join(ROOT, "docs", "screens", "appstore", SCREEN_LOCALE[loc], "*.png")].sort
+      next if files.empty?
+      existing = l ? asc_all("/v1/appStoreVersionLocalizations/#{l['id']}/appScreenshotSets?limit=50")
+                       .find { |st| st.dig("attributes", "screenshotDisplayType") == SCREEN_TYPE } : nil
+      count = existing ? asc_all("/v1/appScreenshotSets/#{existing['id']}/appScreenshots?limit=50").size : 0
+      next UI.message("= #{loc} : #{count} captures déjà en place, laissées telles quelles") if count > 0
+      say.("#{loc} captures 6,9 po : #{files.map { |f| File.basename(f) }.join(', ')}")
+      next unless apply
+      set = existing || asc(:post, "/v1/appScreenshotSets", data: { type: "appScreenshotSets", attributes: { screenshotDisplayType: SCREEN_TYPE },
+        relationships: { appStoreVersionLocalization: rel("appStoreVersionLocalizations", l["id"]) } })["data"]
+      files.each { |f| upload_asset("appScreenshots", { appScreenshotSet: rel("appScreenshotSets", set["id"]) }, f) }
+    end
+
+    # 6. Classification par âge
+    age = asc(:get, "/v1/appInfos/#{info['id']}/ageRatingDeclaration")["data"]
+    diff = AGE_RATING.reject { |k, v| age.dig("attributes", k.to_s) == v }
+    unless diff.empty?
+      say.("classification par âge : #{diff.size} réponses (violence de fantaisie légère, le reste « aucun » / « non »)")
+      asc(:patch, "/v1/ageRatingDeclarations/#{age['id']}", data: { type: "ageRatingDeclarations", id: age["id"], attributes: diff }) if apply
+    end
+
+    # 7. Contact et notes pour la vérification
+    ref = asc(:get, "/v1/apps?filter[bundleId]=#{CONTACT_FROM_BUNDLE}")["data"].first
+    ref_version = asc_all("/v1/apps/#{ref['id']}/appStoreVersions?filter[appStoreState]=READY_FOR_SALE&limit=1").first
+    contact = asc(:get, "/v1/appStoreVersions/#{ref_version['id']}/appStoreReviewDetail")["data"]["attributes"]
+                .slice("contactFirstName", "contactLastName", "contactPhone", "contactEmail")
+    notes = File.read(File.join(FASTLANE_DIR, "metadata", "review_notes.txt")).strip
+    UI.user_error!("Notes de vérification > 4000 caractères") if notes.size > 4000
+    rattrs = contact.merge("notes" => notes, "demoAccountRequired" => false)
+    rd = asc(:get, "/v1/appStoreVersions/#{version['id']}/appStoreReviewDetail")["data"]
+    if rd
+      diff = rattrs.reject { |k, v| rd.dig("attributes", k) == v }
+      unless diff.empty?
+        say.("vérification : #{diff.keys.join(', ')} (contact repris de #{CONTACT_FROM_BUNDLE})")
+        asc(:patch, "/v1/appStoreReviewDetails/#{rd['id']}", data: { type: "appStoreReviewDetails", id: rd["id"], attributes: diff }) if apply
+      end
+    else
+      say.("vérification : contact repris de #{CONTACT_FROM_BUNDLE}, notes (#{notes.size} caractères)")
+      asc(:post, "/v1/appStoreReviewDetails", data: { type: "appStoreReviewDetails", attributes: rattrs,
+        relationships: { appStoreVersion: rel("appStoreVersions", version["id"]) } }) if apply
+    end
+
+    # 8. Prix : gratuit
+    manual = (asc_all("/v1/appPriceSchedules/#{app_id}/manualPrices?limit=10") rescue [])
+    if manual.empty?
+      free = asc_all("/v1/apps/#{app_id}/appPricePoints?filter[territory]=#{BASE_TERRITORY}&limit=200")
+             .find { |p| p.dig("attributes", "customerPrice").to_f.zero? }
+      say.("prix : gratuit (pays de référence #{BASE_TERRITORY})")
+      asc(:post, "/v1/appPriceSchedules", data: { type: "appPriceSchedules",
+        relationships: { app: rel("apps", app_id), baseTerritory: rel("territories", BASE_TERRITORY),
+                         manualPrices: { data: [{ type: "appPrices", id: "${free}" }] } } },
+        included: [{ type: "appPrices", id: "${free}", attributes: { startDate: nil },
+                     relationships: { appPricePoint: rel("appPricePoints", free["id"]) } }]) if apply
+    end
+
+    # 9. Disponibilité : tous les pays, et les futurs
+    avail = (asc(:get, "/v1/apps/#{app_id}/appAvailabilityV2")["data"] rescue nil)
+    unless avail
+      say.("disponibilité : #{territories.size} pays et les nouveaux pays")
+      asc(:post, "/v2/appAvailabilities", data: { type: "appAvailabilities", attributes: { availableInNewTerritories: true },
+        relationships: { app: rel("apps", app_id),
+                         territoryAvailabilities: { data: territories.map { |t| { type: "territoryAvailabilities", id: "${#{t[:id]}}" } } } } },
+        included: territories.map { |t| { type: "territoryAvailabilities", id: "${#{t[:id]}}", attributes: { available: true },
+                                          relationships: { territory: rel("territories", t[:id]) } } }) if apply
+    end
+
+    # 10. Game Center activé pour cette version
+    gcv = (asc(:get, "/v1/appStoreVersions/#{version['id']}/gameCenterAppVersion")["data"] rescue nil)
+    unless gcv
+      say.("Game Center activé pour la version #{LISTING_VERSION}")
+      asc(:post, "/v1/gameCenterAppVersions", data: { type: "gameCenterAppVersions",
+        relationships: { appStoreVersion: rel("appStoreVersions", version["id"]) } }) if apply
+    end
+
+    # 11. Build
+    if (number = options[:build])
+      build = asc(:get, "/v1/builds?filter[app]=#{app_id}&filter[version]=#{number}&filter[preReleaseVersion.version]=#{LISTING_VERSION}&limit=1")["data"].first
+      UI.user_error!("Build #{LISTING_VERSION} (#{number}) introuvable") unless build
+      UI.user_error!("Build #{number} pas encore traité (#{build.dig('attributes', 'processingState')})") unless build.dig("attributes", "processingState") == "VALID"
+      say.("build #{LISTING_VERSION} (#{number}) attaché à la version")
+      asc(:patch, "/v1/appStoreVersions/#{version['id']}/relationships/build", data: { type: "builds", id: build["id"] }) if apply
     end
   end
 

@@ -6677,6 +6677,86 @@
           }
         }
       }
+    },
+    "L’Ordre du Dragon t’offre des vies illimitées." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Order of the Dragon gives you unlimited lives."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Orden del Dragón te da vidas ilimitadas."
+          }
+        }
+      }
+    },
+    "Paiements sécurisés par l’App Store. Aucun objet aléatoire. Aucune publicité." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payments secured by the App Store. No random items. No ads."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagos protegidos por el App Store. Ningún objeto aleatorio. Sin publicidad."
+          }
+        }
+      }
+    },
+    "Ta progression reste sur ton appareil et dans ton iCloud. Aucun compte, aucune publicité, aucun traçage." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your progress stays on your device and in your iCloud. No account, no ads, no tracking."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu progreso se queda en tu dispositivo y en tu iCloud. Sin cuenta, sin publicidad, sin rastreo."
+          }
+        }
+      }
+    },
+    "Politique de confidentialité" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidad"
+          }
+        }
+      }
+    },
+    "Assistance" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayuda"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

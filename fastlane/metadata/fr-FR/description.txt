@@ -22,7 +22,7 @@ UN TOURNOI CHAQUE SEMAINE
 UN JEU HONNÊTE
 • Aucun objet aléatoire, aucune loot box, aucune monnaie à probabilités.
 • Les vies reviennent toutes seules ; une vie n’est retirée qu’en cas de défaite.
-• La seule publicité est celle que tu choisis de regarder pour gagner une vie. Jamais pendant un niveau.
+• Aucune publicité, aucun traçage.
 • Rien ne s’achète pour le tournoi.
 
 ACHATS FACULTATIFS
@@ -31,3 +31,6 @@ ACHATS FACULTATIFS
 
 Progression sauvegardée sur ton appareil et dans iCloud. Aucun compte à créer.
 Sons et musique synthétisés en direct ; polices sous licence SIL Open Font License.
+
+Conditions d’utilisation (contrat de licence standard d’Apple) : https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Politique de confidentialité : https://marmoh.github.io/ombrelune-site/confidentialite.html

@@ -12,8 +12,8 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "0.1.0"
-    CURRENT_PROJECT_VERSION: "2"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "3"
     # Mode Swift 5 + vérifications de concurrence ciblées (avertissements, pas d'erreurs).
     # Le cœur (`Core/`) compile sans avertissement en mode Swift 6 strict (vérifié sous Linux).
     SWIFT_VERSION: "5.0"
@@ -83,7 +83,6 @@ targets:
           - AlegreyaSans-MediumItalic.ttf
         # ATT : demandé seulement quand le joueur active « Publicités personnalisées » (Réglages).
         # Texte français ici ; traductions dans Resources/InfoPlist.xcstrings.
-        NSUserTrackingUsageDescription: "Permet d’afficher des publicités adaptées quand tu choisis d’en regarder une pour gagner une vie."
         GKGameCenterBadgingDisabled: false
     entitlements:
       path: Ombrelune.entitlements

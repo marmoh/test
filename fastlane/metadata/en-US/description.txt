@@ -22,7 +22,7 @@ A WEEKLY TOURNAMENT
 A FAIR GAME
 • No random items, no loot boxes, no gacha currency.
 • Lives refill on their own; you only lose one when you’re defeated.
-• The only ads are the ones you choose to watch to earn a life. Never during a level.
+• No ads, no tracking.
 • Nothing can be bought for the tournament.
 
 OPTIONAL PURCHASES
@@ -31,3 +31,6 @@ OPTIONAL PURCHASES
 
 Progress is saved on your device and in iCloud. No account needed.
 Sounds and music are synthesized live; fonts under the SIL Open Font License.
+
+Terms of Use (Apple’s standard license agreement): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://marmoh.github.io/ombrelune-site/confidentialite.html#en

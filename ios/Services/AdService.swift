@@ -34,6 +34,22 @@ import AppTrackingTransparency
     elles ne connaissent que `AdService` et `RewardedAdPolicy`.
  */
 
+/// Version 1.0 publiée sans réseau publicitaire (DECISIONS #73) : la publicité récompensée « +1 vie », le réglage
+/// « Publicités personnalisées » et la demande de suivi (ATT) sont masqués, et l'App Store déclare « Aucune donnée
+/// collectée ». Passer à `true` une fois le vrai service branché (étapes ci-dessus), avec
+/// `NSUserTrackingUsageDescription` remis dans `project.yml` et la confidentialité mise à jour.
+enum AdConfig {
+    static let enabled = false
+}
+
+/// Liens publics (site d'assistance publié par GitHub Pages depuis `site/`).
+enum AppLinks {
+    static let support = URL(string: "https://marmoh.github.io/ombrelune-site/")!
+    static let privacy = URL(string: "https://marmoh.github.io/ombrelune-site/confidentialite.html")!
+    /// Conditions d'utilisation : contrat de licence standard d'Apple (EULA).
+    static let terms = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
+}
+
 enum AdResult: Equatable, Sendable {
     /// Vue jusqu'au bout : créditer la vie.
     case rewarded
