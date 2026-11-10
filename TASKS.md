@@ -79,8 +79,9 @@ Légende : [x] fait · [~] en cours · [ ] à faire
 - [x] Recette dans le simulateur et captures (`docs/screens/ios/`)
 - [x] Archive Release signée et export App Store local vérifié (certificat Apple Distribution, profil App Store) — rien d'envoyé
 - [x] App Store Connect par l'API (fastlane) : achats intégrés, pass saison 2, Ordre du Dragon (groupe 22548846 reporté dans le code), classement du tournoi, build TestFlight — `docs/MAC_PHASE.md` §15
-- [ ] Site d'Apple : accord Applications payantes, envoi de la fiche App Store (`fastlane/metadata/`) — §14
+- [x] Fiche App Store 1.0 par l'API (`fastlane listing`) : textes fr/en/es, captures, âge, prix, pays, Game Center, contact, build 1.0 (3) — §14
+- [ ] Site d'Apple : accord Applications payantes, confidentialité de l'app, produits à cocher, soumission — §14
 - [ ] Réseau publicitaire réel (identifiants AdMob, `app-ads.txt`, étiquette de confidentialité) — §9 et §14.7
 - [x] Fil court et progressif (retour de test) : 2,2 s au départ, Fil long +40 % × 3, talent Encre lente, une carte de fil par tirage, aiguilles à 30 % ; 300 niveaux recalés, traces régénérées sous Rosetta (DECISIONS #71, #72)
 - [ ] Profilage sur iPhone 11 (§11)
-- [ ] Conditions d'utilisation et politique de confidentialité définitives (liens sous l'offre d'abonnement)
+- [x] Conditions d'utilisation (EULA standard d'Apple) et politique de confidentialité (`site/`), liées sous l'offre d'abonnement (DECISIONS #73)

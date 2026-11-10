@@ -239,7 +239,8 @@ Le détail est en tête de `ios/Services/AdService.swift` ; résumé :
 - Particules d'ambiance par royaume (lucioles, spores, sable, neige, braises) du web : non portées.
 - Musique : boîte à musique synthétisée, comme le web ; sons et musique suivent les Réglages.
 - Saison 3 et suivantes du pass : produit à ajouter avant chaque saison (§6.3).
-- Textes légaux définitifs (TASKS M8) : `PolicyText` de `UI/DragonView.swift` est un brouillon.
+- Textes légaux : politique de confidentialité et assistance dans `site/` (GitHub Pages `marmoh/ombrelune-site`) ;
+  conditions d'utilisation = contrat de licence standard d'Apple (DECISIONS #73).
 
 ## 14. À faire sur le site d'Apple (valeurs exactes)
 
@@ -247,6 +248,14 @@ Le détail est en tête de `ios/Services/AdService.swift` ; résumé :
 **22548846**, reporté dans `ProductID.dragonGroupID` et le `.storekit`) et §14.6. Les produits sont en état
 leurs captures pour la vérification (`fastlane review_screenshots` : boutique, ou écran du pass pour les pass) et
 leurs localisations anglaise et espagnole, ainsi que celles du groupe (`fastlane localize`), sont envoyées. Builds 0.1.0 (1) et 0.1.0 (2, nouveau fil court et progressif) validés sur TestFlight.
+**Fait le 10 novembre 2026 par l'API** (`fastlane listing apply:true build:3`, §15) : fiche de la version **1.0** en
+français, anglais et espagnol (nom, sous-titre, description avec liens vers les conditions et la confidentialité,
+mots-clés, texte promotionnel, URL d'assistance et de confidentialité), 5 captures 6,9 po par langue
+(`docs/screens/appstore/`), catégories Jeux › Action et Aventure, classification par âge (violence de fantaisie légère,
+pas de publicité), droits sur le contenu, copyright, gratuit dans 175 pays, Game Center activé pour la version, contact
+et notes pour la vérification (`fastlane/metadata/review_notes.txt`), build 1.0 (3) attaché.
+Reste sur le site, juste avant de soumettre : la confidentialité de l'app (« Aucune donnée collectée »), les
+8 produits et le classement à cocher sur la page de la version, puis « Soumettre pour vérification ».
 Reste aussi §14.1 et §14.7.
 L'App ID `com.marmoh.ombrelune` a été créé par Xcode (équipe P42VAGHFV3) avec Game Center et iCloud.
 
